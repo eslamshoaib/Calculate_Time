@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>برنامج تعديل وحساب فروق التوقيتات</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: #f0f2f5;
+            color: #333;
+            direction: rtl;
+            text-align: right;
+            padding: 20px;
+        }
+        .container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: 20px auto;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #007BFF;
+        }
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background: #007BFF;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        p {
+            font-size: 18px;
+        }
+        .icon {
+            margin-right: 5px;
+            color: #007BFF;
+        }
+        .time-diff {
+            font-weight: bold;
+            color: #dc3545;
+        }
+        .adjusted-time {
+            font-weight: bold;
+            color: #28a745;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-clock icon"></i>برنامج حساب فرق التوقيتات وتعديلها</h1>
+        
+        <label for="dvrDateTime"><i class="fas fa-video icon"></i>تاريخ ووقت جهاز DVR: </label>
+        <input type="datetime-local" id="dvrDateTime" required>
+        <br><br>
+
+        <label for="currentDateTimeInput"><i class="fas fa-calendar-alt icon"></i>الوقت الحالي: </label>
+        <input type="datetime-local" id="currentDateTimeInput">
+        <p id="currentDateTime"></p>
+        <br><br>
+
+        <label for="timeDifference"><i class="fas fa-hourglass-half icon"></i>الفرق الزمني: </label>
+        <p id="timeDifference" class="time-diff"></p>
+        <br><br>
+  <button onclick="calculateDifference()"><i class="fas fa-calculator icon"></i>حساب الفرق الزمني</button>
+        <br><br>
+        
+        <label for="newDateTime"><i class="fas fa-edit icon"></i>اضف التاريخ والوقت الصحيح المراد مراجعته على هذا ال DVR: </label>
+        <input type="datetime-local" id="newDateTime" required>
+        <br><br>
+        
+        <button onclick="adjustNewDateTime()"><i class="fas fa-edit icon"></i>تعديل الوقت</button>
+        <br><br>
+
+        <p id="result" class="adjusted-time"></p>
+    </div>
+
+    <script>
+        let timeDiff = 0;
+
+        function calculateDifference() {
+            // الحصول على تاريخ ووقت جهاز DVR
+            const dvrDateTime = document.getElementById('dvrDateTime').value;
+            const dvrDate = new Date(dvrDateTime);
+
+            // الحصول على الوقت الحالي
+            const currentDateInput = document.getElementById('currentDateTimeInput').value;
+            const currentDateTime = currentDateInput ? new Date(currentDateInput) : new Date();
+            
+            // حساب الفرق الزمني
+            timeDiff = currentDateTime - dvrDate;
+
+            // عرض الوقت الحالي
+            const formattedCurrentTime = currentDateTime.toLocaleString('ar-EG', {
+                year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit', second: '2-digit'
+            });
+            document.getElementById('currentDateTime').innerText = formattedCurrentTime;
+
+            // تحويل الفرق الزمني إلى أيام وساعات ودقائق
+            const diffMilliseconds = Math.abs(timeDiff);
+            const diffDays = Math.floor(diffMilliseconds / (1000 * 60 * 60 * 24));
+            const diffHours = Math.floor((diffMilliseconds % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const diffMinutes = Math.floor((diffMilliseconds % (1000 * 60 * 60)) / (1000 * 60));
+            const diffSeconds = Math.floor((diffMilliseconds % (1000 * 60)) / 1000);
+            const formattedTimeDiff = `${diffDays} أيام، ${diffHours} ساعات، ${diffMinutes} دقائق، ${diffSeconds} ثوان`;
+
+            // عرض الفرق الزمني
+            const timeDiffString = (timeDiff >= 0) ? 
+                `${timeDiff} مللي ثانية (${formattedTimeDiff})` : 
+                `${timeDiff} مللي ثانية  (${formattedTimeDiff})`;
+            document.getElementById('timeDifference').innerText = timeDiffString;
+        }
+
+        function adjustNewDateTime() {
+            // الحصول على التاريخ والوقت الجديد
+            const newDateTime = document.getElementById('newDateTime').value;
+            const newDate = new Date(newDateTime);
+            
+            // تعديل الوقت الجديد بناءً على الفرق الزمني
+            let adjustedTime;
+            if (timeDiff > 0) {
+                // إذا كان الفرق الزمني موجبًا، اطرح الفرق
+                adjustedTime = new Date(newDate.getTime() - timeDiff);
+            } else {
+                // إذا كان الفرق الزمني سالبًا، أضف الفرق
+                adjustedTime = new Date(newDate.getTime() + Math.abs(timeDiff));
+            }
+
+            // تنسيق الوقت المعدل
+            const adjustedYear = adjustedTime.getFullYear();
+            const adjustedMonth = (adjustedTime.getMonth() + 1).toString().padStart(2, '0');
+            const adjustedDay = adjustedTime.getDate().toString().padStart(2, '0');
+            const adjustedHours = adjustedTime.getHours().toString().padStart(2, '0');
+            const adjustedMinutes = adjustedTime.getMinutes().toString().padStart(2, '0');
+            const adjustedSeconds = adjustedTime.getSeconds().toString().padStart(2, '0');
+            const formattedAdjustedTime = `${adjustedYear}-${adjustedMonth}-${adjustedDay} ${adjustedHours}:${adjustedMinutes}:${adjustedSeconds}`;
+
+            // عرض النتيجة
+            document.getElementById('result').innerText = 'الوقت المعدل: ' + formattedAdjustedTime;
+        }
+    </script>
+    <h1><i class="fas fa-clock icon"></i> عمل النقيب/ اسلام شعيب </h1>
+</body>
+</html>
