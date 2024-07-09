@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحويل الاحداثيات الي ملف جوجل ايرث</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        input[type="file"], select {
+            margin-bottom: 10px;
+        }
+        label {
+            margin-bottom: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            margin-bottom: 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        h2 {
+            animation: moveText 2s infinite alternate;
+        }
+        @keyframes moveText {
+            from { transform: translateX(0); }
+            to { transform: translateX(10px); }
+        }
+    </style>
+</head>
+<body>
+    <h1>تحويل الاحداثيات الي ملف جوجل ايرث</h1>
+    <input type="file" id="excel-file" accept=".xls,.xlsx">
+    <label for="longitude-column">Longitude Column:</label>
+    <select id="longitude-column">
+        <!-- Options will be populated dynamically -->
+    </select>
+    <label for="latitude-column">Latitude Column:</label>
+    <select id="latitude-column">
+        <!-- Options will be populated dynamically -->
+    </select>
+    <label for="name-column">Name Column:</label>
+    <select id="name-column">
+        <!-- Options will be populated dynamically -->
+    </select>
+    <button onclick="convertToKML()">Convert to KML</button>
+    <button onclick="convertToKMZ()">Convert to KMZ</button>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+    <script>
+        function convertToKML() {
+            const input = document.getElementById('excel-file');
+            const file = input.files[0];
+            const fileName = file.name.split('.').slice(0, -1).join('.');
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
+                const longitudeIndex = document.getElementById('longitude-column').value;
+                const latitudeIndex = document.getElementById('latitude-column').value;
+                const nameIndex = document.getElementById('name-column').value;
+                const kmlContent = generateKML(jsonData, longitudeIndex, latitudeIndex, nameIndex);
+                downloadFile(kmlContent, `${fileName}.kml`);
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        function convertToKMZ() {
+            const input = document.getElementById('excel-file');
+            const file = input.files[0];
+            const fileName = file.name.split('.').slice(0, -1).join('.');
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
+                const longitudeIndex = document.getElementById('longitude-column').value;
+                const latitudeIndex = document.getElementById('latitude-column').value;
+                const nameIndex = document.getElementById('name-column').value;
+                const kmlContent = generateKML(jsonData, longitudeIndex, latitudeIndex, nameIndex);
+                generateKMZ(kmlContent, `${fileName}.kmz`);
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        function generateKML(data, longitudeIndex, latitudeIndex, nameIndex) {
+            let kmlContent = `<?xml version="1.0" encoding="UTF-8"?>
+                <kml xmlns="http://www.opengis.net/kml/2.2">
+                    <Document>`;
+            
+            // Use an object to track coordinates and their counts
+            const coordinatesCount = {};
+
+            // First pass: count occurrences of each coordinate
+            for (let i = 1; i < data.length; i++) {
+                const latitude = data[i][latitudeIndex];
+                const longitude = data[i][longitudeIndex];
+                const coordinates = `${longitude},${latitude}`;
+                if (!coordinatesCount[coordinates]) {
+                    coordinatesCount[coordinates] = { name: data[i][nameIndex], count: 0 };
+                }
+                coordinatesCount[coordinates].count++;
+            }
+
+            // Loop through data to create placemarks
+            for (const coordinates in coordinatesCount) {
+                const latitude = coordinates.split(',')[1];
+                const longitude = coordinates.split(',')[0];
+                const name = coordinatesCount[coordinates].name;
+                const count = coordinatesCount[coordinates].count;
+                
+                kmlContent += `
+                    <Placemark>
+                        <name>${name} (Count: ${count})</name>
+                        <Style>
+                            <IconStyle>
+                                <Icon>
+                                    <href>https://maps.google.com/mapfiles/kml/paddle/red-circle.png</href>
+                                </Icon>
+                            </IconStyle>
+                        </Style>
+                        <Point>
+                            <coordinates>${longitude},${latitude},0</coordinates>
+                        </Point>
+                    </Placemark>`;
+            }
+
+            kmlContent += `
+                    </Document>
+                </kml>`;
+            return kmlContent;
+        }
+
+        function generateKMZ(kmlContent, fileName) {
+            const zip = new JSZip();
+            zip.file('doc.kml', kmlContent);
+            return zip.generateAsync({ type: 'blob' }).then(function (content) {
+                const url = URL.createObjectURL(content);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                }, 0);
+            });
+        }
+
+        function downloadFile(content, fileName) {
+            const blob = new Blob([content], { type: 'application/octet-stream' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild
+            (a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }, 0);
+        }
+
+        function updateColumnOptions() {
+            const input = document.getElementById('excel-file');
+            const file = input.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const headers = Object.keys(firstSheet).filter(key => key.match(/[A-Z]+1/));
+                const longitudeSelect = document.getElementById('longitude-column');
+                const latitudeSelect = document.getElementById('latitude-column');
+                const nameSelect = document.getElementById('name-column');
+
+                // Clear existing options
+                longitudeSelect.innerHTML = '';
+                latitudeSelect.innerHTML = '';
+                nameSelect.innerHTML = '';
+
+                // Populate options with header names
+                headers.forEach((header, index) => {
+                    const option = document.createElement('option');
+                    option.value = index;
+                    option.textContent = firstSheet[header].v;
+                    longitudeSelect.appendChild(option.cloneNode(true));
+                    latitudeSelect.appendChild(option.cloneNode(true));
+                    nameSelect.appendChild(option.cloneNode(true));
+                });
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Call updateColumnOptions when file input changes
+        document.getElementById('excel-file').addEventListener('change', updateColumnOptions);
+    </script>
+    <h2>نقيب/اسلام شعيب</h2>
+</body>
+</html>
