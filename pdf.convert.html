@@ -88,6 +88,7 @@
                 const arrayBuffer = await file.arrayBuffer();
                 const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
                 const pdfText = await extractTextFromPdf(pdf);
+
                 const worksheet = XLSX.utils.aoa_to_sheet(pdfText);
                 const workbook = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
@@ -101,13 +102,15 @@
         }
 
         async function extractTextFromPdf(pdf) {
-            let text = [];
+            const text = [];
 
             for (let i = 0; i < pdf.numPages; i++) {
                 const page = await pdf.getPage(i + 1);
                 const textContent = await page.getTextContent();
-                const rows = textContent.items.map(item => [item.str]);
-                text = text.concat(rows);
+
+                // Convert text content into rows for Excel
+                let pageText = textContent.items.map(item => item.str).join(' ');
+                text.push([pageText]);
             }
 
             return text;
