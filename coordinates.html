@@ -24,7 +24,7 @@
             text-align: center;
         }
 
-        h1 {
+        h1, h2 {
             color: #333;
         }
         h2 {
@@ -97,10 +97,10 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container" id="form1">
         <h2>تحويل لاحداثي جوجل</h2>
         <form id="coordinateForm">
-            <label for="inputText">  ضع الكارنت هنا  </label>
+            <label for="inputText"> ضع الكارنت هنا </label>
             <div class="arrow-down"></div>
             <textarea id="inputText" placeholder="أدخل النصوص هنا..."></textarea>
             <button type="button" onclick="extractCoordinates()">تحويل</button>
@@ -108,11 +108,43 @@
         <p id="result"></p>
         <h2>عمل النقيب / اسلام شعيب </h2>
     </div>
+    <div class="container" id="form2" style="display: none;">
+        <h1>تحويل الإحداثيات إلى رابط خرائط جوجل</h1>
+        <form id="manualCoordinateForm">
+            <div class="coordinate-input">
+                <label for="latitude-direction">خط العرض:</label>
+                <select id="latitude-direction">
+                    <option value="N">N</option>
+                    <option value="S">S</option>
+                </select>
+                <input type="number" id="latitude-degrees" placeholder="°" min="0" max="90">
+                <input type="number" id="latitude-minutes" placeholder="'" min="0" max="59">
+                <input type="number" id="latitude-seconds" placeholder='"' step="0.001" min="0" max="59.999">
+            </div>
+            <div class="coordinate-input">
+                <label for="longitude-direction">خط الطول:</label>
+                <select id="longitude-direction">
+                    <option value="E">E</option>
+                    <option value="W">W</option>
+                </select>
+                <input type="number" id="longitude-degrees" placeholder="°" min="0" max="180">
+                <input type="number" id="longitude-minutes" placeholder="'" min="0" max="59">
+                <input type="number" id="longitude-seconds" placeholder='"' step="0.001" min="0" max="59.999">
+            </div>
+            <button type="button" onclick="convertCoordinates()">تحويل</button>
+        </form>
+        <p id="manualResult"></p>
+    </div>
     <script>
         function extractCoordinates() {
             const inputText = document.getElementById('inputText').value;
-            const regex = /Location:.*?N\s*(\d+)\s*(\d+)\s*([\d.]+).*?E\s*(\d+)\s*(\d+)\s*([\d.]+)/i;
-            const match = regex.exec(inputText);
+            const regex1 = /Location:.*?N\s*(\d+)-(\d+)-([\d.]+).*?E\s*(\d+)-(\d+)-([\d.]+)/i;
+            const regex2 = /Location:.*?N\s*(\d+)\s*(\d+)\s*([\d.]+).*?E\s*(\d+)\s*(\d+)\s*([\d.]+)/i;
+            let match = regex1.exec(inputText);
+
+            if (!match) {
+                match = regex2.exec(inputText);
+            }
 
             if (match) {
                 const latDegrees = parseFloat(match[1]);
@@ -128,7 +160,30 @@
                 const googleMapsLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
                 document.getElementById('result').innerHTML = `<a href="${googleMapsLink}" target="_blank">عرض في خرائط جوجل</a>`;
             } else {
-                document.getElementById('result').textContent = 'لم يتم العثور على إحداثيات صالحة.';
+                document.getElementById('form1').style.display = 'none';
+                document.getElementById('form2').style.display = 'block';
+            }
+        }
+
+        function convertCoordinates() {
+            const latDirection = document.getElementById('latitude-direction').value;
+            const latDegrees = parseFloat(document.getElementById('latitude-degrees').value) || 0;
+            const latMinutes = parseFloat(document.getElementById('latitude-minutes').value) || 0;
+            const latSeconds = parseFloat(document.getElementById('latitude-seconds').value) || 0;
+
+            const lonDirection = document.getElementById('longitude-direction').value;
+            const lonDegrees = parseFloat(document.getElementById('longitude-degrees').value) || 0;
+            const lonMinutes = parseFloat(document.getElementById('longitude-minutes').value) || 0;
+            const lonSeconds = parseFloat(document.getElementById('longitude-seconds').value) || 0;
+
+            const latitude = convertDMSToDecimal(latDegrees, latMinutes, latSeconds, latDirection);
+            const longitude = convertDMSToDecimal(lonDegrees, lonMinutes, lonSeconds, lonDirection);
+
+            if (!isNaN(latitude) && !isNaN(longitude)) {
+                const googleMapsLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
+                document.getElementById('manualResult').innerHTML = `<a href="${googleMapsLink}" target="_blank">عرض في خرائط جوجل</a>`;
+            } else {
+                document.getElementById('manualResult').textContent = 'يرجى إدخال إحداثيات صالحة.';
             }
         }
 
