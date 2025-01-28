@@ -13,19 +13,19 @@
             align-items: center;
             height: 100vh;
             overflow: hidden;
-            background: linear-gradient(120deg, #ff9a9e, #fad0c4);
+            background: linear-gradient(to bottom right, #1e3c72, #2a5298);
             animation: gradientAnimation 6s infinite alternate;
         }
 
         @keyframes gradientAnimation {
             0% {
-                background: linear-gradient(120deg, #ff9a9e, #fad0c4);
+                background: linear-gradient(to bottom right, #1e3c72, #2a5298);
             }
             50% {
-                background: linear-gradient(120deg, #a18cd1, #fbc2eb);
+                background: linear-gradient(to bottom right, #3a6073, #16222a);
             }
             100% {
-                background: linear-gradient(120deg, #84fab0, #8fd3f4);
+                background: linear-gradient(to bottom right, #1e3c72, #2a5298);
             }
         }
 
@@ -80,15 +80,27 @@
             font-size: 18px;
             color: #555;
         }
+
+        .language-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            background: #f0f0f0;
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
     </style>
 </head>
 <body>
+    <div class="language-toggle" onclick="toggleLanguage()">Switch to Arabic</div>
     <div class="card">
-        <h1>Age Calculator</h1>
+        <h1 id="title">Age Calculator</h1>
         <div class="dropdown-container">
             <select id="day">
                 <option value="" disabled selected>Day</option>
-                <!-- Days 1-31 -->
                 <script>
                     for (let i = 1; i <= 31; i++) {
                         document.write(`<option value="${i}">${i}</option>`);
@@ -132,17 +144,44 @@
             const birthDate = new Date(year, month - 1, day);
             const today = new Date();
 
-            let age = today.getFullYear() - birthDate.getFullYear();
-            const monthDifference = today.getMonth() - birthDate.getMonth();
-            
-            if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
-                age--;
-            }
+            const totalDays = Math.floor((today - birthDate) / (1000 * 60 * 60 * 24));
+            const years = Math.floor(totalDays / 365.25);
+            const remainingDays = totalDays % 365.25;
+            const months = Math.floor(remainingDays / 30.44);
+            const days = Math.round(remainingDays % 30.44);
 
-            if (age < 0) {
+            if (years < 0) {
                 document.getElementById('result').innerText = 'Invalid date. Please try again.';
             } else {
-                document.getElementById('result').innerText = `Your age is ${age} years.`;
+                document.getElementById('result').innerText = `Your age is ${years} years, ${months} months, and ${days} days.`;
+            }
+        }
+
+        function toggleLanguage() {
+            const langToggle = document.querySelector('.language-toggle');
+            const title = document.getElementById('title');
+            const result = document.getElementById('result');
+            const button = document.querySelector('button');
+            const daySelect = document.getElementById('day');
+            const monthSelect = document.getElementById('month');
+            const yearSelect = document.getElementById('year');
+
+            if (langToggle.innerText === 'Switch to Arabic') {
+                langToggle.innerText = 'Switch to English';
+                title.innerText = 'حاسبة العمر';
+                button.innerText = 'احسب العمر';
+                result.innerText = '';
+                daySelect.options[0].innerText = 'اليوم';
+                monthSelect.options[0].innerText = 'الشهر';
+                yearSelect.options[0].innerText = 'السنة';
+            } else {
+                langToggle.innerText = 'Switch to Arabic';
+                title.innerText = 'Age Calculator';
+                button.innerText = 'Calculate Age';
+                result.innerText = '';
+                daySelect.options[0].innerText = 'Day';
+                monthSelect.options[0].innerText = 'Month';
+                yearSelect.options[0].innerText = 'Year';
             }
         }
     </script>
