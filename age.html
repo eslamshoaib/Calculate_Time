@@ -9,9 +9,10 @@
             font-family: Arial, sans-serif;
             margin: 0;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            height: 100vh;
+            justify-content: flex-start;
+            min-height: 100vh;
             overflow: hidden;
             background: linear-gradient(to top right, #1e3c72, #2a5298);
             background-size: 400% 400%;
@@ -30,6 +31,45 @@
             }
         }
 
+        .header {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            margin: 0;
+            color: #333;
+        }
+
+        .header .options {
+            display: flex;
+            gap: 10px;
+        }
+
+        .header .options button {
+            background: #007BFF;
+            color: white;
+            font-size: 14px;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .header .options button:hover {
+            background: #0056b3;
+        }
+
         .card {
             background: white;
             border-radius: 15px;
@@ -37,9 +77,10 @@
             padding: 20px;
             text-align: center;
             width: 350px;
+            margin-top: 20px;
         }
 
-        h1 {
+        h2 {
             font-size: 24px;
             margin-bottom: 20px;
             color: #333;
@@ -83,9 +124,6 @@
         }
 
         .language-toggle {
-            position: absolute;
-            top: 10px;
-            right: 10px;
             cursor: pointer;
             font-size: 14px;
             background: #f0f0f0;
@@ -96,9 +134,18 @@
     </style>
 </head>
 <body>
+    <div class="header">
+        <h1 id="header-title">Age Calculator Options</h1>
+        <div class="options">
+            <button onclick="showAgeCalculator()">Age Calculator</button>
+            <button onclick="showDateDifferenceCalculator()">Date Difference</button>
+        </div>
+    </div>
+
     <div class="language-toggle" onclick="toggleLanguage()">Switch to Arabic</div>
-    <div class="card">
-        <h1 id="title">Age Calculator</h1>
+
+    <div class="card" id="calculator-container">
+        <h2 id="title">Age Calculator</h2>
         <div class="dropdown-container">
             <select id="day">
                 <option value="" disabled selected>Day</option>
@@ -164,6 +211,7 @@
 
         function toggleLanguage() {
             const langToggle = document.querySelector('.language-toggle');
+            const headerTitle = document.getElementById('header-title');
             const title = document.getElementById('title');
             const button = document.querySelector('button');
             const daySelect = document.getElementById('day');
@@ -174,6 +222,7 @@
 
             if (isArabic) {
                 langToggle.innerText = 'Switch to English';
+                headerTitle.innerText = 'خيارات حاسبة العمر';
                 title.innerText = 'حاسبة العمر';
                 button.innerText = 'احسب العمر';
                 daySelect.options[0].innerText = 'اليوم';
@@ -181,6 +230,7 @@
                 yearSelect.options[0].innerText = 'السنة';
             } else {
                 langToggle.innerText = 'Switch to Arabic';
+                headerTitle.innerText = 'Age Calculator Options';
                 title.innerText = 'Age Calculator';
                 button.innerText = 'Calculate Age';
                 daySelect.options[0].innerText = 'Day';
@@ -189,6 +239,20 @@
             }
 
             document.getElementById('result').innerText = '';
+        }
+
+        function showAgeCalculator() {
+            document.getElementById('title').innerText = isArabic ? 'حاسبة العمر' : 'Age Calculator';
+            document.querySelector('.dropdown-container').style.display = 'flex';
+            document.querySelector('button').style.display = 'inline-block';
+            document.getElementById('result').innerText = '';
+        }
+
+        function showDateDifferenceCalculator() {
+            document.getElementById('title').innerText = isArabic ? 'حساب الفرق بين تاريخين' : 'Date Difference Calculator';
+            document.querySelector('.dropdown-container').style.display = 'none';
+            document.querySelector('button').style.display = 'none';
+            document.getElementById('result').innerText = isArabic ? 'الميزة قيد التطوير.' : 'Feature under development.';
         }
     </script>
 </body>
