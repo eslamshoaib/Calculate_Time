@@ -13,7 +13,6 @@
             align-items: center;
             justify-content: flex-start;
             min-height: 100vh;
-            overflow: hidden;
             background: linear-gradient(to top right, #1e3c72, #2a5298);
             background-size: 400% 400%;
             animation: gradientAnimation 10s ease infinite;
@@ -34,7 +33,7 @@
         nav {
             width: 100%;
             background: rgba(255, 255, 255, 0.8);
-            padding: 10px 20px;
+            padding: 15px 20px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             display: flex;
             justify-content: space-between;
@@ -52,16 +51,16 @@
 
         nav .options {
             display: flex;
-            gap: 10px;
+            gap: 20px;
         }
 
         nav .options button {
             background: #007BFF;
             color: white;
-            font-size: 14px;
+            font-size: 16px;
             border: none;
             border-radius: 5px;
-            padding: 5px 15px;
+            padding: 10px 15px;
             cursor: pointer;
             transition: all 0.3s;
         }
@@ -79,17 +78,17 @@
             border: 1px solid #ccc;
         }
 
-        .card {
+        .calculator-container {
+            width: 60%;
             background: white;
             border-radius: 15px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            padding: 20px;
+            padding: 30px;
+            margin-top: 50px;
             text-align: center;
-            width: 350px;
-            margin-top: 20px;
         }
 
-        h2 {
+        .calculator-container h2 {
             font-size: 24px;
             margin-bottom: 20px;
             color: #333;
@@ -131,6 +130,14 @@
             font-size: 18px;
             color: #555;
         }
+
+        .toggle-section {
+            display: none;
+        }
+
+        .toggle-section.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -141,101 +148,104 @@
             <button onclick="showAgeCalculator()">Age Calculator</button>
             <button onclick="showDateDifferenceCalculator()">Date Difference</button>
         </div>
+        <div class="language-toggle" onclick="toggleLanguage()">Switch to Arabic</div>
     </nav>
 
-    <!-- Language Toggle -->
-    <div class="language-toggle" onclick="toggleLanguage()">Switch to Arabic</div>
-
     <!-- Calculator Section -->
-    <div class="card" id="calculator-container">
-        <h2 id="title">Age Calculator</h2>
-        <div class="dropdown-container" id="age-calculator">
-            <select id="day">
-                <option value="" disabled selected>Day</option>
-                <script>
-                    for (let i = 1; i <= 31; i++) {
-                        document.write(`<option value="${i}">${i}</option>`);
-                    }
-                </script>
-            </select>
-            <select id="month">
-                <option value="" disabled selected>Month</option>
-                <script>
-                    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-                    months.forEach((month, index) => {
-                        document.write(`<option value="${index + 1}">${month}</option>`);
-                    });
-                </script>
-            </select>
-            <select id="year">
-                <option value="" disabled selected>Year</option>
-                <script>
-                    const currentYear = new Date().getFullYear();
-                    for (let i = currentYear; i >= 1900; i--) {
-                        document.write(`<option value="${i}">${i}</option>`);
-                    }
-                </script>
-            </select>
-        </div>
-        <button onclick="calculateAge()">Calculate Age</button>
-        <div class="result" id="result"></div>
-
-        <!-- Date Difference Calculator Section -->
-        <div class="dropdown-container" id="date-diff-calculator" style="display: none;">
-            <select id="start-day">
-                <option value="" disabled selected>Start Day</option>
-                <script>
-                    for (let i = 1; i <= 31; i++) {
-                        document.write(`<option value="${i}">${i}</option>`);
-                    }
-                </script>
-            </select>
-            <select id="start-month">
-                <option value="" disabled selected>Start Month</option>
-                <script>
-                    months.forEach((month, index) => {
-                        document.write(`<option value="${index + 1}">${month}</option>`);
-                    });
-                </script>
-            </select>
-            <select id="start-year">
-                <option value="" disabled selected>Start Year</option>
-                <script>
-                    for (let i = currentYear; i >= 1900; i--) {
-                        document.write(`<option value="${i}">${i}</option>`);
-                    }
-                </script>
-            </select>
+    <div class="calculator-container">
+        <div id="age-calculator" class="toggle-section active">
+            <h2 id="title">Age Calculator</h2>
+            <div class="dropdown-container">
+                <select id="day">
+                    <option value="" disabled selected>Day</option>
+                    <script>
+                        for (let i = 1; i <= 31; i++) {
+                            document.write(`<option value="${i}">${i}</option>`);
+                        }
+                    </script>
+                </select>
+                <select id="month">
+                    <option value="" disabled selected>Month</option>
+                    <script>
+                        const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                        months.forEach((month, index) => {
+                            document.write(`<option value="${index + 1}">${month}</option>`);
+                        });
+                    </script>
+                </select>
+                <select id="year">
+                    <option value="" disabled selected>Year</option>
+                    <script>
+                        const currentYear = new Date().getFullYear();
+                        for (let i = currentYear; i >= 1900; i--) {
+                            document.write(`<option value="${i}">${i}</option>`);
+                        }
+                    </script>
+                </select>
+            </div>
+            <button onclick="calculateAge()">Calculate Age</button>
+            <div class="result" id="result"></div>
         </div>
 
-        <div class="dropdown-container" id="date-diff-calculator-end" style="display: none;">
-            <select id="end-day">
-                <option value="" disabled selected>End Day</option>
-                <script>
-                    for (let i = 1; i <= 31; i++) {
-                        document.write(`<option value="${i}">${i}</option>`);
-                    }
-                </script>
-            </select>
-            <select id="end-month">
-                <option value="" disabled selected>End Month</option>
-                <script>
-                    months.forEach((month, index) => {
-                        document.write(`<option value="${index + 1}">${month}</option>`);
-                    });
-                </script>
-            </select>
-            <select id="end-year">
-                <option value="" disabled selected>End Year</option>
-                <script>
-                    for (let i = currentYear; i >= 1900; i--) {
-                        document.write(`<option value="${i}">${i}</option>`);
-                    }
-                </script>
-            </select>
+        <div id="date-diff-calculator" class="toggle-section">
+            <h2 id="title-diff">Date Difference Calculator</h2>
+            <div class="dropdown-container">
+                <select id="start-day">
+                    <option value="" disabled selected>Start Day</option>
+                    <script>
+                        for (let i = 1; i <= 31; i++) {
+                            document.write(`<option value="${i}">${i}</option>`);
+                        }
+                    </script>
+                </select>
+                <select id="start-month">
+                    <option value="" disabled selected>Start Month</option>
+                    <script>
+                        months.forEach((month, index) => {
+                            document.write(`<option value="${index + 1}">${month}</option>`);
+                        });
+                    </script>
+                </select>
+                <select id="start-year">
+                    <option value="" disabled selected>Start Year</option>
+                    <script>
+                        for (let i = currentYear; i >= 1900; i--) {
+                            document.write(`<option value="${i}">${i}</option>`);
+                        }
+                    </script>
+                </select>
+            </div>
+
+            <div class="dropdown-container">
+                <select id="end-day">
+                    <option value="" disabled selected>End Day</option>
+                    <script>
+                        for (let i = 1; i <= 31; i++) {
+                            document.write(`<option value="${i}">${i}</option>`);
+                        }
+                    </script>
+                </select>
+                <select id="end-month">
+                    <option value="" disabled selected>End Month</option>
+                    <script>
+                        months.forEach((month, index) => {
+                            document.write(`<option value="${index + 1}">${month}</option>`);
+                        });
+                    </script>
+                </select>
+                <select id="end-year">
+                    <option value="" disabled selected>End Year</option>
+                    <script>
+                        for (let i = currentYear; i >= 1900; i--) {
+                            document.write(`<option value="${i}">${i}</option>`);
+                        }
+                    </script>
+                </select>
+            </div>
+
+            <button onclick="calculateDateDifference()">Calculate Date Difference</button>
+            <div class="result" id="date-diff-result"></div>
         </div>
-        <button onclick="calculateDateDifference()">Calculate Date Difference</button>
-        <div class="result" id="date-diff-result"></div>
     </div>
 
     <script>
@@ -304,6 +314,7 @@
             const langToggle = document.querySelector('.language-toggle');
             const headerTitle = document.getElementById('header-title');
             const title = document.getElementById('title');
+            const titleDiff = document.getElementById('title-diff');
             const button = document.querySelector('button');
             const daySelect = document.getElementById('day');
             const monthSelect = document.getElementById('month');
@@ -315,6 +326,7 @@
                 langToggle.innerText = 'Switch to English';
                 headerTitle.innerText = 'خيارات حاسبة العمر';
                 title.innerText = 'حاسبة العمر';
+                titleDiff.innerText = 'حاسبة الفرق بين تاريخين';
                 button.innerText = 'احسب العمر';
                 daySelect.options[0].innerText = 'اليوم';
                 monthSelect.options[0].innerText = 'الشهر';
@@ -323,6 +335,7 @@
                 langToggle.innerText = 'Switch to Arabic';
                 headerTitle.innerText = 'Age Calculator Options';
                 title.innerText = 'Age Calculator';
+                titleDiff.innerText = 'Date Difference Calculator';
                 button.innerText = 'Calculate Age';
                 daySelect.options[0].innerText = 'Day';
                 monthSelect.options[0].innerText = 'Month';
@@ -330,24 +343,17 @@
             }
 
             document.getElementById('result').innerText = '';
+            document.getElementById('date-diff-result').innerText = '';
         }
 
         function showAgeCalculator() {
-            document.getElementById('title').innerText = isArabic ? 'حاسبة العمر' : 'Age Calculator';
-            document.getElementById('age-calculator').style.display = 'flex';
-            document.getElementById('date-diff-calculator').style.display = 'none';
-            document.getElementById('date-diff-calculator-end').style.display = 'none';
-            document.getElementById('result').style.display = 'block';
-            document.getElementById('date-diff-result').style.display = 'none';
+            document.getElementById('age-calculator').classList.add('active');
+            document.getElementById('date-diff-calculator').classList.remove('active');
         }
 
         function showDateDifferenceCalculator() {
-            document.getElementById('title').innerText = isArabic ? 'حساب الفرق بين تاريخين' : 'Date Difference Calculator';
-            document.getElementById('age-calculator').style.display = 'none';
-            document.getElementById('date-diff-calculator').style.display = 'flex';
-            document.getElementById('date-diff-calculator-end').style.display = 'flex';
-            document.getElementById('result').style.display = 'none';
-            document.getElementById('date-diff-result').style.display = 'block';
+            document.getElementById('age-calculator').classList.remove('active');
+            document.getElementById('date-diff-calculator').classList.add('active');
         }
     </script>
 </body>
