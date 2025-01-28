@@ -13,19 +13,20 @@
             align-items: center;
             height: 100vh;
             overflow: hidden;
-            background: linear-gradient(to bottom right, #1e3c72, #2a5298);
-            animation: gradientAnimation 6s infinite alternate;
+            background: linear-gradient(to top right, #1e3c72, #2a5298);
+            background-size: 400% 400%;
+            animation: gradientAnimation 10s ease infinite;
         }
 
         @keyframes gradientAnimation {
             0% {
-                background: linear-gradient(to bottom right, #1e3c72, #2a5298);
+                background-position: 0% 50%;
             }
             50% {
-                background: linear-gradient(to bottom right, #3a6073, #16222a);
+                background-position: 100% 50%;
             }
             100% {
-                background: linear-gradient(to bottom right, #1e3c72, #2a5298);
+                background-position: 0% 50%;
             }
         }
 
@@ -131,13 +132,15 @@
     </div>
 
     <script>
+        let isArabic = false;
+
         function calculateAge() {
             const day = parseInt(document.getElementById('day').value);
             const month = parseInt(document.getElementById('month').value);
             const year = parseInt(document.getElementById('year').value);
             
             if (!day || !month || !year) {
-                document.getElementById('result').innerText = 'Please select a valid date.';
+                document.getElementById('result').innerText = isArabic ? 'الرجاء اختيار تاريخ صحيح.' : 'Please select a valid date.';
                 return;
             }
 
@@ -151,26 +154,28 @@
             const days = Math.round(remainingDays % 30.44);
 
             if (years < 0) {
-                document.getElementById('result').innerText = 'Invalid date. Please try again.';
+                document.getElementById('result').innerText = isArabic ? 'تاريخ غير صحيح. حاول مرة أخرى.' : 'Invalid date. Please try again.';
             } else {
-                document.getElementById('result').innerText = `Your age is ${years} years, ${months} months, and ${days} days.`;
+                document.getElementById('result').innerText = isArabic 
+                    ? `عمرك هو ${years} سنة و ${months} شهر و ${days} يوم.`
+                    : `Your age is ${years} years, ${months} months, and ${days} days.`;
             }
         }
 
         function toggleLanguage() {
             const langToggle = document.querySelector('.language-toggle');
             const title = document.getElementById('title');
-            const result = document.getElementById('result');
             const button = document.querySelector('button');
             const daySelect = document.getElementById('day');
             const monthSelect = document.getElementById('month');
             const yearSelect = document.getElementById('year');
 
-            if (langToggle.innerText === 'Switch to Arabic') {
+            isArabic = !isArabic;
+
+            if (isArabic) {
                 langToggle.innerText = 'Switch to English';
                 title.innerText = 'حاسبة العمر';
                 button.innerText = 'احسب العمر';
-                result.innerText = '';
                 daySelect.options[0].innerText = 'اليوم';
                 monthSelect.options[0].innerText = 'الشهر';
                 yearSelect.options[0].innerText = 'السنة';
@@ -178,11 +183,12 @@
                 langToggle.innerText = 'Switch to Arabic';
                 title.innerText = 'Age Calculator';
                 button.innerText = 'Calculate Age';
-                result.innerText = '';
                 daySelect.options[0].innerText = 'Day';
                 monthSelect.options[0].innerText = 'Month';
                 yearSelect.options[0].innerText = 'Year';
             }
+
+            document.getElementById('result').innerText = '';
         }
     </script>
 </body>
