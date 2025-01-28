@@ -31,7 +31,7 @@
             }
         }
 
-        .header {
+        nav {
             width: 100%;
             background: rgba(255, 255, 255, 0.8);
             padding: 10px 20px;
@@ -44,18 +44,18 @@
             z-index: 10;
         }
 
-        .header h1 {
+        nav h1 {
             font-size: 20px;
             margin: 0;
             color: #333;
         }
 
-        .header .options {
+        nav .options {
             display: flex;
             gap: 10px;
         }
 
-        .header .options button {
+        nav .options button {
             background: #007BFF;
             color: white;
             font-size: 14px;
@@ -66,8 +66,17 @@
             transition: all 0.3s;
         }
 
-        .header .options button:hover {
+        nav .options button:hover {
             background: #0056b3;
+        }
+
+        .language-toggle {
+            cursor: pointer;
+            font-size: 14px;
+            background: #f0f0f0;
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
         }
 
         .card {
@@ -122,31 +131,25 @@
             font-size: 18px;
             color: #555;
         }
-
-        .language-toggle {
-            cursor: pointer;
-            font-size: 14px;
-            background: #f0f0f0;
-            padding: 5px 10px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
     </style>
 </head>
 <body>
-    <div class="header">
+    <!-- Navbar Section -->
+    <nav>
         <h1 id="header-title">Age Calculator Options</h1>
         <div class="options">
             <button onclick="showAgeCalculator()">Age Calculator</button>
             <button onclick="showDateDifferenceCalculator()">Date Difference</button>
         </div>
-    </div>
+    </nav>
 
+    <!-- Language Toggle -->
     <div class="language-toggle" onclick="toggleLanguage()">Switch to Arabic</div>
 
+    <!-- Calculator Section -->
     <div class="card" id="calculator-container">
         <h2 id="title">Age Calculator</h2>
-        <div class="dropdown-container">
+        <div class="dropdown-container" id="age-calculator">
             <select id="day">
                 <option value="" disabled selected>Day</option>
                 <script>
@@ -176,6 +179,63 @@
         </div>
         <button onclick="calculateAge()">Calculate Age</button>
         <div class="result" id="result"></div>
+
+        <!-- Date Difference Calculator Section -->
+        <div class="dropdown-container" id="date-diff-calculator" style="display: none;">
+            <select id="start-day">
+                <option value="" disabled selected>Start Day</option>
+                <script>
+                    for (let i = 1; i <= 31; i++) {
+                        document.write(`<option value="${i}">${i}</option>`);
+                    }
+                </script>
+            </select>
+            <select id="start-month">
+                <option value="" disabled selected>Start Month</option>
+                <script>
+                    months.forEach((month, index) => {
+                        document.write(`<option value="${index + 1}">${month}</option>`);
+                    });
+                </script>
+            </select>
+            <select id="start-year">
+                <option value="" disabled selected>Start Year</option>
+                <script>
+                    for (let i = currentYear; i >= 1900; i--) {
+                        document.write(`<option value="${i}">${i}</option>`);
+                    }
+                </script>
+            </select>
+        </div>
+
+        <div class="dropdown-container" id="date-diff-calculator-end" style="display: none;">
+            <select id="end-day">
+                <option value="" disabled selected>End Day</option>
+                <script>
+                    for (let i = 1; i <= 31; i++) {
+                        document.write(`<option value="${i}">${i}</option>`);
+                    }
+                </script>
+            </select>
+            <select id="end-month">
+                <option value="" disabled selected>End Month</option>
+                <script>
+                    months.forEach((month, index) => {
+                        document.write(`<option value="${index + 1}">${month}</option>`);
+                    });
+                </script>
+            </select>
+            <select id="end-year">
+                <option value="" disabled selected>End Year</option>
+                <script>
+                    for (let i = currentYear; i >= 1900; i--) {
+                        document.write(`<option value="${i}">${i}</option>`);
+                    }
+                </script>
+            </select>
+        </div>
+        <button onclick="calculateDateDifference()">Calculate Date Difference</button>
+        <div class="result" id="date-diff-result"></div>
     </div>
 
     <script>
@@ -204,8 +264,39 @@
                 document.getElementById('result').innerText = isArabic ? 'تاريخ غير صحيح. حاول مرة أخرى.' : 'Invalid date. Please try again.';
             } else {
                 document.getElementById('result').innerText = isArabic 
-                    ? `عمرك هو ${years} سنة و ${months} شهر و ${days} يوم.`
+                    ? `عمرك هو ${years} سنة و ${months} شهر و ${days} يوم.` 
                     : `Your age is ${years} years, ${months} months, and ${days} days.`;
+            }
+        }
+
+        function calculateDateDifference() {
+            const startDay = parseInt(document.getElementById('start-day').value);
+            const startMonth = parseInt(document.getElementById('start-month').value);
+            const startYear = parseInt(document.getElementById('start-year').value);
+            const endDay = parseInt(document.getElementById('end-day').value);
+            const endMonth = parseInt(document.getElementById('end-month').value);
+            const endYear = parseInt(document.getElementById('end-year').value);
+
+            if (!startDay || !startMonth || !startYear || !endDay || !endMonth || !endYear) {
+                document.getElementById('date-diff-result').innerText = isArabic ? 'الرجاء اختيار تاريخين صحيحين.' : 'Please select two valid dates.';
+                return;
+            }
+
+            const startDate = new Date(startYear, startMonth - 1, startDay);
+            const endDate = new Date(endYear, endMonth - 1, endDay);
+
+            const totalDays = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24));
+            const years = Math.floor(totalDays / 365.25);
+            const remainingDays = totalDays % 365.25;
+            const months = Math.floor(remainingDays / 30.44);
+            const days = Math.round(remainingDays % 30.44);
+
+            if (years < 0) {
+                document.getElementById('date-diff-result').innerText = isArabic ? 'تاريخ غير صحيح. حاول مرة أخرى.' : 'Invalid dates. Please try again.';
+            } else {
+                document.getElementById('date-diff-result').innerText = isArabic 
+                    ? `الفرق بين التاريخين هو ${years} سنة و ${months} شهر و ${days} يوم.` 
+                    : `The difference between the two dates is ${years} years, ${months} months, and ${days} days.`;
             }
         }
 
@@ -243,16 +334,20 @@
 
         function showAgeCalculator() {
             document.getElementById('title').innerText = isArabic ? 'حاسبة العمر' : 'Age Calculator';
-            document.querySelector('.dropdown-container').style.display = 'flex';
-            document.querySelector('button').style.display = 'inline-block';
-            document.getElementById('result').innerText = '';
+            document.getElementById('age-calculator').style.display = 'flex';
+            document.getElementById('date-diff-calculator').style.display = 'none';
+            document.getElementById('date-diff-calculator-end').style.display = 'none';
+            document.getElementById('result').style.display = 'block';
+            document.getElementById('date-diff-result').style.display = 'none';
         }
 
         function showDateDifferenceCalculator() {
             document.getElementById('title').innerText = isArabic ? 'حساب الفرق بين تاريخين' : 'Date Difference Calculator';
-            document.querySelector('.dropdown-container').style.display = 'none';
-            document.querySelector('button').style.display = 'none';
-            document.getElementById('result').innerText = isArabic ? 'الميزة قيد التطوير.' : 'Feature under development.';
+            document.getElementById('age-calculator').style.display = 'none';
+            document.getElementById('date-diff-calculator').style.display = 'flex';
+            document.getElementById('date-diff-calculator-end').style.display = 'flex';
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('date-diff-result').style.display = 'block';
         }
     </script>
 </body>
