@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>National ID & Age Calculator</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            text-align: center;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            color: black;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        input, button {
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+        }
+        button {
+            background: #007BFF;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>National ID Interpreter</h2>
+        <input type="text" id="national-id" placeholder="Enter 14-digit National ID" maxlength="14">
+        <button onclick="interpretNationalID()">Interpret</button>
+        <div class="result" id="national-id-result"></div>
+    </div>
+    <div class="container">
+        <h2>Age Calculator</h2>
+        <input type="date" id="birth-date">
+        <button onclick="calculateAge()">Calculate Age</button>
+        <div class="result" id="age-result"></div>
+    </div>
+    <div class="container">
+        <h2>Difference Between Two Dates</h2>
+        <input type="date" id="date1">
+        <input type="date" id="date2">
+        <button onclick="calculateDateDifference()">Calculate Difference</button>
+        <div class="result" id="date-difference-result"></div>
+    </div>
+    <script>
+        function interpretNationalID() {
+            const id = document.getElementById('national-id').value;
+            const result = document.getElementById('national-id-result');
+            if (id.length !== 14 || isNaN(id)) {
+                result.innerText = 'Invalid ID';
+                return;
+            }
+            const birthYear = (id[0] === '2' ? 1900 : 2000) + parseInt(id.substr(1, 2));
+            const birthMonth = parseInt(id.substr(3, 2));
+            const birthDay = parseInt(id.substr(5, 2));
+            const gender = parseInt(id[12]) % 2 === 0 ? 'Female' : 'Male';
+            result.innerText = `Birth Date: ${birthDay}-${birthMonth}-${birthYear}\nGender: ${gender}`;
+        }
+        
+        function calculateAge() {
+            const birthDate = new Date(document.getElementById('birth-date').value);
+            const today = new Date();
+            if (!birthDate.getTime()) {
+                document.getElementById('age-result').innerText = 'Invalid Date';
+                return;
+            }
+            let years = today.getFullYear() - birthDate.getFullYear();
+            let months = today.getMonth() - birthDate.getMonth();
+            let days = today.getDate() - birthDate.getDate();
+            if (days < 0) {
+                months--;
+                days += new Date(today.getFullYear(), today.getMonth(), 0).getDate();
+            }
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+            document.getElementById('age-result').innerText = `Age: ${years} years, ${months} months, ${days} days`;
+        }
+        
+        function calculateDateDifference() {
+            const date1 = new Date(document.getElementById('date1').value);
+            const date2 = new Date(document.getElementById('date2').value);
+            if (!date1.getTime() || !date2.getTime()) {
+                document.getElementById('date-difference-result').innerText = 'Invalid Dates';
+                return;
+            }
+            let diff = Math.abs(date2 - date1);
+            let years = Math.floor(diff / (365.25 * 24 * 60 * 60 * 1000));
+            diff -= years * (365.25 * 24 * 60 * 60 * 1000);
+            let months = Math.floor(diff / (30.44 * 24 * 60 * 60 * 1000));
+            diff -= months * (30.44 * 24 * 60 * 60 * 1000);
+            let days = Math.floor(diff / (24 * 60 * 60 * 1000));
+            document.getElementById('date-difference-result').innerText = `Difference: ${years} years, ${months} months, ${days} days`;
+        }
+    </script>
+</body>
+</html>
