@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>National ID & Age Calculator</title>
+    <title>حساب العمر وبيانات الرقم القومي</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -15,6 +15,7 @@
             background: linear-gradient(135deg, #1e3c72, #2a5298);
             color: white;
             text-align: center;
+            direction: rtl;
         }
         .container {
             background: rgba(255, 255, 255, 0.9);
@@ -50,44 +51,76 @@
 </head>
 <body>
     <div class="container">
-        <h2>National ID Interpreter</h2>
-        <input type="text" id="national-id" placeholder="Enter 14-digit National ID" maxlength="14">
-        <button onclick="interpretNationalID()">Interpret</button>
+        <h2>تحليل الرقم القومي</h2>
+        <input type="text" id="national-id" placeholder="أدخل الرقم القومي (14 رقم)" maxlength="14">
+        <button onclick="interpretNationalID()">تحليل</button>
         <div class="result" id="national-id-result"></div>
     </div>
     <div class="container">
-        <h2>Age Calculator</h2>
-        <input type="date" id="birth-date">
-        <button onclick="calculateAge()">Calculate Age</button>
+        <h2>حساب العمر</h2>
+        <input type="text" id="birth-date" placeholder="أدخل تاريخ الميلاد (dd-mm-yyyy)">
+        <button onclick="calculateAge()">حساب العمر</button>
         <div class="result" id="age-result"></div>
     </div>
     <div class="container">
-        <h2>Difference Between Two Dates</h2>
-        <input type="date" id="date1">
-        <input type="date" id="date2">
-        <button onclick="calculateDateDifference()">Calculate Difference</button>
+        <h2>الفرق بين تاريخين</h2>
+        <input type="text" id="date1" placeholder="أدخل التاريخ الأول (dd-mm-yyyy)">
+        <input type="text" id="date2" placeholder="أدخل التاريخ الثاني (dd-mm-yyyy)">
+        <button onclick="calculateDateDifference()">حساب الفرق</button>
         <div class="result" id="date-difference-result"></div>
     </div>
     <script>
+        const governorates = {
+            "01": "القاهرة",
+            "02": "الإسكندرية",
+            "03": "بورسعيد",
+            "04": "السويس",
+            "11": "دمياط",
+            "12": "الدقهلية",
+            "13": "الشرقية",
+            "14": "القليوبية",
+            "15": "كفر الشيخ",
+            "16": "الغربية",
+            "17": "المنوفية",
+            "18": "البحيرة",
+            "19": "الإسماعيلية",
+            "21": "الجيزة",
+            "22": "بني سويف",
+            "23": "الفيوم",
+            "24": "المنيا",
+            "25": "أسيوط",
+            "26": "سوهاج",
+            "27": "قنا",
+            "28": "أسوان",
+            "29": "الأقصر"
+        };
+        
         function interpretNationalID() {
             const id = document.getElementById('national-id').value;
             const result = document.getElementById('national-id-result');
             if (id.length !== 14 || isNaN(id)) {
-                result.innerText = 'Invalid ID';
+                result.innerText = 'رقم غير صالح';
                 return;
             }
             const birthYear = (id[0] === '2' ? 1900 : 2000) + parseInt(id.substr(1, 2));
             const birthMonth = parseInt(id.substr(3, 2));
             const birthDay = parseInt(id.substr(5, 2));
-            const gender = parseInt(id[12]) % 2 === 0 ? 'Female' : 'Male';
-            result.innerText = `Birth Date: ${birthDay}-${birthMonth}-${birthYear}\nGender: ${gender}`;
+            const governorateCode = id.substr(7, 2);
+            const gender = parseInt(id[12]) % 2 === 0 ? 'أنثى' : 'ذكر';
+            const governorate = governorates[governorateCode] || 'غير معروف';
+            result.innerText = `تاريخ الميلاد: ${birthDay}-${birthMonth}-${birthYear}\nالجنس: ${gender}\nالمحافظة: ${governorate}`;
+        }
+        
+        function parseDate(input) {
+            const parts = input.split('-');
+            return new Date(parts[2], parts[1] - 1, parts[0]);
         }
         
         function calculateAge() {
-            const birthDate = new Date(document.getElementById('birth-date').value);
+            const birthDate = parseDate(document.getElementById('birth-date').value);
             const today = new Date();
             if (!birthDate.getTime()) {
-                document.getElementById('age-result').innerText = 'Invalid Date';
+                document.getElementById('age-result').innerText = 'تاريخ غير صالح';
                 return;
             }
             let years = today.getFullYear() - birthDate.getFullYear();
@@ -101,14 +134,14 @@
                 years--;
                 months += 12;
             }
-            document.getElementById('age-result').innerText = `Age: ${years} years, ${months} months, ${days} days`;
+            document.getElementById('age-result').innerText = `العمر: ${years} سنة، ${months} شهر، ${days} يوم`;
         }
         
         function calculateDateDifference() {
-            const date1 = new Date(document.getElementById('date1').value);
-            const date2 = new Date(document.getElementById('date2').value);
+            const date1 = parseDate(document.getElementById('date1').value);
+            const date2 = parseDate(document.getElementById('date2').value);
             if (!date1.getTime() || !date2.getTime()) {
-                document.getElementById('date-difference-result').innerText = 'Invalid Dates';
+                document.getElementById('date-difference-result').innerText = 'تواريخ غير صالحة';
                 return;
             }
             let diff = Math.abs(date2 - date1);
@@ -117,7 +150,7 @@
             let months = Math.floor(diff / (30.44 * 24 * 60 * 60 * 1000));
             diff -= months * (30.44 * 24 * 60 * 60 * 1000);
             let days = Math.floor(diff / (24 * 60 * 60 * 1000));
-            document.getElementById('date-difference-result').innerText = `Difference: ${years} years, ${months} months, ${days} days`;
+            document.getElementById('date-difference-result').innerText = `الفرق: ${years} سنة، ${months} شهر، ${days} يوم`;
         }
     </script>
 </body>
