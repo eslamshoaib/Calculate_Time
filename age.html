@@ -3,48 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>الرقم القومي المصري | National ID</title>
+    <title>الرقم القومي المصري | National ID Analyzer</title>
     <style>
+        /* General Styling */
         body {
             font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
             direction: rtl;
-            text-align: center;
-            margin: 20px;
         }
+
         .container {
-            max-width: 600px;
-            margin: auto;
-        }
-        input, button, select {
-            margin: 10px 0;
-            padding: 10px;
+            background: #fff;
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             width: 100%;
-            box-sizing: border-box;
+            max-width: 500px;
+            text-align: center;
         }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        select, input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
         table {
             width: 100%;
-            border-collapse: collapse;
             margin-top: 20px;
+            border-collapse: collapse;
         }
+
         th, td {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: center;
         }
+
         th {
             background-color: #f4f4f4;
         }
+
         .result {
             margin-top: 20px;
             font-size: 18px;
             color: green;
+        }
+
+        .error {
+            color: red;
+            font-size: 16px;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>تحليل الرقم القومي المصري | Egyptian National ID Analysis</h1>
+    <h1>تحليل الرقم القومي المصري</h1>
 
     <!-- Language Selection -->
     <select id="language" onchange="changeLanguage()">
@@ -55,15 +97,18 @@
     <!-- National ID Input -->
     <input type="text" id="nationalID" placeholder="أدخل الرقم القومي هنا..." maxlength="14">
     <button onclick="analyzeNationalID()">تحليل الرقم القومي</button>
+    <div id="idError" class="error"></div>
 
     <!-- Date of Birth Input -->
     <input type="text" id="dob" placeholder="تاريخ الميلاد (DD-MM-YYYY)">
     <button onclick="calculateAge()">احسب العمر</button>
+    <div id="dobError" class="error"></div>
 
     <!-- Date Difference Calculator -->
     <input type="text" id="date1" placeholder="التاريخ الأول (DD-MM-YYYY)">
     <input type="text" id="date2" placeholder="التاريخ الثاني (DD-MM-YYYY)">
     <button onclick="calculateDateDifference()">احسب الفرق بين التاريخين</button>
+    <div id="dateError" class="error"></div>
 
     <!-- Results Table -->
     <table id="resultsTable">
@@ -77,23 +122,6 @@
             <!-- Dynamic rows will be added here -->
         </tbody>
     </table>
-
-    <!-- Additional Features -->
-    <div class="result" id="additionalFeatures">
-        <h2>10 ميزات إضافية:</h2>
-        <ul>
-            <li>دعم اللغتين العربية والإنجليزية.</li>
-            <li>تحقق من صحة الرقم القومي.</li>
-            <li>تحديد جنس الشخص بناءً على الرقم القومي.</li>
-            <li>تحديد المحافظة بناءً على الرقم القومي.</li>
-            <li>حساب العمر بدقة بالسنوات والأيام.</li>
-            <li>تحويل التاريخ إلى صيغ مختلفة (مثل يوم الأسبوع).</li>
-            <li>عرض تاريخ التسجيل في الرقم القومي.</li>
-            <li>تحذير عند إدخال تاريخ غير صحيح.</li>
-            <li>إظهار عدد الأيام المتبقية حتى عيد ميلاد الشخص.</li>
-            <li>إمكانية حساب الفرق الزمني بين أي تاريخين.</li>
-        </ul>
-    </div>
 </div>
 
 <script>
@@ -138,10 +166,14 @@
 
     function analyzeNationalID() {
         const id = document.getElementById("nationalID").value;
+        const errorDiv = document.getElementById("idError");
+
         if (id.length !== 14 || isNaN(id)) {
-            alert(language === "ar" ? "الرقم القومي غير صحيح!" : "Invalid National ID!");
+            errorDiv.textContent = language === "ar" ? "الرقم القومي غير صحيح!" : "Invalid National ID!";
             return;
         }
+
+        errorDiv.textContent = "";
 
         const century = id.charAt(0);
         const year = parseInt(id.substring(1, 3));
@@ -161,10 +193,13 @@
         const gender = genderCode >= 1 && genderCode <= 4 ? "ذكر" : "أنثى";
         const governorate = governorates[governorateCode] || "غير معروف";
 
+        const registrationYear = `20${id.substring(1, 3)}`; // تسجيل الرقم القومي
+
         const results = [
             { key: "تاريخ الميلاد", value: birthDate.toLocaleDateString("ar-EG") },
             { key: "الجنس", value: gender },
-            { key: "المحافظة", value: governorate }
+            { key: "المحافظة", value: governorate },
+            { key: "سنة تسجيل الرقم القومي", value: registrationYear }
         ];
 
         displayResults(results);
@@ -172,24 +207,37 @@
 
     function calculateAge() {
         const dob = document.getElementById("dob").value;
+        const errorDiv = document.getElementById("dobError");
+
         if (!isValidDate(dob)) {
-            alert(language === "ar" ? "تاريخ الميلاد غير صحيح!" : "Invalid Date of Birth!");
+            errorDiv.textContent = language === "ar" ? "تاريخ الميلاد غير صحيح!" : "Invalid Date of Birth!";
             return;
         }
+
+        errorDiv.textContent = "";
 
         const [day, month, year] = dob.split("-").map(Number);
         const today = new Date();
         const birthDate = new Date(year, month - 1, day);
 
-        let age = today.getFullYear() - birthDate.getFullYear();
-        const m = today.getMonth() - birthDate.getMonth();
-        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-            age--;
+        let ageYears = today.getFullYear() - birthDate.getFullYear();
+        let ageMonths = today.getMonth() - birthDate.getMonth();
+        let ageDays = today.getDate() - birthDate.getDate();
+
+        if (ageDays < 0) {
+            ageMonths--;
+            ageDays += getDaysInMonth(today.getFullYear(), today.getMonth());
+        }
+
+        if (ageMonths < 0) {
+            ageYears--;
+            ageMonths += 12;
         }
 
         const daysLeft = calculateDaysUntilBirthday(birthDate);
+
         const results = [
-            { key: "العمر", value: `${age} سنة` },
+            { key: "العمر", value: `${ageYears} سنة, ${ageMonths} شهر, ${ageDays} يوم` },
             { key: "عدد الأيام المتبقية للعيد", value: `${daysLeft} يوم` }
         ];
 
@@ -199,11 +247,14 @@
     function calculateDateDifference() {
         const date1 = document.getElementById("date1").value;
         const date2 = document.getElementById("date2").value;
+        const errorDiv = document.getElementById("dateError");
 
         if (!isValidDate(date1) || !isValidDate(date2)) {
-            alert(language === "ar" ? "تاريخ غير صحيح!" : "Invalid Date!");
+            errorDiv.textContent = language === "ar" ? "تاريخ غير صحيح!" : "Invalid Date!";
             return;
         }
+
+        errorDiv.textContent = "";
 
         const [d1, m1, y1] = date1.split("-").map(Number);
         const [d2, m2, y2] = date2.split("-").map(Number);
@@ -212,10 +263,11 @@
         const secondDate = new Date(y2, m2 - 1, d2);
 
         const diffTime = Math.abs(secondDate - firstDate);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const diffYears = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 365));
+        const remainingDays = Math.ceil((diffTime % (1000 * 60 * 60 * 24 * 365)) / (1000 * 60 * 60 * 24));
 
         const results = [
-            { key: "الفرق بين التاريخين", value: `${diffDays} يوم` }
+            { key: "الفرق الزمني", value: `${diffYears} سنة و ${remainingDays} يوم` }
         ];
 
         displayResults(results);
@@ -240,6 +292,10 @@
         }
 
         return Math.ceil((thisYearBirthday - today) / (1000 * 60 * 60 * 24));
+    }
+
+    function getDaysInMonth(year, month) {
+        return new Date(year, month + 1, 0).getDate();
     }
 
     function displayResults(results) {
