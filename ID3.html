@@ -263,7 +263,8 @@
         const gender = genderCode >= 1 && genderCode <= 4 ? "ذكر" : "أنثى";
         const governorate = governorates[governorateCode] || "غير معروف";
 
-        const registrationYear = `20${id.substring(1, 3)}`; // تسجيل الرقم القومي
+       const centuryPrefix = id.charAt(0) === '2' ? '19' : '20';
+const registrationYear = `${centuryPrefix}${id.substring(1, 3)}`; // تسجيل الرقم القومي
 
         const today = new Date();
         let ageYears = today.getFullYear() - birthDate.getFullYear();
