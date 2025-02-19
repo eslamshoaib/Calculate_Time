@@ -109,6 +109,16 @@
             text-align: center;
         }
 
+        input {
+            font-size: 16px;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            width: 100%;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
         button {
             background: #007BFF;
             color: white;
@@ -129,6 +139,7 @@
             margin-top: 20px;
             font-size: 18px;
             color: #555;
+            white-space: pre-line;
         }
 
         .toggle-section {
@@ -147,12 +158,14 @@
         <div class="options">
             <button onclick="showAgeCalculator()">Age Calculator</button>
             <button onclick="showDateDifferenceCalculator()">Date Difference</button>
+            <button onclick="showNationalIDInterpreter()">National ID Interpreter</button>
         </div>
         <div class="language-toggle" onclick="toggleLanguage()">Switch to Arabic</div>
     </nav>
 
     <!-- Calculator Section -->
     <div class="calculator-container">
+        <!-- Age Calculator Section -->
         <div id="age-calculator" class="toggle-section active">
             <h2 id="title">Age Calculator</h2>
             <div class="dropdown-container">
@@ -187,6 +200,7 @@
             <div class="result" id="result"></div>
         </div>
 
+        <!-- Date Difference Calculator Section -->
         <div id="date-diff-calculator" class="toggle-section">
             <h2 id="title-diff">Date Difference Calculator</h2>
             <div class="dropdown-container">
@@ -245,6 +259,14 @@
 
             <button onclick="calculateDateDifference()">Calculate Date Difference</button>
             <div class="result" id="date-diff-result"></div>
+        </div>
+
+        <!-- National ID Interpreter Section -->
+        <div id="national-id-interpreter" class="toggle-section">
+            <h2 id="title-national-id">National ID Interpreter</h2>
+            <input type="text" id="national-id" placeholder="Enter 14-digit National ID" maxlength="14">
+            <button onclick="interpretNationalID()">Interpret National ID</button>
+            <div class="result" id="national-id-result"></div>
         </div>
     </div>
 
@@ -310,15 +332,80 @@
             }
         }
 
+        function interpretNationalID() {
+            const nationalID = document.getElementById('national-id').value;
+            const resultElement = document.getElementById('national-id-result');
+
+            if (nationalID.length !== 14 || isNaN(nationalID)) {
+                resultElement.innerText = isArabic ? 'الرجاء إدخال رقم قومي صحيح مكون من 14 رقمًا.' : 'Please enter a valid 14-digit National ID.';
+                return;
+            }
+
+            const centuryDigit = parseInt(nationalID[0]);
+            const yearDigits = nationalID.substring(1, 3);
+            const monthDigits = nationalID.substring(3, 5);
+            const dayDigits = nationalID.substring(5, 7);
+            const governorateDigits = nationalID.substring(7, 10);
+            const birthOrderDigits = nationalID.substring(10, 13);
+            const genderDigit = parseInt(nationalID[13]);
+
+            const century = centuryDigit === 2 ? 1900 : 2000;
+            const birthYear = century + parseInt(yearDigits);
+            const birthMonth = parseInt(monthDigits);
+            const birthDay = parseInt(dayDigits);
+            const gender = genderDigit % 2 === 0 ? 'Female' : 'Male';
+
+            const governorateMap = {
+                '01': 'Cairo',
+                '02': 'Alexandria',
+                '03': 'Port Said',
+                '04': 'Suez',
+                '11': 'Damietta',
+                '12': 'Dakahlia',
+                '13': 'Sharqia',
+                '14': 'Qalyubia',
+                '15': 'Kafr El Sheikh',
+                '16': 'Gharbia',
+                '17': 'Monufia',
+                '18': 'Beheira',
+                '19': 'Ismailia',
+                '21': 'Giza',
+                '22': 'Beni Suef',
+                '23': 'Faiyum',
+                '24': 'Minya',
+                '25': 'Asyut',
+                '26': 'Sohag',
+                '27': 'Qena',
+                '28': 'Aswan',
+                '29': 'Luxor',
+                '31': 'Red Sea',
+                '32': 'New Valley',
+                '33': 'Matrouh',
+                '34': 'North Sinai',
+                '35': 'South Sinai',
+                '88': 'Foreign'
+            };
+
+            const governorate = governorateMap[governorateDigits] || 'Unknown Governorate';
+
+            const resultText = isArabic 
+                ? `تاريخ الميلاد: ${birthDay}/${birthMonth}/${birthYear}\nالمحافظة: ${governorate}\nالجنس: ${gender === 'Male' ? 'ذكر' : 'أنثى'}`
+                : `Birth Date: ${birthDay}/${birthMonth}/${birthYear}\nGovernorate: ${governorate}\nGender: ${gender}`;
+
+            resultElement.innerText = resultText;
+        }
+
         function toggleLanguage() {
             const langToggle = document.querySelector('.language-toggle');
             const headerTitle = document.getElementById('header-title');
             const title = document.getElementById('title');
             const titleDiff = document.getElementById('title-diff');
-            const button = document.querySelector('button');
+            const titleNationalID = document.getElementById('title-national-id');
+            const buttons = document.querySelectorAll('button');
             const daySelect = document.getElementById('day');
             const monthSelect = document.getElementById('month');
             const yearSelect = document.getElementById('year');
+            const nationalIDInput = document.getElementById('national-id');
 
             isArabic = !isArabic;
 
@@ -327,33 +414,50 @@
                 headerTitle.innerText = 'خيارات حاسبة العمر';
                 title.innerText = 'حاسبة العمر';
                 titleDiff.innerText = 'حاسبة الفرق بين تاريخين';
-                button.innerText = 'احسب العمر';
+                titleNationalID.innerText = 'مفسر الرقم القومي';
+                buttons[0].innerText = 'احسب العمر';
+                buttons[1].innerText = 'حاسبة الفرق';
+                buttons[2].innerText = 'مفسر الرقم القومي';
                 daySelect.options[0].innerText = 'اليوم';
                 monthSelect.options[0].innerText = 'الشهر';
                 yearSelect.options[0].innerText = 'السنة';
+                nationalIDInput.placeholder = 'أدخل الرقم القومي المكون من 14 رقمًا';
             } else {
                 langToggle.innerText = 'Switch to Arabic';
                 headerTitle.innerText = 'Age Calculator Options';
                 title.innerText = 'Age Calculator';
                 titleDiff.innerText = 'Date Difference Calculator';
-                button.innerText = 'Calculate Age';
+                titleNationalID.innerText = 'National ID Interpreter';
+                buttons[0].innerText = 'Calculate Age';
+                buttons[1].innerText = 'Date Difference';
+                buttons[2].innerText = 'National ID Interpreter';
                 daySelect.options[0].innerText = 'Day';
                 monthSelect.options[0].innerText = 'Month';
                 yearSelect.options[0].innerText = 'Year';
+                nationalIDInput.placeholder = 'Enter 14-digit National ID';
             }
 
             document.getElementById('result').innerText = '';
             document.getElementById('date-diff-result').innerText = '';
+            document.getElementById('national-id-result').innerText = '';
         }
 
         function showAgeCalculator() {
             document.getElementById('age-calculator').classList.add('active');
             document.getElementById('date-diff-calculator').classList.remove('active');
+            document.getElementById('national-id-interpreter').classList.remove('active');
         }
 
         function showDateDifferenceCalculator() {
             document.getElementById('age-calculator').classList.remove('active');
             document.getElementById('date-diff-calculator').classList.add('active');
+            document.getElementById('national-id-interpreter').classList.remove('active');
+        }
+
+        function showNationalIDInterpreter() {
+            document.getElementById('age-calculator').classList.remove('active');
+            document.getElementById('date-diff-calculator').classList.remove('active');
+            document.getElementById('national-id-interpreter').classList.add('active');
         }
     </script>
 </body>
