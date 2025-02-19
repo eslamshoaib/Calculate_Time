@@ -3,19 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Age Calculator</title>
+    <title>Advanced National ID & Age Calculator</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             margin: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
             min-height: 100vh;
-            background: linear-gradient(to top right, #1e3c72, #2a5298);
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
             background-size: 400% 400%;
             animation: gradientAnimation 10s ease infinite;
+            color: #333;
         }
 
         @keyframes gradientAnimation {
@@ -32,7 +33,7 @@
 
         nav {
             width: 100%;
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.9);
             padding: 15px 20px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             display: flex;
@@ -44,14 +45,14 @@
         }
 
         nav h1 {
-            font-size: 20px;
+            font-size: 24px;
             margin: 0;
-            color: #333;
+            color: #007BFF;
         }
 
         nav .options {
             display: flex;
-            gap: 20px;
+            gap: 15px;
         }
 
         nav .options button {
@@ -59,64 +60,63 @@
             color: white;
             font-size: 16px;
             border: none;
-            border-radius: 5px;
-            padding: 10px 15px;
+            border-radius: 25px;
+            padding: 10px 20px;
             cursor: pointer;
             transition: all 0.3s;
         }
 
         nav .options button:hover {
             background: #0056b3;
+            transform: translateY(-2px);
         }
 
         .language-toggle {
             cursor: pointer;
             font-size: 14px;
             background: #f0f0f0;
-            padding: 5px 10px;
-            border-radius: 5px;
+            padding: 8px 15px;
+            border-radius: 25px;
             border: 1px solid #ccc;
+            transition: all 0.3s;
+        }
+
+        .language-toggle:hover {
+            background: #007BFF;
+            color: white;
         }
 
         .calculator-container {
-            width: 60%;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            width: 80%;
+            max-width: 600px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
             padding: 30px;
-            margin-top: 50px;
+            margin-top: 30px;
             text-align: center;
         }
 
         .calculator-container h2 {
-            font-size: 24px;
+            font-size: 26px;
             margin-bottom: 20px;
-            color: #333;
-        }
-
-        .dropdown-container {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-
-        select {
-            font-size: 16px;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-            width: 30%;
-            text-align: center;
+            color: #007BFF;
         }
 
         input {
             font-size: 16px;
-            padding: 10px;
-            border-radius: 8px;
+            padding: 12px;
+            border-radius: 10px;
             border: 1px solid #ccc;
             width: 100%;
             margin-bottom: 20px;
             text-align: center;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            border-color: #007BFF;
+            box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
         }
 
         button {
@@ -124,14 +124,15 @@
             color: white;
             font-size: 16px;
             border: none;
-            border-radius: 10px;
-            padding: 10px 20px;
+            border-radius: 25px;
+            padding: 12px 24px;
             cursor: pointer;
             transition: all 0.3s;
         }
 
         button:hover {
             background: #0056b3;
+            transform: translateY(-2px);
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
         }
 
@@ -140,6 +141,10 @@
             font-size: 18px;
             color: #555;
             white-space: pre-line;
+            background: rgba(240, 240, 240, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
         }
 
         .toggle-section {
@@ -149,188 +154,54 @@
         .toggle-section.active {
             display: block;
         }
+
+        .info-icon {
+            font-size: 20px;
+            color: #007BFF;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+
+        .info-icon:hover {
+            color: #0056b3;
+        }
     </style>
 </head>
 <body>
     <!-- Navbar Section -->
     <nav>
-        <h1 id="header-title">Age Calculator Options</h1>
+        <h1 id="header-title">National ID & Age Calculator</h1>
         <div class="options">
-            <button onclick="showAgeCalculator()">Age Calculator</button>
-            <button onclick="showDateDifferenceCalculator()">Date Difference</button>
             <button onclick="showNationalIDInterpreter()">National ID Interpreter</button>
+            <button onclick="showAgeCalculator()">Age Calculator</button>
         </div>
         <div class="language-toggle" onclick="toggleLanguage()">Switch to Arabic</div>
     </nav>
 
     <!-- Calculator Section -->
     <div class="calculator-container">
-        <!-- Age Calculator Section -->
-        <div id="age-calculator" class="toggle-section active">
-            <h2 id="title">Age Calculator</h2>
-            <div class="dropdown-container">
-                <select id="day">
-                    <option value="" disabled selected>Day</option>
-                    <script>
-                        for (let i = 1; i <= 31; i++) {
-                            document.write(`<option value="${i}">${i}</option>`);
-                        }
-                    </script>
-                </select>
-                <select id="month">
-                    <option value="" disabled selected>Month</option>
-                    <script>
-                        const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-                        months.forEach((month, index) => {
-                            document.write(`<option value="${index + 1}">${month}</option>`);
-                        });
-                    </script>
-                </select>
-                <select id="year">
-                    <option value="" disabled selected>Year</option>
-                    <script>
-                        const currentYear = new Date().getFullYear();
-                        for (let i = currentYear; i >= 1900; i--) {
-                            document.write(`<option value="${i}">${i}</option>`);
-                        }
-                    </script>
-                </select>
-            </div>
-            <button onclick="calculateAge()">Calculate Age</button>
-            <div class="result" id="result"></div>
-        </div>
-
-        <!-- Date Difference Calculator Section -->
-        <div id="date-diff-calculator" class="toggle-section">
-            <h2 id="title-diff">Date Difference Calculator</h2>
-            <div class="dropdown-container">
-                <select id="start-day">
-                    <option value="" disabled selected>Start Day</option>
-                    <script>
-                        for (let i = 1; i <= 31; i++) {
-                            document.write(`<option value="${i}">${i}</option>`);
-                        }
-                    </script>
-                </select>
-                <select id="start-month">
-                    <option value="" disabled selected>Start Month</option>
-                    <script>
-                        months.forEach((month, index) => {
-                            document.write(`<option value="${index + 1}">${month}</option>`);
-                        });
-                    </script>
-                </select>
-                <select id="start-year">
-                    <option value="" disabled selected>Start Year</option>
-                    <script>
-                        for (let i = currentYear; i >= 1900; i--) {
-                            document.write(`<option value="${i}">${i}</option>`);
-                        }
-                    </script>
-                </select>
-            </div>
-
-            <div class="dropdown-container">
-                <select id="end-day">
-                    <option value="" disabled selected>End Day</option>
-                    <script>
-                        for (let i = 1; i <= 31; i++) {
-                            document.write(`<option value="${i}">${i}</option>`);
-                        }
-                    </script>
-                </select>
-                <select id="end-month">
-                    <option value="" disabled selected>End Month</option>
-                    <script>
-                        months.forEach((month, index) => {
-                            document.write(`<option value="${index + 1}">${month}</option>`);
-                        });
-                    </script>
-                </select>
-                <select id="end-year">
-                    <option value="" disabled selected>End Year</option>
-                    <script>
-                        for (let i = currentYear; i >= 1900; i--) {
-                            document.write(`<option value="${i}">${i}</option>`);
-                        }
-                    </script>
-                </select>
-            </div>
-
-            <button onclick="calculateDateDifference()">Calculate Date Difference</button>
-            <div class="result" id="date-diff-result"></div>
-        </div>
-
         <!-- National ID Interpreter Section -->
-        <div id="national-id-interpreter" class="toggle-section">
-            <h2 id="title-national-id">National ID Interpreter</h2>
+        <div id="national-id-interpreter" class="toggle-section active">
+            <h2 id="title-national-id">National ID Interpreter <span class="info-icon" title="Enter your 14-digit National ID">&#9432;</span></h2>
             <input type="text" id="national-id" placeholder="Enter 14-digit National ID" maxlength="14">
             <button onclick="interpretNationalID()">Interpret National ID</button>
             <div class="result" id="national-id-result"></div>
+        </div>
+
+        <!-- Age Calculator Section -->
+        <div id="age-calculator" class="toggle-section">
+            <h2 id="title">Age Calculator <span class="info-icon" title="Calculate your age based on birth date">&#9432;</span></h2>
+            <input type="date" id="birth-date" max="">
+            <button onclick="calculateAge()">Calculate Age</button>
+            <div class="result" id="result"></div>
         </div>
     </div>
 
     <script>
         let isArabic = false;
 
-        function calculateAge() {
-            const day = parseInt(document.getElementById('day').value);
-            const month = parseInt(document.getElementById('month').value);
-            const year = parseInt(document.getElementById('year').value);
-            
-            if (!day || !month || !year) {
-                document.getElementById('result').innerText = isArabic ? 'الرجاء اختيار تاريخ صحيح.' : 'Please select a valid date.';
-                return;
-            }
-
-            const birthDate = new Date(year, month - 1, day);
-            const today = new Date();
-
-            const totalDays = Math.floor((today - birthDate) / (1000 * 60 * 60 * 24));
-            const years = Math.floor(totalDays / 365.25);
-            const remainingDays = totalDays % 365.25;
-            const months = Math.floor(remainingDays / 30.44);
-            const days = Math.round(remainingDays % 30.44);
-
-            if (years < 0) {
-                document.getElementById('result').innerText = isArabic ? 'تاريخ غير صحيح. حاول مرة أخرى.' : 'Invalid date. Please try again.';
-            } else {
-                document.getElementById('result').innerText = isArabic 
-                    ? `عمرك هو ${years} سنة و ${months} شهر و ${days} يوم.` 
-                    : `Your age is ${years} years, ${months} months, and ${days} days.`;
-            }
-        }
-
-        function calculateDateDifference() {
-            const startDay = parseInt(document.getElementById('start-day').value);
-            const startMonth = parseInt(document.getElementById('start-month').value);
-            const startYear = parseInt(document.getElementById('start-year').value);
-            const endDay = parseInt(document.getElementById('end-day').value);
-            const endMonth = parseInt(document.getElementById('end-month').value);
-            const endYear = parseInt(document.getElementById('end-year').value);
-
-            if (!startDay || !startMonth || !startYear || !endDay || !endMonth || !endYear) {
-                document.getElementById('date-diff-result').innerText = isArabic ? 'الرجاء اختيار تاريخين صحيحين.' : 'Please select two valid dates.';
-                return;
-            }
-
-            const startDate = new Date(startYear, startMonth - 1, startDay);
-            const endDate = new Date(endYear, endMonth - 1, endDay);
-
-            const totalDays = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24));
-            const years = Math.floor(totalDays / 365.25);
-            const remainingDays = totalDays % 365.25;
-            const months = Math.floor(remainingDays / 30.44);
-            const days = Math.round(remainingDays % 30.44);
-
-            if (years < 0) {
-                document.getElementById('date-diff-result').innerText = isArabic ? 'تاريخ غير صحيح. حاول مرة أخرى.' : 'Invalid dates. Please try again.';
-            } else {
-                document.getElementById('date-diff-result').innerText = isArabic 
-                    ? `الفرق بين التاريخين هو ${years} سنة و ${months} شهر و ${days} يوم.` 
-                    : `The difference between the two dates is ${years} years, ${months} months, and ${days} days.`;
-            }
-        }
+        // Set max date for age calculator input
+        document.getElementById('birth-date').max = new Date().toISOString().split('T')[0];
 
         function interpretNationalID() {
             const nationalID = document.getElementById('national-id').value;
@@ -388,76 +259,85 @@
 
             const governorate = governorateMap[governorateDigits] || 'Unknown Governorate';
 
+            // Calculate age from birth date
+            const birthDate = new Date(birthYear, birthMonth - 1, birthDay);
+            const today = new Date();
+            const ageInMilliseconds = today - birthDate;
+            const ageDate = new Date(ageInMilliseconds);
+            const years = Math.abs(ageDate.getUTCFullYear() - 1970);
+            const months = ageDate.getUTCMonth();
+            const days = ageDate.getUTCDate() - 1;
+
             const resultText = isArabic 
-                ? `تاريخ الميلاد: ${birthDay}/${birthMonth}/${birthYear}\nالمحافظة: ${governorate}\nالجنس: ${gender === 'Male' ? 'ذكر' : 'أنثى'}`
-                : `Birth Date: ${birthDay}/${birthMonth}/${birthYear}\nGovernorate: ${governorate}\nGender: ${gender}`;
+                ? `تاريخ الميلاد: ${birthDay}/${birthMonth}/${birthYear}\nالمحافظة: ${governorate}\nالجنس: ${gender === 'Male' ? 'ذكر' : 'أنثى'}\nالعمر: ${years} سنة و ${months} شهر و ${days} يوم`
+                : `Birth Date: ${birthDay}/${birthMonth}/${birthYear}\nGovernorate: ${governorate}\nGender: ${gender}\nAge: ${years} years, ${months} months, and ${days} days`;
 
             resultElement.innerText = resultText;
+        }
+
+        function calculateAge() {
+            const birthDate = new Date(document.getElementById('birth-date').value);
+            const today = new Date();
+
+            if (!birthDate.getTime()) {
+                document.getElementById('result').innerText = isArabic ? 'الرجاء اختيار تاريخ صحيح.' : 'Please select a valid date.';
+                return;
+            }
+
+            const ageInMilliseconds = today - birthDate;
+            const ageDate = new Date(ageInMilliseconds);
+            const years = Math.abs(ageDate.getUTCFullYear() - 1970);
+            const months = ageDate.getUTCMonth();
+            const days = ageDate.getUTCDate() - 1;
+
+            document.getElementById('result').innerText = isArabic 
+                ? `عمرك هو ${years} سنة و ${months} شهر و ${days} يوم.` 
+                : `Your age is ${years} years, ${months} months, and ${days} days.`;
         }
 
         function toggleLanguage() {
             const langToggle = document.querySelector('.language-toggle');
             const headerTitle = document.getElementById('header-title');
-            const title = document.getElementById('title');
-            const titleDiff = document.getElementById('title-diff');
             const titleNationalID = document.getElementById('title-national-id');
+            const titleAge = document.getElementById('title');
             const buttons = document.querySelectorAll('button');
-            const daySelect = document.getElementById('day');
-            const monthSelect = document.getElementById('month');
-            const yearSelect = document.getElementById('year');
             const nationalIDInput = document.getElementById('national-id');
+            const birthDateInput = document.getElementById('birth-date');
 
             isArabic = !isArabic;
 
             if (isArabic) {
                 langToggle.innerText = 'Switch to English';
-                headerTitle.innerText = 'خيارات حاسبة العمر';
-                title.innerText = 'حاسبة العمر';
-                titleDiff.innerText = 'حاسبة الفرق بين تاريخين';
+                headerTitle.innerText = 'حاسبة الرقم القومي والعمر';
                 titleNationalID.innerText = 'مفسر الرقم القومي';
-                buttons[0].innerText = 'احسب العمر';
-                buttons[1].innerText = 'حاسبة الفرق';
-                buttons[2].innerText = 'مفسر الرقم القومي';
-                daySelect.options[0].innerText = 'اليوم';
-                monthSelect.options[0].innerText = 'الشهر';
-                yearSelect.options[0].innerText = 'السنة';
+                titleAge.innerText = 'حاسبة العمر';
+                buttons[0].innerText = 'مفسر الرقم القومي';
+                buttons[1].innerText = 'حاسبة العمر';
                 nationalIDInput.placeholder = 'أدخل الرقم القومي المكون من 14 رقمًا';
+                birthDateInput.placeholder = 'اختر تاريخ الميلاد';
             } else {
                 langToggle.innerText = 'Switch to Arabic';
-                headerTitle.innerText = 'Age Calculator Options';
-                title.innerText = 'Age Calculator';
-                titleDiff.innerText = 'Date Difference Calculator';
+                headerTitle.innerText = 'National ID & Age Calculator';
                 titleNationalID.innerText = 'National ID Interpreter';
-                buttons[0].innerText = 'Calculate Age';
-                buttons[1].innerText = 'Date Difference';
-                buttons[2].innerText = 'National ID Interpreter';
-                daySelect.options[0].innerText = 'Day';
-                monthSelect.options[0].innerText = 'Month';
-                yearSelect.options[0].innerText = 'Year';
+                titleAge.innerText = 'Age Calculator';
+                buttons[0].innerText = 'National ID Interpreter';
+                buttons[1].innerText = 'Age Calculator';
                 nationalIDInput.placeholder = 'Enter 14-digit National ID';
+                birthDateInput.placeholder = 'Select Birth Date';
             }
 
             document.getElementById('result').innerText = '';
-            document.getElementById('date-diff-result').innerText = '';
             document.getElementById('national-id-result').innerText = '';
         }
 
-        function showAgeCalculator() {
-            document.getElementById('age-calculator').classList.add('active');
-            document.getElementById('date-diff-calculator').classList.remove('active');
-            document.getElementById('national-id-interpreter').classList.remove('active');
-        }
-
-        function showDateDifferenceCalculator() {
-            document.getElementById('age-calculator').classList.remove('active');
-            document.getElementById('date-diff-calculator').classList.add('active');
-            document.getElementById('national-id-interpreter').classList.remove('active');
-        }
-
         function showNationalIDInterpreter() {
-            document.getElementById('age-calculator').classList.remove('active');
-            document.getElementById('date-diff-calculator').classList.remove('active');
             document.getElementById('national-id-interpreter').classList.add('active');
+            document.getElementById('age-calculator').classList.remove('active');
+        }
+
+        function showAgeCalculator() {
+            document.getElementById('national-id-interpreter').classList.remove('active');
+            document.getElementById('age-calculator').classList.add('active');
         }
     </script>
 </body>
