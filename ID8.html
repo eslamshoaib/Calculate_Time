@@ -1,0 +1,157 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.time.LocalDate;
+import java.time.Period;
+
+public class NationalIDAnalyzer extends JFrame {
+    private JTextField nationalIDField;
+    private JTextField birthDateField;
+    private JTextField date1Field, date2Field;
+    private JTextArea resultArea;
+    private JComboBox<String> menuComboBox;
+
+    public NationalIDAnalyzer() {
+        // Initialize the frame
+        setTitle("نظام تحليل الرقم القومي");
+        setSize(600, 400);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new BorderLayout());
+
+        // Create a panel for the menu and input fields
+        JPanel topPanel = new JPanel();
+        topPanel.setLayout(new BorderLayout());
+
+        // Create a colorful dropdown menu
+        String[] menuOptions = {"اختر الخيار", "تحليل الرقم القومي", "احسب العمر", "احسب الفرق بين تواريخ"};
+        menuComboBox = new JComboBox<>(menuOptions);
+        menuComboBox.setFont(new Font("Arial", Font.BOLD, 14));
+        menuComboBox.setBackground(Color.decode("#f4f4f4"));
+        menuComboBox.setForeground(Color.decode("#333333"));
+        menuComboBox.addActionListener(new MenuActionListener());
+        topPanel.add(menuComboBox, BorderLayout.NORTH);
+
+        // Input fields for each option
+        JPanel inputPanel = new JPanel();
+        inputPanel.setLayout(new GridLayout(3, 2));
+        nationalIDField = new JTextField();
+        birthDateField = new JTextField();
+        date1Field = new JTextField();
+        date2Field = new JTextField();
+
+        JLabel label1 = new JLabel("الرقم القومي:");
+        JLabel label2 = new JLabel("تاريخ الميلاد:");
+        JLabel label3 = new JLabel("التاريخ الأول:");
+        JLabel label4 = new JLabel("التاريخ الثاني:");
+
+        inputPanel.add(label1);
+        inputPanel.add(nationalIDField);
+        inputPanel.add(label2);
+        inputPanel.add(birthDateField);
+        inputPanel.add(label3);
+        inputPanel.add(date1Field);
+        inputPanel.add(label4);
+        inputPanel.add(date2Field);
+
+        topPanel.add(inputPanel, BorderLayout.CENTER);
+        add(topPanel, BorderLayout.NORTH);
+
+        // Result area in the center
+        resultArea = new JTextArea();
+        resultArea.setEditable(false);
+        resultArea.setFont(new Font("Arial", Font.PLAIN, 14));
+        resultArea.setBackground(Color.decode("#f9f9fb"));
+        resultArea.setForeground(Color.decode("#333333"));
+        resultArea.setLineWrap(true);
+        resultArea.setWrapStyleWord(true);
+        add(new JScrollPane(resultArea), BorderLayout.CENTER);
+
+        // Make the frame visible
+        setVisible(true);
+    }
+
+    // ActionListener for the dropdown menu
+    private class MenuActionListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String selectedOption = (String) menuComboBox.getSelectedItem();
+            resultArea.setText(""); // Clear the result area
+
+            if ("تحليل الرقم القومي".equals(selectedOption)) {
+                analyzeNationalID();
+            } else if ("احسب العمر".equals(selectedOption)) {
+                calculateAge();
+            } else if ("احسب الفرق بين تواريخ".equals(selectedOption)) {
+                calculateDateDifference();
+            }
+        }
+    }
+
+    // Analyze the national ID
+    private void analyzeNationalID() {
+        String nationalID = nationalIDField.getText().trim();
+
+        if (nationalID.length() != 14 || !nationalID.matches("\\d{14}")) {
+            resultArea.setText("❌ الرقم القومي غير صالح! يجب أن يكون عبارة عن 14 رقمًا.");
+            return;
+        }
+
+        char firstDigit = nationalID.charAt(0);
+        String day = nationalID.substring(5, 7);
+        String month = nationalID.substring(3, 5);
+        String yearSuffix = nationalID.substring(1, 3);
+
+        String fullYear;
+        String century;
+
+        if (firstDigit == '3') {
+            fullYear = "20" + yearSuffix;
+            century = "القرن الحادي والعشرين (2001-2100)";
+        } else if (firstDigit == '2') {
+            fullYear = "19" + yearSuffix;
+            century = "القرن العشرين (1901-2000)";
+        } else {
+            fullYear = "غير معروف";
+            century = "غير معروف";
+        }
+
+        resultArea.append("✅ تاريخ الميلاد: " + day + "/" + month + "/" + fullYear + "\n");
+        resultArea.append("القرن: " + century + "\n");
+    }
+
+    // Calculate age based on birth date
+    private void calculateAge() {
+        String birthDateStr = birthDateField.getText().trim();
+
+        try {
+            LocalDate birthDate = LocalDate.parse(birthDateStr);
+            LocalDate today = LocalDate.now();
+            Period age = Period.between(birthDate, today);
+
+            resultArea.append("✅ عمرك الحالي هو: " + age.getYears() + " سنة، " + age.getMonths() + " شهر، " + age.getDays() + " يوم.\n");
+        } catch (Exception ex) {
+            resultArea.setText("❌ تاريخ الميلاد غير صحيح! يرجى التأكد من الصيغة (YYYY-MM-DD).");
+        }
+    }
+
+    // Calculate the difference between two dates
+    private void calculateDateDifference() {
+        String date1Str = date1Field.getText().trim();
+        String date2Str = date2Field.getText().trim();
+
+        try {
+            LocalDate date1 = LocalDate.parse(date1Str);
+            LocalDate date2 = LocalDate.parse(date2Str);
+            long diffDays = java.time.temporal.ChronoUnit.DAYS.between(date1, date2);
+
+            resultArea.append("✅ الفرق بين التاريخين هو: " + Math.abs(diffDays) + " يومًا.\n");
+        } catch (Exception ex) {
+            resultArea.setText("❌ التواريخ غير صحيحة! يرجى التأكد من الصيغة (YYYY-MM-DD).");
+        }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(NationalIDAnalyzer::new);
+    }
+}
