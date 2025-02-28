@@ -39,19 +39,22 @@
 
         function analyzeNationalID(id) {
             let yearPrefix = id[0] === '2' ? '19' : '20';
-            let birthYear = yearPrefix + id.substring(1, 3);
-            let birthMonth = id.substring(3, 5);
-            let birthDay = id.substring(5, 7);
+            let birthYear = parseInt(yearPrefix + id.substring(1, 3));
+            let birthMonth = parseInt(id.substring(3, 5));
+            let birthDay = parseInt(id.substring(5, 7));
             let gender = (id[12] % 2 === 0) ? "أنثى" : "ذكر";
             let governorates = { "01": "القاهرة", "02": "الإسكندرية", "03": "بورسعيد", "04": "السويس", "11": "دمياط", "12": "الدقهلية" };
             let governorateCode = id.substring(7, 9);
             let governorate = governorates[governorateCode] || "محافظة غير معروفة";
             
-            let age = new Date().getFullYear() - birthYear;
+            let birthDate = new Date(birthYear, birthMonth - 1, birthDay);
+            let ageDetails = calculateAge(birthDate);
             let zodiac = getZodiacSign(birthMonth, birthDay);
+            let weekday = birthDate.toLocaleDateString('ar-EG', { weekday: 'long' });
+            
             document.getElementById("result").innerHTML = `
-                <p>📅 تاريخ الميلاد: ${birthYear}-${birthMonth}-${birthDay}</p>
-                <p>🎂 العمر: ${age} سنة</p>
+                <p>📅 تاريخ الميلاد: ${birthYear}-${birthMonth}-${birthDay} (${weekday})</p>
+                <p>🎂 العمر: ${ageDetails.years} سنة و ${ageDetails.months} شهر و ${ageDetails.days} يوم</p>
                 <p>📍 المحافظة: ${governorate}</p>
                 <p>⚧ الجنس: ${gender}</p>
                 <p>🔮 البرج الفلكي: ${zodiac}</p>
@@ -60,18 +63,34 @@
 
         function analyzeDateOfBirth(date) {
             let birthDate = new Date(date);
-            let today = new Date();
-            let age = today.getFullYear() - birthDate.getFullYear();
+            let ageDetails = calculateAge(birthDate);
             let month = birthDate.getMonth() + 1;
             let day = birthDate.getDate();
             let zodiac = getZodiacSign(month, day);
             let weekday = birthDate.toLocaleDateString('ar-EG', { weekday: 'long' });
             
             document.getElementById("result").innerHTML = `
-                <p>🎂 العمر: ${age} سنة</p>
+                <p>🎂 العمر: ${ageDetails.years} سنة و ${ageDetails.months} شهر و ${ageDetails.days} يوم</p>
                 <p>🔮 البرج الفلكي: ${zodiac}</p>
                 <p>📅 يوم الميلاد: ${weekday}</p>
             `;
+        }
+
+        function calculateAge(birthDate) {
+            let today = new Date();
+            let years = today.getFullYear() - birthDate.getFullYear();
+            let months = today.getMonth() - birthDate.getMonth();
+            let days = today.getDate() - birthDate.getDate();
+            
+            if (days < 0) {
+                months--;
+                days += new Date(today.getFullYear(), today.getMonth(), 0).getDate();
+            }
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+            return { years, months, days };
         }
 
         function getZodiacSign(month, day) {
