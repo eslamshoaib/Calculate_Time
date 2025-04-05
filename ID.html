@@ -17,7 +17,6 @@
             height: 100vh;
             direction: rtl;
         }
-
         .container {
             background: rgba(255, 255, 255, 0.9);
             padding: 20px 30px;
@@ -27,12 +26,10 @@
             max-width: 500px;
             text-align: center;
         }
-
         h1 {
             color: #333;
             margin-bottom: 20px;
         }
-
         select, input, button {
             width: 100%;
             padding: 10px;
@@ -41,7 +38,6 @@
             border-radius: 5px;
             font-size: 16px;
         }
-
         button {
             background-color: #007bff;
             color: white;
@@ -49,11 +45,9 @@
             cursor: pointer;
             transition: background-color 0.3s ease;
         }
-
         button:hover {
             background-color: #0056b3;
         }
-
         /* Popup Styling */
         .popup {
             display: none;
@@ -68,7 +62,6 @@
             z-index: 1000;
             animation: fadeIn 0.5s ease-in-out;
         }
-
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -79,23 +72,19 @@
                 transform: translate(-50%, -50%) scale(1);
             }
         }
-
         .popup table {
             width: 100%;
             margin-top: 20px;
             border-collapse: collapse;
         }
-
         .popup th, .popup td {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: center;
         }
-
         .popup th {
             background-color: #f4f4f4;
         }
-
         .popup .close-btn {
             position: absolute;
             top: 10px;
@@ -107,7 +96,6 @@
             border-radius: 5px;
             cursor: pointer;
         }
-
         /* Overlay */
         .overlay {
             display: none;
@@ -119,58 +107,25 @@
             background: rgba(0, 0, 0, 0.5);
             z-index: 999;
         }
-
         .error {
             color: red;
             font-size: 16px;
             margin-top: 10px;
         }
-
-        /* Date Picker */
-        .date-picker {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
     </style>
 </head>
 <body>
-
 <div class="container">
     <h1>تحليل الرقم القومي المصري</h1>
-
     <!-- Language Selection -->
     <select id="language" onchange="changeLanguage()">
         <option value="ar">العربية</option>
         <option value="en">English</option>
     </select>
-
     <!-- National ID Input -->
     <input type="text" id="nationalID" placeholder="أدخل الرقم القومي هنا..." maxlength="14">
     <button onclick="analyzeNationalID()">تحليل الرقم القومي</button>
     <div id="idError" class="error"></div>
-
-    <!-- Date of Birth Input -->
-    <div class="date-picker">
-        <label for="dobPicker">تاريخ الميلاد:</label>
-        <input type="date" id="dobPicker" onchange="updateDobInput(this.value)">
-        <input type="text" id="dob" placeholder="تاريخ الميلاد (DD-MM-YYYY)" style="display: none;">
-        <button onclick="calculateAge()">احسب العمر</button>
-        <div id="dobError" class="error"></div>
-    </div>
-
-    <!-- Date Difference Calculator -->
-    <div class="date-picker">
-        <label for="date1Picker">التاريخ الأول:</label>
-        <input type="date" id="date1Picker" onchange="updateDate1Input(this.value)">
-        <input type="text" id="date1" placeholder="التاريخ الأول (DD-MM-YYYY)" style="display: none;">
-
-        <label for="date2Picker">التاريخ الثاني:</label>
-        <input type="date" id="date2Picker" onchange="updateDate2Input(this.value)">
-        <input type="text" id="date2" placeholder="التاريخ الثاني (DD-MM-YYYY)" style="display: none;">
-        <button onclick="calculateDateDifference()">احسب الفرق بين التاريخين</button>
-        <div id="dateError" class="error"></div>
-    </div>
 </div>
 
 <!-- Popup for Results -->
@@ -221,167 +176,109 @@
                 date2Placeholder: "Second Date (DD-MM-YYYY)"
             }
         };
-
         document.querySelector('button[onclick="analyzeNationalID()"]').textContent = labels[language].analyzeBtn;
-        document.querySelector('button[onclick="calculateAge()"]').textContent = labels[language].ageBtn;
-        document.querySelector('button[onclick="calculateDateDifference()"]').textContent = labels[language].dateDiffBtn;
-
-        document.getElementById("dob").placeholder = labels[language].dobPlaceholder;
-        document.getElementById("nationalID").placeholder = labels[language].nationalIDPlaceholder;
-        document.getElementById("date1").placeholder = labels[language].date1Placeholder;
-        document.getElementById("date2").placeholder = labels[language].date2Placeholder;
     }
 
     function analyzeNationalID() {
         const id = document.getElementById("nationalID").value;
         const errorDiv = document.getElementById("idError");
-
         if (id.length !== 14 || isNaN(id)) {
             errorDiv.textContent = language === "ar" ? "الرقم القومي غير صحيح!" : "Invalid National ID!";
             return;
         }
-
         errorDiv.textContent = "";
 
+        // Extracting details from the national ID
         const century = id.charAt(0);
         const year = parseInt(id.substring(1, 3));
         const month = parseInt(id.substring(3, 5));
         const day = parseInt(id.substring(5, 7));
-        const genderCode = parseInt(id.charAt(12));
         const governorateCode = id.substring(7, 9);
+        const registrationNumber = id.substring(9, 12); // Individual registration number
+        const genderCode = parseInt(id.charAt(12));
+        const identityType = id.charAt(13); // Type of identity (temporary or permanent)
 
         const governorates = {
-            "01": "القاهرة", "02": "الإسكندرية", "03": "بورسعيد", "04": "السويس", "11": "دمياط",
-            "12": "الدقهلية", "13": "الشرقية", "14": "القليوبية", "15": "كفر الشيخ", "16": "الغربية",
-            "17": "المنوفية", "18": "البحيرة", "19": "الإسماعيلية", "21": "الجيزة", "22": "بني سويف",
-            "23": "الفيوم", "24": "الأقصر", "25": "سوهاج", "26": "قنا", "27": "أسوان",
-            "28": "أسوط", "29": "مطروح", "31": "شمال سيناء", "32": "جنوب سيناء", "33": "البحر الأحمر",
+            "01": "القاهرة", "02": "الإسكندرية", "03": "بورسعيد", "04": "السويس",
+            "11": "دمياط", "12": "الدقهلية", "13": "الشرقية", "14": "القليوبية",
+            "15": "كفر الشيخ", "16": "الغربية", "17": "المنوفية", "18": "البحيرة",
+            "19": "الإسماعيلية", "21": "الجيزة", "22": "بني سويف", "23": "الفيوم",
+            "24": "الأقصر", "25": "سوهاج", "26": "قنا", "27": "أسوان", "28": "أسوط",
+            "29": "مطروح", "31": "شمال سيناء", "32": "جنوب سيناء", "33": "البحر الأحمر",
             "88": "خارج الجمهورية"
         };
 
         const birthDate = new Date((century === "2" ? "19" : "20") + year, month - 1, day);
         const gender = genderCode >= 1 && genderCode <= 4 ? "ذكر" : "أنثى";
         const governorate = governorates[governorateCode] || "غير معروف";
-
-        const registrationYear = `20${id.substring(1, 3)}`; // تسجيل الرقم القومي
+        const identityTypeName = identityType === "1" ? "دائمة" : "مؤقتة";
 
         const today = new Date();
         let ageYears = today.getFullYear() - birthDate.getFullYear();
         let ageMonths = today.getMonth() - birthDate.getMonth();
         let ageDays = today.getDate() - birthDate.getDate();
-
         if (ageDays < 0) {
             ageMonths--;
             ageDays += getDaysInMonth(today.getFullYear(), today.getMonth());
         }
-
         if (ageMonths < 0) {
             ageYears--;
             ageMonths += 12;
         }
+
+        const daysUntilBirthday = calculateDaysUntilBirthday(birthDate);
+        const zodiacSign = getZodiacSign(month, day);
 
         const results = [
             { key: "تاريخ الميلاد", value: birthDate.toLocaleDateString("ar-EG") },
             { key: "العمر", value: `${ageYears} سنة, ${ageMonths} شهر, ${ageDays} يوم` },
             { key: "الجنس", value: gender },
             { key: "المحافظة", value: governorate },
-            { key: "سنة تسجيل الرقم القومي", value: registrationYear }
+            { key: "رقم التسجيل الفردي", value: registrationNumber },
+            { key: "نوع الهوية", value: identityTypeName },
+            { key: "البرج الفلكي", value: zodiacSign },
+            { key: "عدد الأيام المتبقية لعيد الميلاد", value: `${daysUntilBirthday} يوم` }
         ];
 
         showPopup(results);
     }
 
-    function calculateAge() {
-        const dob = document.getElementById("dob").value;
-        const errorDiv = document.getElementById("dobError");
-
-        if (!isValidDate(dob)) {
-            errorDiv.textContent = language === "ar" ? "تاريخ الميلاد غير صحيح!" : "Invalid Date of Birth!";
-            return;
-        }
-
-        errorDiv.textContent = "";
-
-        const [day, month, year] = dob.split("-").map(Number);
-        const today = new Date();
-        const birthDate = new Date(year, month - 1, day);
-
-        let ageYears = today.getFullYear() - birthDate.getFullYear();
-        let ageMonths = today.getMonth() - birthDate.getMonth();
-        let ageDays = today.getDate() - birthDate.getDate();
-
-        if (ageDays < 0) {
-            ageMonths--;
-            ageDays += getDaysInMonth(today.getFullYear(), today.getMonth());
-        }
-
-        if (ageMonths < 0) {
-            ageYears--;
-            ageMonths += 12;
-        }
-
-        const daysLeft = calculateDaysUntilBirthday(birthDate);
-
-        const results = [
-            { key: "العمر", value: `${ageYears} سنة, ${ageMonths} شهر, ${ageDays} يوم` },
-            { key: "عدد الأيام المتبقية للعيد", value: `${daysLeft} يوم` }
-        ];
-
-        showPopup(results);
-    }
-
-    function calculateDateDifference() {
-        const date1 = document.getElementById("date1").value;
-        const date2 = document.getElementById("date2").value;
-        const errorDiv = document.getElementById("dateError");
-
-        if (!isValidDate(date1) || !isValidDate(date2)) {
-            errorDiv.textContent = language === "ar" ? "تاريخ غير صحيح!" : "Invalid Date!";
-            return;
-        }
-
-        errorDiv.textContent = "";
-
-        const [d1, m1, y1] = date1.split("-").map(Number);
-        const [d2, m2, y2] = date2.split("-").map(Number);
-
-        const firstDate = new Date(y1, m1 - 1, d1);
-        const secondDate = new Date(y2, m2 - 1, d2);
-
-        const diffTime = Math.abs(secondDate - firstDate);
-        const diffYears = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 365));
-        const remainingDays = Math.ceil((diffTime % (1000 * 60 * 60 * 24 * 365)) / (1000 * 60 * 60 * 24));
-
-        const results = [
-            { key: "الفرق الزمني", value: `${diffYears} سنة و ${remainingDays} يوم` }
-        ];
-
-        showPopup(results);
-    }
-
-    function isValidDate(dateStr) {
-        const regex = /^(\d{2})-(\d{2})-(\d{4})$/;
-        if (!regex.test(dateStr)) return false;
-
-        const [_, day, month, year] = dateStr.match(regex).map(Number);
-        const date = new Date(year, month - 1, day);
-
-        return date.getDate() === day && date.getMonth() + 1 === month && date.getFullYear() === year;
+    function getDaysInMonth(year, month) {
+        return new Date(year, month + 1, 0).getDate();
     }
 
     function calculateDaysUntilBirthday(birthDate) {
         const today = new Date();
         const thisYearBirthday = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
-
         if (thisYearBirthday < today) {
             thisYearBirthday.setFullYear(today.getFullYear() + 1);
         }
-
         return Math.ceil((thisYearBirthday - today) / (1000 * 60 * 60 * 24));
     }
 
-    function getDaysInMonth(year, month) {
-        return new Date(year, month + 1, 0).getDate();
+    function getZodiacSign(month, day) {
+        const zodiacSigns = [
+            { sign: "الحمل", start: { month: 3, day: 21 }, end: { month: 4, day: 19 } },
+            { sign: "الثور", start: { month: 4, day: 20 }, end: { month: 5, day: 20 } },
+            { sign: "الجوزاء", start: { month: 5, day: 21 }, end: { month: 6, day: 20 } },
+            { sign: "السرطان", start: { month: 6, day: 21 }, end: { month: 7, day: 22 } },
+            { sign: "الأسد", start: { month: 7, day: 23 }, end: { month: 8, day: 22 } },
+            { sign: "العذراء", start: { month: 8, day: 23 }, end: { month: 9, day: 22 } },
+            { sign: "الميزان", start: { month: 9, day: 23 }, end: { month: 10, day: 22 } },
+            { sign: "العقرب", start: { month: 10, day: 23 }, end: { month: 11, day: 21 } },
+            { sign: "القوس", start: { month: 11, day: 22 }, end: { month: 12, day: 21 } },
+            { sign: "الجدي", start: { month: 12, day: 22 }, end: { month: 1, day: 19 } },
+            { sign: "الدلو", start: { month: 1, day: 20 }, end: { month: 2, day: 18 } },
+            { sign: "الحوت", start: { month: 2, day: 19 }, end: { month: 3, day: 20 } }
+        ];
+
+        for (const sign of zodiacSigns) {
+            if ((month === sign.start.month && day >= sign.start.day) ||
+                (month === sign.end.month && day <= sign.end.day)) {
+                return sign.sign;
+            }
+        }
+        return "غير معروف";
     }
 
     function showPopup(results) {
@@ -397,10 +294,8 @@
             const row = document.createElement("tr");
             const keyCell = document.createElement("td");
             const valueCell = document.createElement("td");
-
             keyCell.textContent = result.key;
             valueCell.textContent = result.value;
-
             row.appendChild(keyCell);
             row.appendChild(valueCell);
             tbody.appendChild(row);
@@ -420,26 +315,7 @@
         overlay.style.display = "none";
     }
 
-    function updateDobInput(value) {
-        const dobInput = document.getElementById("dob");
-        const [year, month, day] = value.split("-");
-        dobInput.value = `${day}-${month}-${year}`;
-    }
-
-    function updateDate1Input(value) {
-        const date1Input = document.getElementById("date1");
-        const [year, month, day] = value.split("-");
-        date1Input.value = `${day}-${month}-${year}`;
-    }
-
-    function updateDate2Input(value) {
-        const date2Input = document.getElementById("date2");
-        const [year, month, day] = value.split("-");
-        date2Input.value = `${day}-${month}-${year}`;
-    }
-
     updateLabels();
 </script>
-
 </body>
 </html>
