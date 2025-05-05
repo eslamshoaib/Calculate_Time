@@ -5,31 +5,81 @@
   <title>واجهة إدخال وتعليق</title>
   <style>
     body {
-      font-family: Tahoma, Arial;
+      font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
       direction: rtl;
-      background-color: #f2f2f2;
+      background-color: #f9f9f9;
       padding: 20px;
+      margin: 0;
     }
     .container {
-      max-width: 800px;
+      max-width: 900px;
       margin: auto;
       background: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      color: #4CAF50;
     }
     input, button {
-      padding: 8px;
-      margin: 5px;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      width: calc(100% - 22px);
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+      border: none;
+    }
+    button:hover {
+      background-color: #45a049;
     }
     .entity {
       border: 1px solid #ddd;
-      margin-top: 15px;
-      padding: 10px;
-      border-radius: 6px;
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      background-color: #f7f7f7;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     .comment {
       margin-right: 20px;
+      margin-top: 5px;
+      background-color: #e9f7e9;
+      padding: 5px;
+      border-radius: 4px;
+    }
+    .comment button {
+      background-color: #f44336;
+      color: white;
+      border: none;
+      padding: 5px;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    .comment button:hover {
+      background-color: #e53935;
+    }
+    .search-container {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .search-container input {
+      width: 70%;
+    }
+    .download-btns button {
+      background-color: #2196F3;
+      margin: 5px;
+    }
+    .download-btns button:hover {
+      background-color: #1976D2;
     }
   </style>
 </head>
@@ -37,15 +87,17 @@
   <div class="container">
     <h2>نظام إدخال وتعليق</h2>
 
-    <input type="text" id="searchInput" placeholder="ابحث..." onkeyup="searchEntities()">
-    <br><br>
-    <input type="text" id="nameInput" placeholder="أدخل اسم جديد">
-    <button onclick="addEntity()">إضافة اسم</button>
+    <div class="search-container">
+      <input type="text" id="searchInput" placeholder="ابحث..." onkeyup="searchEntities()">
+      <input type="text" id="nameInput" placeholder="أدخل اسم جديد">
+      <button onclick="addEntity()">إضافة اسم</button>
+    </div>
 
     <div id="entitiesContainer"></div>
 
     <hr>
-    <div style="text-align:center;">
+
+    <div class="download-btns" style="text-align:center;">
       <button onclick="downloadAsExcel()">تحميل كـ Excel</button>
       <button onclick="downloadAsPDF()">تحميل كـ PDF</button>
       <button onclick="downloadAsWord()">تحميل كـ Word</button>
