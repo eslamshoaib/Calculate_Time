@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>واجهة إدخال وتعليق</title>
+  <style>
+    body {
+      font-family: Tahoma, Arial;
+      direction: rtl;
+      background-color: #f2f2f2;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    input, button {
+      padding: 8px;
+      margin: 5px;
+    }
+    .entity {
+      border: 1px solid #ddd;
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 6px;
+    }
+    .comment {
+      margin-right: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>نظام إدخال وتعليق</h2>
+
+    <input type="text" id="searchInput" placeholder="ابحث..." onkeyup="searchEntities()">
+    <br><br>
+    <input type="text" id="nameInput" placeholder="أدخل اسم جديد">
+    <button onclick="addEntity()">إضافة اسم</button>
+
+    <div id="entitiesContainer"></div>
+
+    <hr>
+    <div style="text-align:center;">
+      <button onclick="downloadAsExcel()">تحميل كـ Excel</button>
+      <button onclick="downloadAsPDF()">تحميل كـ PDF</button>
+      <button onclick="downloadAsWord()">تحميل كـ Word</button>
+    </div>
+  </div>
+
+  <!-- مكتبات تحميل -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html-docx-js/0.4.1/html-docx.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+  <script>
+    let entities = [];
+
+    function generateID() {
+      return 'id_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+    }
+
+    function addEntity() {
+      const name = document.getElementById("nameInput").value.trim();
+      if (!name) return;
+
+      const id = generateID();
+      const entity = { id, name, comments: [] };
+      entities.push(entity);
+      renderEntities();
+      document.getElementById("nameInput").value = "";
+    }
+
+    function addComment(entityId) {
+      const input = document.getElementById(`comment_input_${entityId}`);
+      const text = input.value.trim();
+      if (!text) return;
+
+      const comment = { id: generateID(), text };
+      const entity = entities.find(e => e.id === entityId);
+      entity.comments.push(comment);
+      renderEntities();
+    }
+
+    function deleteEntity(id) {
+      entities = entities.filter(e => e.id !== id);
+      renderEntities();
+    }
+
+    function deleteComment(entityId, commentId) {
+      const entity = entities.find(e => e.id === entityId);
+      entity.comments = entity.comments.filter(c => c.id !== commentId);
+      renderEntities();
+    }
+
+    function renderEntities() {
+      const container = document.getElementById("entitiesContainer");
+      container.innerHTML = "";
+
+      entities.forEach(entity => {
+        const div = document.createElement("div");
+        div.className = "entity";
+        div.innerHTML = `
+          <strong>${entity.name}</strong> 
+          <button onclick="deleteEntity('${entity.id}')">حذف الاسم</button><br><br>
+          <input type="text" id="comment_input_${entity.id}" placeholder="أضف تعليق">
+          <button onclick="addComment('${entity.id}')">إضافة</button>
+          <div>
+            ${entity.comments.map(c => `
+              <div class="comment">
+                - ${c.text} 
+                <button onclick="deleteComment('${entity.id}', '${c.id}')">حذف</button>
+              </div>
+            `).join("")}
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function searchEntities() {
+      const keyword = document.getElementById("searchInput").value.toLowerCase();
+      const divs = document.querySelectorAll(".entity");
+      divs.forEach(div => {
+        const text = div.innerText.toLowerCase();
+        div.style.display = text.includes(keyword) ? "block" : "none";
+      });
+    }
+
+    function downloadAsExcel() {
+      const data = entities.map(e => ({
+        'الاسم': e.name,
+        'عدد التعليقات': e.comments.length,
+        'التعليقات': e.comments.map(c => c.text).join(" | ")
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Entities");
+
+      XLSX.writeFile(workbook, "البيانات.xlsx");
+    }
+
+    async function downloadAsPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({orientation: "portrait", unit: "mm", format: "a4"});
+
+      let y = 10;
+      entities.forEach((e, idx) => {
+        doc.text(`${idx + 1}) ${e.name}`, 10, y);
+        y += 8;
+        e.comments.forEach((c, i) => {
+          doc.text(`   - ${c.text}`, 15, y);
+          y += 8;
+        });
+        y += 5;
+        if (y > 270) {
+          doc.addPage();
+          y = 10;
+        }
+      });
+
+      doc.save("البيانات.pdf");
+    }
+
+    function downloadAsWord() {
+      const content = document.createElement('div');
+      entities.forEach((e, idx) => {
+        const h = document.createElement('h3');
+        h.innerText = `${idx + 1}) ${e.name}`;
+        content.appendChild(h);
+
+        e.comments.forEach(c => {
+          const p = document.createElement('p');
+          p.innerText = `- ${c.text}`;
+          content.appendChild(p);
+        });
+      });
+
+      const converted = window.htmlDocx.asBlob(content.innerHTML);
+      saveAs(converted, "البيانات.docx");
+    }
+  </script>
+</body>
+</html>
