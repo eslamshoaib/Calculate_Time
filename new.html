@@ -5,102 +5,79 @@
   <title>واجهة إدخال وتعليق</title>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+      font-family: Tahoma, Arial;
       direction: rtl;
-      background-color: #f9f9f9;
+      background-color: #f2f2f2;
       padding: 20px;
-      margin: 0;
+      transition: background-color 0.3s;
     }
     .container {
-      max-width: 900px;
+      max-width: 800px;
       margin: auto;
       background: #fff;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    h2 {
-      text-align: center;
-      color: #4CAF50;
-    }
-    input, button {
-      padding: 10px;
-      margin: 10px 0;
+    input, button, select {
+      padding: 8px;
+      margin: 5px;
+      border-radius: 4px;
       border: 1px solid #ccc;
-      border-radius: 5px;
-      width: calc(100% - 22px);
-      box-sizing: border-box;
     }
-    button {
-      background-color: #4CAF50;
-      color: white;
-      cursor: pointer;
-      border: none;
-    }
-    button:hover {
-      background-color: #45a049;
+    input:focus, button:focus {
+      border-color: #007bff;
+      outline: none;
     }
     .entity {
       border: 1px solid #ddd;
-      margin-top: 20px;
-      padding: 15px;
-      border-radius: 8px;
-      background-color: #f7f7f7;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 6px;
+      background-color: #f9f9f9;
+      transition: background-color 0.3s;
+    }
+    .entity:hover {
+      background-color: #f1f1f1;
     }
     .comment {
       margin-right: 20px;
-      margin-top: 5px;
-      background-color: #e9f7e9;
-      padding: 5px;
-      border-radius: 4px;
     }
-    .comment button {
-      background-color: #f44336;
-      color: white;
-      border: none;
-      padding: 5px;
-      border-radius: 3px;
-      cursor: pointer;
+    .dark-mode {
+      background-color: #333;
+      color: #fff;
     }
-    .comment button:hover {
-      background-color: #e53935;
+    .dark-mode .container {
+      background-color: #444;
+      color: #fff;
     }
-    .search-container {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 20px;
-    }
-    .search-container input {
-      width: 70%;
-    }
-    .download-btns button {
-      background-color: #2196F3;
-      margin: 5px;
-    }
-    .download-btns button:hover {
-      background-color: #1976D2;
+    .dark-mode input, .dark-mode button, .dark-mode select {
+      background-color: #555;
+      color: #fff;
+      border-color: #666;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>نظام إدخال وتعليق</h2>
-
-    <div class="search-container">
-      <input type="text" id="searchInput" placeholder="ابحث..." onkeyup="searchEntities()">
-      <input type="text" id="nameInput" placeholder="أدخل اسم جديد">
-      <button onclick="addEntity()">إضافة اسم</button>
-    </div>
+    <input type="text" id="searchInput" placeholder="ابحث..." onkeyup="searchEntities()">
+    <br><br>
+    <input type="text" id="nameInput" placeholder="أدخل اسم جديد">
+    <button onclick="addEntity()">إضافة اسم</button>
+    <select id="exportType">
+      <option value="excel">تصدير إلى Excel</option>
+      <option value="pdf">تصدير إلى PDF</option>
+      <option value="word">تصدير إلى Word</option>
+      <option value="json">تصدير إلى JSON</option>
+    </select>
+    <button onclick="exportData()">تصدير البيانات</button>
 
     <div id="entitiesContainer"></div>
 
     <hr>
-
-    <div class="download-btns" style="text-align:center;">
-      <button onclick="downloadAsExcel()">تحميل كـ Excel</button>
-      <button onclick="downloadAsPDF()">تحميل كـ PDF</button>
-      <button onclick="downloadAsWord()">تحميل كـ Word</button>
+    <div style="text-align:center;">
+      <button onclick="toggleDarkMode()">تبديل الوضع الليلي</button>
     </div>
   </div>
 
@@ -112,6 +89,7 @@
 
   <script>
     let entities = [];
+    let darkMode = false;
 
     function generateID() {
       return 'id_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
@@ -150,6 +128,15 @@
       renderEntities();
     }
 
+    function editComment(entityId, commentId) {
+      const newText = prompt("عدل التعليق:");
+      if (!newText) return;
+      const entity = entities.find(e => e.id === entityId);
+      const comment = entity.comments.find(c => c.id === commentId);
+      comment.text = newText;
+      renderEntities();
+    }
+
     function renderEntities() {
       const container = document.getElementById("entitiesContainer");
       container.innerHTML = "";
@@ -166,6 +153,7 @@
             ${entity.comments.map(c => `
               <div class="comment">
                 - ${c.text} 
+                <button onclick="editComment('${entity.id}', '${c.id}')">تعديل</button>
                 <button onclick="deleteComment('${entity.id}', '${c.id}')">حذف</button>
               </div>
             `).join("")}
@@ -182,6 +170,24 @@
         const text = div.innerText.toLowerCase();
         div.style.display = text.includes(keyword) ? "block" : "none";
       });
+    }
+
+    function exportData() {
+      const exportType = document.getElementById("exportType").value;
+      switch (exportType) {
+        case 'excel':
+          downloadAsExcel();
+          break;
+        case 'pdf':
+          downloadAsPDF();
+          break;
+        case 'word':
+          downloadAsWord();
+          break;
+        case 'json':
+          downloadAsJSON();
+          break;
+      }
     }
 
     function downloadAsExcel() {
@@ -236,6 +242,17 @@
 
       const converted = window.htmlDocx.asBlob(content.innerHTML);
       saveAs(converted, "البيانات.docx");
+    }
+
+    function downloadAsJSON() {
+      const json = JSON.stringify(entities, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      saveAs(blob, 'البيانات.json');
+    }
+
+    function toggleDarkMode() {
+      darkMode = !darkMode;
+      document.body.classList.toggle('dark-mode', darkMode);
     }
   </script>
 </body>
