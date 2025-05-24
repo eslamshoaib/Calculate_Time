@@ -1,158 +1,157 @@
 <!DOCTYPE html>
-<html lang="ar" >
+<html lang="ar">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Facebook ID Finder - جامد 🔥</title>
+  <title>🧠 Facebook ID Extractor - Ultimate Offline</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #1a1a2e;
-      color: #eaeaea;
+      margin: 0;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      color: #eee;
+      font-family: 'Courier New', Courier, monospace;
       display: flex;
       flex-direction: column;
       align-items: center;
       padding: 30px;
-      min-height: 100vh;
-      margin: 0;
     }
+
     h1 {
+      color: #00ffe7;
+      font-size: 28px;
       margin-bottom: 20px;
-      color: #00adb5;
     }
-    input {
+
+    textarea, input, button {
       width: 90%;
-      max-width: 400px;
-      padding: 12px 15px;
-      font-size: 1.1rem;
+      max-width: 600px;
+      padding: 15px;
+      margin-top: 15px;
+      font-size: 16px;
       border-radius: 8px;
       border: none;
-      margin-bottom: 15px;
+      box-shadow: 0 0 10px #00ffe740;
+      background-color: #1c1c1c;
+      color: #fff;
     }
+
     button {
-      padding: 12px 25px;
-      background: #00adb5;
-      border: none;
-      border-radius: 8px;
-      color: #1a1a2e;
+      background-color: #00ffe7;
+      color: #000;
       font-weight: bold;
-      font-size: 1.1rem;
       cursor: pointer;
-      transition: background 0.3s ease;
-      max-width: 400px;
-      width: 90%;
+      transition: 0.3s;
     }
+
     button:hover {
-      background: #008f95;
+      background-color: #00b3a7;
     }
+
     .result {
-      margin-top: 25px;
-      font-size: 1.2rem;
-      background: #222240;
+      margin-top: 30px;
+      font-size: 18px;
+      background: rgba(0,0,0,0.5);
       padding: 20px;
       border-radius: 10px;
-      max-width: 400px;
       width: 90%;
+      max-width: 600px;
       word-break: break-word;
-      min-height: 50px;
+      line-height: 1.7;
+      text-align: right;
     }
-    .error {
-      color: #ff3e41;
+
+    .tag {
+      background-color: #00ffe7;
+      color: #000;
+      padding: 3px 8px;
+      border-radius: 5px;
+      font-weight: bold;
     }
-    .loading {
-      color: #ffd369;
-    }
+
     footer {
-      margin-top: auto;
-      margin-bottom: 10px;
-      font-size: 0.9rem;
+      margin-top: 50px;
       color: #666;
+      font-size: 0.9em;
     }
   </style>
 </head>
 <body>
-  <h1>🕵️‍♂️ Facebook ID Finder - جامد</h1>
-  <input type="url" id="fburl" placeholder="أدخل رابط فيسبوك هنا (بروفايل أو صفحة)" />
-  <button id="findBtn">استخراج الـ ID</button>
+
+  <h1>🚀 مستخرج الـ Facebook ID - نسخة خارقة</h1>
+  <input type="text" id="url" placeholder="أدخل رابط فيسبوك أو أتركه فارغًا لو هتلزق كود" />
+  <textarea id="htmlInput" rows="10" placeholder="ألصق كود HTML للصفحة أو اتركه فاضي لو هتدخل رابط"></textarea>
+  <button onclick="extractFbId()">استخرج الـ ID الآن</button>
+
   <div class="result" id="result"></div>
 
+  <footer>💻 نسخة أوفلاين. لا إنترنت. لا سيرفرات. فقط سحر البرمجة.</footer>
+
   <script>
-    const findBtn = document.getElementById('findBtn');
-    const resultBox = document.getElementById('result');
-    const fburlInput = document.getElementById('fburl');
+    async function extractFbId() {
+      const url = document.getElementById('url').value.trim();
+      const htmlInput = document.getElementById('htmlInput').value.trim();
+      const resultDiv = document.getElementById('result');
+      let html = htmlInput;
 
-    function cleanUrl(url) {
-      // إزالة أي باراميترات أو شيء زائد
-      try {
-        let u = new URL(url);
-        return u.origin + u.pathname;
-      } catch {
-        return null;
+      if (!html && url) {
+        resultDiv.innerHTML = "❌ لا يمكن جلب الصفحة بدون إنترنت. الصق الكود يدويًا.";
+        return;
       }
-    }
 
-    async function fetchHTML(url) {
-      // استخدام CORS proxy مجاني (ممكن تتغير حسب توفر الخدمة)
-      const proxy = 'https://api.allorigins.win/raw?url=';
-      try {
-        const res = await fetch(proxy + encodeURIComponent(url));
-        if (!res.ok) throw new Error('خطأ في جلب الصفحة');
-        return await res.text();
-      } catch (err) {
-        throw err;
+      if (!html && !url) {
+        resultDiv.innerHTML = "⚠️ أدخل رابط أو كود HTML على الأقل.";
+        return;
       }
-    }
 
-    function extractFbId(html) {
-      // يبحث عن ID بأنواع مختلفة
       const patterns = [
-        /"entity_id":"(\d+)"/,
-        /"profile_id":"(\d+)"/,
-        /"userID":"(\d+)"/,
-        /"user_id":(\d+)/,
-        /"fb://profile/(\d+)"/,
-        /"profile_owner":"(\d+)"/
+        { type: "entity_id", regex: /"entity_id":"(\d+)"/ },
+        { type: "profile_id", regex: /"profile_id":"(\d+)"/ },
+        { type: "userID", regex: /"userID":"(\d+)"/ },
+        { type: "user_id", regex: /"user_id":(\d+)/ },
+        { type: "profile_owner", regex: /"profile_owner":"(\d+)"/ }
       ];
-      for (const regex of patterns) {
-        const match = html.match(regex);
-        if (match) return match[1];
-      }
-      return null;
-    }
 
-    findBtn.addEventListener('click', async () => {
-      resultBox.textContent = '';
-      const urlRaw = fburlInput.value.trim();
-      if (!urlRaw) {
-        resultBox.textContent = '⚠️ من فضلك أدخل رابط فيسبوك صالح.';
-        resultBox.className = 'result error';
-        return;
-      }
-      const url = cleanUrl(urlRaw);
-      if (!url) {
-        resultBox.textContent = '⚠️ الرابط غير صالح.';
-        resultBox.className = 'result error';
-        return;
-      }
+      let idFound = null;
+      let typeFound = null;
 
-      resultBox.textContent = '⏳ جاري استخراج الـ Facebook ID...';
-      resultBox.className = 'result loading';
-
-      try {
-        const html = await fetchHTML(url);
-        const fbId = extractFbId(html);
-        if (fbId) {
-          resultBox.textContent = `✅ Facebook ID هو: ${fbId}`;
-          resultBox.className = 'result';
-        } else {
-          resultBox.textContent = '❌ لم أتمكن من إيجاد الـ ID. الحساب قد يكون خاص أو الرابط غير صحيح.';
-          resultBox.className = 'result error';
+      for (let pattern of patterns) {
+        const match = html.match(pattern.regex);
+        if (match) {
+          idFound = match[1];
+          typeFound = pattern.type;
+          break;
         }
-      } catch (error) {
-        resultBox.textContent = `❌ خطأ أثناء جلب الصفحة: ${error.message}`;
-        resultBox.className = 'result error';
       }
-    });
+
+      if (idFound) {
+        let interpretation = "🧠 <span class='tag'>تحليل:</span> ";
+
+        switch(typeFound) {
+          case "entity_id":
+          case "profile_id":
+            interpretation += "الحساب غالبًا صفحة عامة أو بروفايل كلاسيكي.";
+            break;
+          case "userID":
+          case "user_id":
+            interpretation += "الحساب مستخدم شخصي (بروفايل).";
+            break;
+          case "profile_owner":
+            interpretation += "غالبًا صفحة أو جروب.";
+            break;
+          default:
+            interpretation += "غير معروف.";
+        }
+
+        resultDiv.innerHTML = `
+          ✅ <span class="tag">Facebook ID:</span> <b>${idFound}</b><br><br>
+          ${interpretation}<br><br>
+          🔒 <span class='tag'>ملاحظة:</span> لا يعمل مع الحسابات الخاصة أو المغلقة.
+        `;
+      } else {
+        resultDiv.innerHTML = "❌ لم أتمكن من استخراج أي ID من الكود المقدم.";
+      }
+    }
   </script>
+
 </body>
 </html>
