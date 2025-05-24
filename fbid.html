@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ar" >
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Facebook ID Finder - جامد 🔥</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #1a1a2e;
+      color: #eaeaea;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px;
+      min-height: 100vh;
+      margin: 0;
+    }
+    h1 {
+      margin-bottom: 20px;
+      color: #00adb5;
+    }
+    input {
+      width: 90%;
+      max-width: 400px;
+      padding: 12px 15px;
+      font-size: 1.1rem;
+      border-radius: 8px;
+      border: none;
+      margin-bottom: 15px;
+    }
+    button {
+      padding: 12px 25px;
+      background: #00adb5;
+      border: none;
+      border-radius: 8px;
+      color: #1a1a2e;
+      font-weight: bold;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      max-width: 400px;
+      width: 90%;
+    }
+    button:hover {
+      background: #008f95;
+    }
+    .result {
+      margin-top: 25px;
+      font-size: 1.2rem;
+      background: #222240;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 400px;
+      width: 90%;
+      word-break: break-word;
+      min-height: 50px;
+    }
+    .error {
+      color: #ff3e41;
+    }
+    .loading {
+      color: #ffd369;
+    }
+    footer {
+      margin-top: auto;
+      margin-bottom: 10px;
+      font-size: 0.9rem;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <h1>🕵️‍♂️ Facebook ID Finder - جامد</h1>
+  <input type="url" id="fburl" placeholder="أدخل رابط فيسبوك هنا (بروفايل أو صفحة)" />
+  <button id="findBtn">استخراج الـ ID</button>
+  <div class="result" id="result"></div>
+
+  <script>
+    const findBtn = document.getElementById('findBtn');
+    const resultBox = document.getElementById('result');
+    const fburlInput = document.getElementById('fburl');
+
+    function cleanUrl(url) {
+      // إزالة أي باراميترات أو شيء زائد
+      try {
+        let u = new URL(url);
+        return u.origin + u.pathname;
+      } catch {
+        return null;
+      }
+    }
+
+    async function fetchHTML(url) {
+      // استخدام CORS proxy مجاني (ممكن تتغير حسب توفر الخدمة)
+      const proxy = 'https://api.allorigins.win/raw?url=';
+      try {
+        const res = await fetch(proxy + encodeURIComponent(url));
+        if (!res.ok) throw new Error('خطأ في جلب الصفحة');
+        return await res.text();
+      } catch (err) {
+        throw err;
+      }
+    }
+
+    function extractFbId(html) {
+      // يبحث عن ID بأنواع مختلفة
+      const patterns = [
+        /"entity_id":"(\d+)"/,
+        /"profile_id":"(\d+)"/,
+        /"userID":"(\d+)"/,
+        /"user_id":(\d+)/,
+        /"fb://profile/(\d+)"/,
+        /"profile_owner":"(\d+)"/
+      ];
+      for (const regex of patterns) {
+        const match = html.match(regex);
+        if (match) return match[1];
+      }
+      return null;
+    }
+
+    findBtn.addEventListener('click', async () => {
+      resultBox.textContent = '';
+      const urlRaw = fburlInput.value.trim();
+      if (!urlRaw) {
+        resultBox.textContent = '⚠️ من فضلك أدخل رابط فيسبوك صالح.';
+        resultBox.className = 'result error';
+        return;
+      }
+      const url = cleanUrl(urlRaw);
+      if (!url) {
+        resultBox.textContent = '⚠️ الرابط غير صالح.';
+        resultBox.className = 'result error';
+        return;
+      }
+
+      resultBox.textContent = '⏳ جاري استخراج الـ Facebook ID...';
+      resultBox.className = 'result loading';
+
+      try {
+        const html = await fetchHTML(url);
+        const fbId = extractFbId(html);
+        if (fbId) {
+          resultBox.textContent = `✅ Facebook ID هو: ${fbId}`;
+          resultBox.className = 'result';
+        } else {
+          resultBox.textContent = '❌ لم أتمكن من إيجاد الـ ID. الحساب قد يكون خاص أو الرابط غير صحيح.';
+          resultBox.className = 'result error';
+        }
+      } catch (error) {
+        resultBox.textContent = `❌ خطأ أثناء جلب الصفحة: ${error.message}`;
+        resultBox.className = 'result error';
+      }
+    });
+  </script>
+</body>
+</html>
