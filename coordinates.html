@@ -1,198 +1,170 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تحويل الإحداثيات إلى رابط خرائط جوجل</title>
+    <title>تفاصيل بيانات الموبايل</title>
     <style>
         body {
-            background-color: #f0f0f0;
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            font-family: 'Tajawal', sans-serif;
+            background-color: #f4f4f9;
             margin: 0;
+            padding: 20px;
+            color: #333;
         }
-
         .container {
-            background-color: #fff;
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #fff;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 350px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
             text-align: center;
+            color: #2c3e50;
         }
-
-        h1, h2 {
-            color: #333;
-        }
-        h2 {
-            color: #ae1d29;
-        }
-        label {
+        input[type="file"] {
             display: block;
-            margin: 10px 0 5px;
-            font-weight: bold;
-        }
-
-        .coordinate-input {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .coordinate-input input {
-            width: 50px;
-            padding: 8px;
-            margin: 5px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-
-        .coordinate-input select {
-            padding: 8px;
-            margin: 5px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-
-        textarea {
-            width: 100%;
-            height: 100px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            margin: 10px 0;
-        }
-
-        button {
-            width: 100%;
-            padding: 10px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        button:hover {
-            background-color: #45a049;
-        }
-
-        #result {
-            margin-top: 15px;
-            font-size: 14px;
-            color: #333;
-        }
-        .arrow-down {
-            width: 0; 
-            height: 0; 
-            border-left: 10px solid transparent;
-            border-right: 10px solid transparent;
-            border-top: 20px solid black;
             margin: 20px auto;
+            padding: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 12px;
+            text-align: right;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .no-data {
+            text-align: center;
+            color: #e74c3c;
+            font-size: 1.2em;
         }
     </style>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
-    <div class="container" id="form1">
-        <h2>تحويل لاحداثي جوجل</h2>
-        <form id="coordinateForm">
-            <label for="inputText"> ضع الكارنت هنا </label>
-            <div class="arrow-down"></div>
-            <textarea id="inputText" placeholder="أدخل النصوص هنا..."></textarea>
-            <button type="button" onclick="extractCoordinates()">تحويل</button>
-        </form>
-        <p id="result"></p>
-        <h2>******************************* </h2>
+    <div class="container">
+        <h1>تفاصيل بيانات الموبايل</h1>
+        <input type="file" id="fileInput" accept=".xlsx, .xls" />
+        <table id="dataTable">
+            <thead>
+                <tr>
+                    <th>رقم الهاتف</th>
+                    <th>IMSI</th>
+                    <th>IMEI</th>
+                    <th>التبديل الرئيسي</th>
+                    <th>معرف الخلية</th>
+                    <th>رقم الخلية</th>
+                    <th>LAC</th>
+                    <th>حالة 4G</th>
+                    <th>MME</th>
+                    <th>المنطقة الفرعية</th>
+                    <th>المدينة</th>
+                    <th>عنوان المالك</th>
+                    <th>إحداثيات الموقع</th>
+                    <th>رابط خرائط جوجل</th>
+                    <th>معرف الموقع</th>
+                    <th>حالة الموبايل</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+        <p id="noData" class="no-data" style="display: none;">لم يتم تحميل بيانات بعد. الرجاء رفع ملف Excel.</p>
     </div>
-    <div class="container" id="form2" style="display: none;">
-        <h1>تحويل الإحداثيات إلى رابط خرائط جوجل</h1>
-        <form id="manualCoordinateForm">
-            <div class="coordinate-input">
-                <label for="latitude-direction">خط العرض:</label>
-                <select id="latitude-direction">
-                    <option value="N">N</option>
-                    <option value="S">S</option>
-                </select>
-                <input type="number" id="latitude-degrees" placeholder="°" min="0" max="90">
-                <input type="number" id="latitude-minutes" placeholder="'" min="0" max="59">
-                <input type="number" id="latitude-seconds" placeholder='"' step="0.001" min="0" max="59.999">
-            </div>
-            <div class="coordinate-input">
-                <label for="longitude-direction">خط الطول:</label>
-                <select id="longitude-direction">
-                    <option value="E">E</option>
-                    <option value="W">W</option>
-                </select>
-                <input type="number" id="longitude-degrees" placeholder="°" min="0" max="180">
-                <input type="number" id="longitude-minutes" placeholder="'" min="0" max="59">
-                <input type="number" id="longitude-seconds" placeholder='"' step="0.001" min="0" max="59.999">
-            </div>
-            <button type="button" onclick="convertCoordinates()">تحويل</button>
-        </form>
-        <p id="manualResult"></p>
-    </div>
+
     <script>
-        function extractCoordinates() {
-            const inputText = document.getElementById('inputText').value;
-            const regex1 = /Location:.*?N\s*(\d+)-(\d+)-([\d.]+).*?E\s*(\d+)-(\d+)-([\d.]+)/i;
-            const regex2 = /Location:.*?N\s*(\d+)\s*(\d+)\s*([\d.]+).*?E\s*(\d+)\s*(\d+)\s*([\d.]+)/i;
-            let match = regex1.exec(inputText);
+        const fileInput = document.getElementById('fileInput');
+        const tableBody = document.getElementById('tableBody');
+        const noData = document.getElementById('noData');
 
-            if (!match) {
-                match = regex2.exec(inputText);
-            }
+        fileInput.addEventListener('change', handleFile);
 
-            if (match) {
-                const latDegrees = parseFloat(match[1]);
-                const latMinutes = parseFloat(match[2]);
-                const latSeconds = parseFloat(match[3]);
-                const lonDegrees = parseFloat(match[4]);
-                const lonMinutes = parseFloat(match[5]);
-                const lonSeconds = parseFloat(match[6]);
+        function handleFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
 
-                const latitude = convertDMSToDecimal(latDegrees, latMinutes, latSeconds, 'N');
-                const longitude = convertDMSToDecimal(lonDegrees, lonMinutes, lonSeconds, 'E');
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(firstSheet);
 
-                const googleMapsLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
-                document.getElementById('result').innerHTML = `<a href="${googleMapsLink}" target="_blank">عرض في خرائط جوجل</a>`;
-            } else {
-                document.getElementById('form1').style.display = 'none';
-                document.getElementById('form2').style.display = 'block';
-            }
-        }
+                // Clear previous table data
+                tableBody.innerHTML = '';
+                noData.style.display = 'none';
 
-        function convertCoordinates() {
-            const latDirection = document.getElementById('latitude-direction').value;
-            const latDegrees = parseFloat(document.getElementById('latitude-degrees').value) || 0;
-            const latMinutes = parseFloat(document.getElementById('latitude-minutes').value) || 0;
-            const latSeconds = parseFloat(document.getElementById('latitude-seconds').value) || 0;
+                if (jsonData.length === 0) {
+                    noData.style.display = 'block';
+                    return;
+                }
 
-            const lonDirection = document.getElementById('longitude-direction').value;
-            const lonDegrees = parseFloat(document.getElementById('longitude-degrees').value) || 0;
-            const lonMinutes = parseFloat(document.getElementById('longitude-minutes').value) || 0;
-            const lonSeconds = parseFloat(document.getElementById('longitude-seconds').value) || 0;
+                // Process each row
+                jsonData.forEach(row => {
+                    // Convert coordinates from N3121258E2713105 format to decimal
+                    let lat = '', lon = '';
+                    const coords = row["'N'||LATITUDE||'E'||LONGITUDE"];
+                    if (coords) {
+                        const match = coords.match(/N(\d{2})(\d{2})(\d{2}\.?\d*)E(\d{2})(\d{2})(\d{2}\.?\d*)/);
+                        if (match) {
+                            const latDeg = parseInt(match[1]);
+                            const latMin = parseInt(match[2]);
+                            const latSec = parseFloat(match[3]);
+                            const lonDeg = parseInt(match[4]);
+                            const lonMin = parseInt(match[5]);
+                            const lonSec = parseFloat(match[6]);
+                            lat = (latDeg + latMin / 60 + latSec / 3600).toFixed(5);
+                            lon = (lonDeg + lonMin / 60 + lonSec / 3600).toFixed(5);
+                        }
+                    }
 
-            const latitude = convertDMSToDecimal(latDegrees, latMinutes, latSeconds, latDirection);
-            const longitude = convertDMSToDecimal(lonDegrees, lonMinutes, lonSeconds, lonDirection);
+                    const googleMapsLink = lat && lon ? 
+                        `<a href="https://www.google.com/maps?q=${lat},${lon}&z=15" target="_blank">عرض على خرائط جوجل</a>` : 
+                        '-';
 
-            if (!isNaN(latitude) && !isNaN(longitude)) {
-                const googleMapsLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
-                document.getElementById('manualResult').innerHTML = `<a href="${googleMapsLink}" target="_blank">عرض في خرائط جوجل</a>`;
-            } else {
-                document.getElementById('manualResult').textContent = 'يرجى إدخال إحداثيات صالحة.';
-            }
-        }
-
-        function convertDMSToDecimal(degrees, minutes, seconds, direction) {
-            let decimal = degrees + minutes / 60 + seconds / 3600;
-            if (direction === 'S' || direction === 'W') {
-                decimal = -decimal;
-            }
-            return decimal;
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${row.MSISDN || '-'}</td>
+                        <td>${row.IMSI || '-'}</td>
+                        <td>${row.IMEI || '-'}</td>
+                        <td>${row.Covering_Switch || '-'}</td>
+                        <td>${row.Cell_ID || '-'}</td>
+                        <td>${row.Cell_Number || '-'}</td>
+                        <td>${row.LAC || '-'}</td>
+                        <td>${row.status4g || '-'}</td>
+                        <td>${row.MME || '-'}</td>
+                        <td>${row.MINOR_AREA || '-'}</td>
+                        <td>${row.CITY || '-'}</td>
+                        <td>${row.LANDLORD_ADDRESS || '-'}</td>
+                        <td>${coords ? `N ${lat} E ${lon}` : '-'}</td>
+                        <td>${googleMapsLink}</td>
+                        <td>${row.SITE_ID || '-'}</td>
+                        <td>${row.Mobile_state === 'BUSY' ? 'مشغول' : row.Mobile_state || '-'}</td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+            };
+            reader.readAsArrayBuffer(file);
         }
     </script>
 </body>
