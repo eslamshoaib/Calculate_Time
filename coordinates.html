@@ -3,649 +3,227 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مستخرج إحداثيات جوجل ماب المتقدم</title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>محول الإحداثيات الدقيق</title>
     <style>
-        :root {
-            --primary-color: #4285F4;
-            --secondary-color: #34A853;
-            --accent-color: #EA4335;
-            --light-gray: #f5f5f5;
-            --dark-gray: #333;
-            --white: #fff;
-        }
-        
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        
         body {
-            font-family: 'Tajawal', sans-serif;
-            background-color: #f9f9f9;
-            color: var(--dark-gray);
-            line-height: 1.6;
-            padding: 0;
+            font-family: 'Tajawal', Arial, sans-serif;
+            background-color: #f5f5f5;
             margin: 0;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
             padding: 20px;
+            color: #333;
         }
-        
-        header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: var(--white);
-            padding: 2rem 0;
-            text-align: center;
-            border-radius: 0 0 20px 20px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            margin-bottom: 2rem;
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        
         h1 {
-            font-size: 2.2rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .upload-section {
-            background-color: var(--white);
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            margin-bottom: 2rem;
+            color: #1a73e8;
             text-align: center;
-            border: 2px dashed #d1d5db;
-            transition: all 0.3s ease;
+            margin-bottom: 30px;
         }
-        
-        .upload-section:hover {
-            border-color: var(--primary-color);
-            background-color: #f8faff;
+        .input-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
         }
-        
-        .file-input-wrapper {
-            position: relative;
-            display: inline-block;
-            margin-bottom: 1rem;
-        }
-        
-        .file-input-wrapper input[type="file"] {
-            position: absolute;
-            left: 0;
-            top: 0;
-            opacity: 0;
+        .coordinate-input {
             width: 100%;
-            height: 100%;
-            cursor: pointer;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
         }
-        
-        .custom-file-button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background-color: var(--primary-color);
-            color: var(--white);
-            padding: 0.8rem 1.5rem;
-            border-radius: 30px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 5px rgba(66, 133, 244, 0.3);
-        }
-        
-        .custom-file-button:hover {
-            background-color: #3367d6;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(66, 133, 244, 0.3);
-        }
-        
-        .file-name {
-            margin-top: 0.5rem;
-            font-size: 0.9rem;
-            color: #666;
-        }
-        
         button {
-            background-color: var(--secondary-color);
-            color: var(--white);
+            background-color: #1a73e8;
+            color: white;
             border: none;
-            padding: 0.8rem 1.8rem;
-            border-radius: 30px;
+            padding: 12px 20px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 1rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 5px rgba(52, 168, 83, 0.3);
-        }
-        
-        button:hover {
-            background-color: #2d9249;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(52, 168, 83, 0.3);
-        }
-        
-        button:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-            box-shadow: none;
-            transform: none;
-        }
-        
-        .progress-container {
+            font-size: 16px;
             width: 100%;
-            background-color: #e0e0e0;
-            border-radius: 10px;
-            margin: 1rem 0;
-            overflow: hidden;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #1765cc;
+        }
+        .result-section {
             display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f0fe;
+            border-radius: 8px;
         }
-        
-        .progress-bar {
-            height: 10px;
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-            width: 0%;
-            border-radius: 10px;
-            transition: width 0.3s ease;
+        .result-item {
+            margin-bottom: 10px;
         }
-        
-        .results-container {
-            display: none;
-            margin-top: 2rem;
+        .result-label {
+            font-weight: bold;
+            color: #1a73e8;
         }
-        
-        .result-card {
-            background-color: var(--white);
-            border-radius: 10px;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            transition: transform 0.3s ease;
-        }
-        
-        .result-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.12);
-        }
-        
-        .result-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .result-title {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: var(--primary-color);
-        }
-        
         .map-link {
-            display: inline-flex;
-            align-items: center;
-            background-color: var(--primary-color);
-            color: var(--white);
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            text-decoration: none;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-        }
-        
-        .map-link:hover {
-            background-color: #3367d6;
-            box-shadow: 0 2px 5px rgba(66, 133, 244, 0.3);
-        }
-        
-        .map-link i {
-            margin-left: 5px;
-        }
-        
-        .result-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 1rem;
-        }
-        
-        .data-item {
-            margin-bottom: 0.5rem;
-        }
-        
-        .data-label {
-            font-weight: 500;
-            color: #666;
-            font-size: 0.9rem;
-            margin-bottom: 0.2rem;
-        }
-        
-        .data-value {
-            font-weight: 600;
-            word-break: break-word;
-        }
-        
-        .coordinates-value {
-            font-family: monospace;
-            background-color: var(--light-gray);
-            padding: 0.3rem 0.5rem;
-            border-radius: 4px;
             display: inline-block;
-        }
-        
-        .copy-btn {
-            background-color: #f1f1f1;
-            border: none;
-            padding: 0.2rem 0.5rem;
+            margin-top: 15px;
+            padding: 10px 15px;
+            background-color: #34a853;
+            color: white;
+            text-decoration: none;
             border-radius: 4px;
-            cursor: pointer;
-            margin-right: 0.5rem;
-            font-size: 0.8rem;
-            transition: all 0.2s ease;
+            font-weight: bold;
         }
-        
-        .copy-btn:hover {
-            background-color: #e0e0e0;
+        .map-link:hover {
+            background-color: #2d9249;
         }
-        
-        .status-message {
-            text-align: center;
-            margin: 1rem 0;
-            font-weight: 500;
-            color: var(--primary-color);
+        .conversion-steps {
+            background: #f1f3f4;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 14px;
         }
-        
-        .error-message {
-            color: var(--accent-color);
-            text-align: center;
-            margin: 1rem 0;
-            display: none;
+        .step {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
         }
-        
-        @media (max-width: 768px) {
-            .result-grid {
-                grid-template-columns: 1fr;
-            }
-            
+        @media (min-width: 768px) {
             .container {
-                padding: 15px;
-            }
-            
-            header {
-                padding: 1.5rem 0;
-            }
-            
-            h1 {
-                font-size: 1.8rem;
+                max-width: 600px;
             }
         }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <header>
-        <div class="container">
-            <h1>مستخرج إحداثيات جوجل ماب المتقدم</h1>
-            <p>استخراج دقيق للإحداثيات وتحويلها إلى روابط خرائط جوجل</p>
-        </div>
-    </header>
-    
     <div class="container">
-        <div class="upload-section">
-            <div class="file-input-wrapper">
-                <input type="file" id="excelFile" accept=".xlsx, .xls" />
-                <label for="excelFile" class="custom-file-button">
-                    <i class="fas fa-file-excel"></i> اختر ملف Excel
-                </label>
-            </div>
-            <div id="fileName" class="file-name">لم يتم اختيار ملف</div>
-            <button id="processBtn" onclick="processFile()" disabled>
-                <i class="fas fa-cogs"></i> معالجة الملف
-            </button>
-            
-            <div class="progress-container" id="progressContainer">
-                <div class="progress-bar" id="progressBar"></div>
-            </div>
-            
-            <div class="status-message" id="statusMessage"></div>
-            <div class="error-message" id="errorMessage"></div>
+        <h1>محول الإحداثيات الدقيق</h1>
+        
+        <div class="input-section">
+            <h3>أدخل الإحداثيات:</h3>
+            <input type="text" id="northing" class="coordinate-input" placeholder="N 3121258" value="N 3121258">
+            <input type="text" id="easting" class="coordinate-input" placeholder="E 2713105" value="E 2713105">
+            <button onclick="convertCoordinates()">تحويل الإحداثيات</button>
         </div>
         
-        <div class="results-container" id="resultsContainer">
-            <div id="resultsCount"></div>
-            <div id="resultsList"></div>
+        <div id="resultSection" class="result-section">
+            <h3>النتائج:</h3>
+            <div class="result-item">
+                <span class="result-label">الإحداثيات الأصلية:</span>
+                <span id="originalCoords"></span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">التفسير:</span>
+                <span id="interpretation"></span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">خط العرض (DD):</span>
+                <span id="latitude"></span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">خط الطول (DD):</span>
+                <span id="longitude"></span>
+            </div>
+            <a id="mapLink" class="map-link" href="#" target="_blank">عرض على خرائط جوجل</a>
+            
+            <div class="conversion-steps">
+                <h4>خطوات التحويل:</h4>
+                <div id="conversionSteps"></div>
+            </div>
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
-        // Global variables
-        let processing = false;
-        let fileName = '';
-        
-        // DOM elements
-        const excelFileInput = document.getElementById('excelFile');
-        const processBtn = document.getElementById('processBtn');
-        const fileNameDisplay = document.getElementById('fileName');
-        const progressContainer = document.getElementById('progressContainer');
-        const progressBar = document.getElementById('progressBar');
-        const statusMessage = document.getElementById('statusMessage');
-        const errorMessage = document.getElementById('errorMessage');
-        const resultsContainer = document.getElementById('resultsContainer');
-        const resultsCount = document.getElementById('resultsCount');
-        const resultsList = document.getElementById('resultsList');
-        
-        // Event listeners
-        excelFileInput.addEventListener('change', function(e) {
-            if (this.files.length > 0) {
-                fileName = this.files[0].name;
-                fileNameDisplay.textContent = `الملف المختار: ${fileName}`;
-                fileNameDisplay.style.color = '#333';
-                processBtn.disabled = false;
-            } else {
-                fileNameDisplay.textContent = 'لم يتم اختيار ملف';
-                fileNameDisplay.style.color = '#666';
-                processBtn.disabled = true;
-            }
-        });
-        
-        // Main processing function
-        async function processFile() {
-            if (processing) return;
+        function convertCoordinates() {
+            // Get input values
+            const northing = document.getElementById('northing').value.trim();
+            const easting = document.getElementById('easting').value.trim();
             
-            const file = excelFileInput.files[0];
-            if (!file) {
-                showError('الرجاء اختيار ملف Excel أولاً');
+            // Validate inputs
+            if (!northing || !easting) {
+                alert("الرجاء إدخال قيم للإحداثيات");
                 return;
             }
             
-            // Reset UI
-            processing = true;
-            processBtn.disabled = true;
-            processBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري المعالجة...';
-            errorMessage.style.display = 'none';
-            resultsContainer.style.display = 'none';
-            progressContainer.style.display = 'block';
-            progressBar.style.width = '0%';
-            statusMessage.textContent = 'جاري قراءة الملف...';
+            // Process coordinates
+            const result = processMilitaryCoordinates(northing, easting);
             
-            try {
-                const data = await readFile(file);
-                const jsonData = convertToJson(data);
-                const processedData = processJsonData(jsonData);
-                
-                // Simulate progress for demo purposes
-                simulateProgress(() => {
-                    displayResults(processedData);
-                    processing = false;
-                    processBtn.disabled = false;
-                    processBtn.innerHTML = '<i class="fas fa-cogs"></i> معالجة الملف';
-                    statusMessage.textContent = 'تم معالجة الملف بنجاح!';
-                    setTimeout(() => {
-                        statusMessage.textContent = '';
-                    }, 3000);
-                });
-            } catch (err) {
-                console.error(err);
-                showError('حدث خطأ أثناء معالجة الملف. يرجى التأكد من تنسيق الملف');
-                processing = false;
-                processBtn.disabled = false;
-                processBtn.innerHTML = '<i class="fas fa-cogs"></i> معالجة الملف';
-                progressContainer.style.display = 'none';
-            }
-        }
-        
-        function readFile(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    resolve(new Uint8Array(e.target.result));
-                };
-                reader.onerror = reject;
-                reader.readAsArrayBuffer(file);
-            });
-        }
-        
-        function convertToJson(data) {
-            const workbook = XLSX.read(data, { type: 'array' });
-            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-            return XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
-        }
-        
-        function processJsonData(jsonData) {
-            // Skip header row if exists
-            const startRow = jsonData[0][0] === 'MSISDN' ? 1 : 0;
-            const results = [];
+            // Display results
+            document.getElementById('originalCoords').textContent = `${northing} ${easting}`;
+            document.getElementById('interpretation').textContent = result.interpretation;
+            document.getElementById('latitude').textContent = result.latitude.toFixed(7) + '°';
+            document.getElementById('longitude').textContent = result.longitude.toFixed(7) + '°';
+            document.getElementById('mapLink').href = `https://www.google.com/maps?q=${result.latitude},${result.longitude}`;
             
-            for (let i = startRow; i < jsonData.length; i++) {
-                const row = jsonData[i];
-                if (row.length === 0) continue;
-                
-                const coordinates = row[12] ? extractCoordinates(row[12]) : null;
-                const mapLink = coordinates ? `https://www.google.com/maps?q=${coordinates.lat},${coordinates.lng}&z=15` : null;
-                
-                results.push({
-                    msisdn: row[0] || 'غير متوفر',
-                    imsi: row[1] || 'غير متوفر',
-                    imei: row[2] || 'غير متوفر',
-                    coveringSwitch: row[3] || 'غير متوفر',
-                    cellId: row[4] || 'غير متوفر',
-                    cellNumber: row[5] || 'غير متوفر',
-                    lac: row[6] || 'غير متوفر',
-                    status4g: row[7] || 'غير متوفر',
-                    mme: row[8] || 'غير متوفر',
-                    minorArea: row[9] || 'غير متوفر',
-                    city: row[10] || 'غير متوفر',
-                    landlordAddress: row[11] || 'غير متوفر',
-                    originalCoordinates: row[12] || 'غير متوفر',
-                    siteId: row[13] || 'غير متوفر',
-                    mobileState: row[14] || 'غير متوفر',
-                    coordinates: coordinates,
-                    mapLink: mapLink
-                });
+            // Show conversion steps
+            document.getElementById('conversionSteps').innerHTML = `
+                <div class="step"><strong>خط العرض:</strong> ${result.latSteps.join(" → ")}</div>
+                <div class="step"><strong>خط الطول:</strong> ${result.lonSteps.join(" → ")}</div>
+            `;
+            
+            // Show result section
+            document.getElementById('resultSection').style.display = 'block';
+        }
+        
+        function processMilitaryCoordinates(northing, easting) {
+            // Initialize steps for explanation
+            const latSteps = [];
+            const lonSteps = [];
+            
+            // Process Northing (Latitude) - format: N 3121258
+            const latMatch = northing.match(/N\s*(\d{2})(\d{2})(\d{2})(\d+)?/i);
+            if (!latMatch) {
+                throw new Error("تنسيق خط العرض غير صحيح");
             }
             
-            return results;
-        }
-        
-        function extractCoordinates(coordString) {
-            if (!coordString) return null;
+            const latDeg = parseInt(latMatch[1]);
+            const latMin = parseInt(latMatch[2]);
+            const latSec = parseInt(latMatch[3]);
+            const latDecimal = parseFloat(`0.${latMatch[4] || '0'}`) * 60; // Convert decimal part to seconds
             
-            // Try different patterns to extract coordinates
-            const patterns = [
-                // Pattern for "N 3121258 E 2713105"
-                /N\s*(\d{2})(\d{2})(\d{2})(\d+)?\s*E\s*(\d{3})(\d{2})(\d{2})(\d+)?/i,
-                // Pattern for "31°21'25.8\"N 27°13'10.5\"E"
-                /(\d+)°\s*(\d+)'\s*([\d.]+)"\s*[NS]\s*(\d+)°\s*(\d+)'\s*([\d.]+)"\s*[EW]/i,
-                // Pattern for decimal degrees "31.3571667, 27.2195833"
-                /(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/,
-                // Pattern for GPS coordinates "31.3571667 N, 27.2195833 E"
-                /(-?\d+\.\d+)\s*[NS]\s*,\s*(-?\d+\.\d+)\s*[EW]/i
-            ];
+            const totalLatSec = latSec + latDecimal;
+            const latDec = latDeg + (latMin / 60) + (totalLatSec / 3600);
             
-            for (const pattern of patterns) {
-                const match = coordString.match(pattern);
-                if (match) {
-                    if (pattern === patterns[0]) {
-                        // First pattern: N DDMMSS E DDDMMSS
-                        const latDeg = parseInt(match[1]);
-                        const latMin = parseInt(match[2]);
-                        const latSec = parseInt(match[3]);
-                        const lat = latDeg + (latMin / 60) + (latSec / 3600);
-                        
-                        const lngDeg = parseInt(match[5]);
-                        const lngMin = parseInt(match[6]);
-                        const lngSec = parseInt(match[7]);
-                        const lng = lngDeg + (lngMin / 60) + (lngSec / 3600);
-                        
-                        return { 
-                            lat: lat.toFixed(7),
-                            lng: lng.toFixed(7),
-                            original: coordString 
-                        };
-                    } else if (pattern === patterns[1]) {
-                        // Second pattern: DD°MM'SS.SS"N/S DDD°MM'SS.SS"E/W
-                        const latDeg = parseInt(match[1]);
-                        const latMin = parseInt(match[2]);
-                        const latSec = parseFloat(match[3]);
-                        const lat = latDeg + (latMin / 60) + (latSec / 3600);
-                        
-                        const lngDeg = parseInt(match[4]);
-                        const lngMin = parseInt(match[5]);
-                        const lngSec = parseFloat(match[6]);
-                        const lng = lngDeg + (lngMin / 60) + (lngSec / 3600);
-                        
-                        return { 
-                            lat: lat.toFixed(7),
-                            lng: lng.toFixed(7),
-                            original: coordString 
-                        };
-                    } else if (pattern === patterns[2] || pattern === patterns[3]) {
-                        // Third or fourth pattern: decimal degrees
-                        let lat = parseFloat(match[1]);
-                        let lng = parseFloat(match[2]);
-                        
-                        // Adjust for N/S E/W
-                        if (coordString.toUpperCase().includes('S')) lat = -lat;
-                        if (coordString.toUpperCase().includes('W')) lng = -lng;
-                        
-                        return { 
-                            lat: lat.toFixed(7),
-                            lng: lng.toFixed(7),
-                            original: coordString 
-                        };
-                    }
-                }
+            latSteps.push(
+                `N ${latDeg}${latMin}${latSec}.${latMatch[4] || '0'}`,
+                `تقسيم: ${latDeg}° ${latMin}' ${totalLatSec.toFixed(1)}"`,
+                `التحويل: ${latDeg} + (${latMin}/60) + (${totalLatSec.toFixed(1)}/3600)`,
+                `النتيجة: ${latDec.toFixed(7)}°`
+            );
+            
+            // Process Easting (Longitude) - format: E 2713105
+            const lonMatch = easting.match(/E\s*(\d{3})(\d{2})(\d{2})(\d+)?/i);
+            if (!lonMatch) {
+                throw new Error("تنسيق خط الطول غير صحيح");
             }
             
-            return null;
-        }
-        
-        function simulateProgress(callback) {
-            let progress = 0;
-            const interval = setInterval(() => {
-                progress += Math.random() * 10;
-                if (progress >= 100) {
-                    progress = 100;
-                    clearInterval(interval);
-                    callback();
-                }
-                progressBar.style.width = `${progress}%`;
-                statusMessage.textContent = `جاري معالجة البيانات... ${Math.floor(progress)}%`;
-            }, 200);
-        }
-        
-        function displayResults(data) {
-            if (data.length === 0) {
-                showError('لا توجد بيانات صالحة في الملف');
-                return;
-            }
+            const lonDeg = parseInt(lonMatch[1]);
+            const lonMin = parseInt(lonMatch[2]);
+            const lonSec = parseInt(lonMatch[3]);
+            const lonDecimal = parseFloat(`0.${lonMatch[4] || '0'}`) * 60; // Convert decimal part to seconds
             
-            resultsCount.innerHTML = `<p>تم العثور على ${data.length} سجل:</p>`;
-            resultsList.innerHTML = '';
+            const totalLonSec = lonSec + lonDecimal;
+            const lonDec = lonDeg + (lonMin / 60) + (totalLonSec / 3600);
             
-            data.forEach((item, index) => {
-                const card = document.createElement('div');
-                card.className = 'result-card';
-                
-                let coordinatesDisplay = 'غير متوفر';
-                let mapLinkDisplay = '<span style="color:#888">لا توجد إحداثيات صالحة</span>';
-                
-                if (item.coordinates) {
-                    coordinatesDisplay = `
-                        <div class="coordinates-value">
-                            ${item.coordinates.lat}, ${item.coordinates.lng}
-                        </div>
-                        <button class="copy-btn" onclick="copyToClipboard('${item.coordinates.lat}, ${item.coordinates.lng}')">
-                            <i class="fas fa-copy"></i> نسخ
-                        </button>
-                    `;
-                    
-                    mapLinkDisplay = `
-                        <a href="${item.mapLink}" target="_blank" class="map-link">
-                            <i class="fas fa-map-marked-alt"></i> عرض على الخريطة
-                        </a>
-                    `;
-                }
-                
-                card.innerHTML = `
-                    <div class="result-header">
-                        <div class="result-title">السجل رقم ${index + 1}</div>
-                        ${mapLinkDisplay}
-                    </div>
-                    <div class="result-grid">
-                        <div class="data-item">
-                            <div class="data-label">رقم الهاتف (MSISDN)</div>
-                            <div class="data-value">${item.msisdn}</div>
-                        </div>
-                        <div class="data-item">
-                            <div class="data-label">IMSI</div>
-                            <div class="data-value">${item.imsi}</div>
-                        </div>
-                        <div class="data-item">
-                            <div class="data-label">IMEI</div>
-                            <div class="data-value">${item.imei}</div>
-                        </div>
-                        <div class="data-item">
-                            <div class="data-label">الخلية (Cell ID)</div>
-                            <div class="data-value">${item.cellId}</div>
-                        </div>
-                        <div class="data-item">
-                            <div class="data-label">رقم الخلية</div>
-                            <div class="data-value">${item.cellNumber}</div>
-                        </div>
-                        <div class="data-item">
-                            <div class="data-label">المدينة</div>
-                            <div class="data-value">${item.city}</div>
-                        </div>
-                        <div class="data-item">
-                            <div class="data-label">العنوان</div>
-                            <div class="data-value">${item.landlordAddress}</div>
-                        </div>
-                        <div class="data-item">
-                            <div class="data-label">الإحداثيات الأصلية</div>
-                            <div class="data-value">${item.originalCoordinates}</div>
-                        </div>
-                        <div class="data-item">
-                            <div class="data-label">الإحداثيات المحولة</div>
-                            <div class="data-value">${coordinatesDisplay}</div>
-                        </div>
-                    </div>
-                `;
-                
-                resultsList.appendChild(card);
-            });
+            lonSteps.push(
+                `E ${lonDeg}${lonMin}${lonSec}.${lonMatch[4] || '0'}`,
+                `تقسيم: ${lonDeg}° ${lonMin}' ${totalLonSec.toFixed(1)}"`,
+                `التحويل: ${lonDeg} + (${lonMin}/60) + (${totalLonSec.toFixed(1)}/3600)`,
+                `النتيجة: ${lonDec.toFixed(7)}°`
+            );
             
-            progressContainer.style.display = 'none';
-            resultsContainer.style.display = 'block';
-        }
-        
-        function showError(message) {
-            errorMessage.textContent = message;
-            errorMessage.style.display = 'block';
-            setTimeout(() => {
-                errorMessage.style.display = 'none';
-            }, 5000);
-        }
-        
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                const originalMessage = errorMessage.textContent;
-                errorMessage.textContent = 'تم نسخ الإحداثيات إلى الحافظة!';
-                errorMessage.style.color = 'green';
-                errorMessage.style.display = 'block';
-                
-                setTimeout(() => {
-                    errorMessage.textContent = originalMessage;
-                    errorMessage.style.color = '';
-                    errorMessage.style.display = 'none';
-                }, 2000);
-            }).catch(err => {
-                showError('فشل في نسخ الإحداثيات');
-            });
+            return {
+                latitude: latDec,
+                longitude: lonDec,
+                interpretation: "صيغة عسكرية/ميدانية (DDMMSS.D): درجة-دقيقة-ثانية مع كسر عشري",
+                latSteps: latSteps,
+                lonSteps: lonSteps
+            };
         }
     </script>
 </body>
