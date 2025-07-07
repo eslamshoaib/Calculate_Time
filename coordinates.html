@@ -6,161 +6,118 @@
   <title>محول الإحداثيات الذكي</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
-    body {
-      font-family: 'Tajawal', sans-serif;
-      background: #f8f9fa;
-      padding: 30px;
-      direction: rtl;
-      text-align: center;
+    body { font-family: 'Tahoma', sans-serif; background: #f7f7f7; margin: 0; padding: 20px; }
+    h1 { text-align: center; color: #333; }
+    .container { max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+    input[type="file"] { display: none; }
+    label[for="upload"] {
+      background: #4285f4; color: white; padding: 12px 24px; border-radius: 6px;
+      cursor: pointer; display: inline-block; font-weight: bold; margin-bottom: 20px;
     }
-    .upload-section {
-      background: #fff;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
+    button {
+      padding: 10px 20px; background: #34a853; border: none; color: white;
+      font-weight: bold; border-radius: 6px; cursor: pointer;
     }
-    .file-label {
-      background: #4285f4;
-      color: white;
-      padding: 12px 24px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-      display: inline-block;
-      margin-top: 15px;
-    }
-    #progressBar {
-      width: 100%;
-      background: #e0e0e0;
-      border-radius: 6px;
-      height: 20px;
-      margin: 20px 0;
-      overflow: hidden;
-      display: none;
-    }
-    #progressBarFill {
-      background: #34a853;
-      height: 100%;
-      width: 0%;
-      transition: width 0.3s ease-in-out;
-    }
-    .results {
-      text-align: right;
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    .map {
-      margin: 10px 0;
-      border-radius: 8px;
-      overflow: hidden;
-    }
+    .result { margin-top: 20px; padding: 15px; background: #eef; border-radius: 10px; }
+    iframe { width: 100%; height: 300px; border: none; border-radius: 8px; }
+    .coord { font-family: monospace; margin-top: 5px; }
+    .maplink { margin-top: 10px; display: inline-block; background: #3367D6; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; }
   </style>
 </head>
 <body>
+  <div class="container">
+    <h1>📍 محول الإحداثيات الذكي</h1>
+    <label for="upload">📤 اختر ملف Excel</label>
+    <input type="file" id="upload" accept=".xlsx, .xls" />
+    <button onclick="processExcel()">🔍 معالجة الإحداثيات</button>
 
-  <div class="upload-section">
-    <h2>🔍 محول الإحداثيات الذكي</h2>
-    <p>ارفع ملف Excel يحتوي على الإحداثيات بصيغة "N 3121258 E 2713105"</p>
-    <input type="file" id="excelFile" accept=".xlsx,.xls" style="display:none" />
-    <label for="excelFile" class="file-label">📂 اختر ملف Excel</label>
-    <div id="progressBar">
-      <div id="progressBarFill"></div>
-    </div>
+    <div id="results"></div>
   </div>
 
-  <div class="results" id="results"></div>
-
   <script>
-    const fileInput = document.getElementById("excelFile");
-    const resultsDiv = document.getElementById("results");
-    const progressBar = document.getElementById("progressBar");
-    const progressFill = document.getElementById("progressBarFill");
+    let workbookData = [];
 
-    fileInput.addEventListener("change", async function () {
-      const file = this.files[0];
-      if (!file) return;
-
-      resultsDiv.innerHTML = "";
-      progressBar.style.display = "block";
-      progressFill.style.width = "0%";
-
-      const data = await file.arrayBuffer();
-      const workbook = XLSX.read(data, { type: "array" });
-      const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
-
-      let results = [];
-      const total = rows.length;
-
-      for (let i = 1; i < rows.length; i++) {
-        for (let cell of rows[i]) {
-          if (typeof cell === "string" && cell.includes("N") && cell.includes("E")) {
-            const coords = extractCoordinates(cell);
-            if (coords) {
-              const { lat, lon } = coords;
-              const decimalLat = convertDMS(lat, true);
-              const decimalLon = convertDMS(lon, false);
-
-              results.push({
-                original: cell,
-                lat: decimalLat.toFixed(7),
-                lon: decimalLon.toFixed(7),
-                mapLink: `https://www.google.com/maps?q=${decimalLat},${decimalLon}`,
-                embed: `https://maps.google.com/maps?q=${decimalLat},${decimalLon}&z=16&output=embed`
-              });
-            }
-          }
-        }
-        progressFill.style.width = `${(i / total) * 100}%`;
-      }
-
-      showResults(results);
+    document.getElementById("upload").addEventListener("change", function(e) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        const wb = XLSX.read(data, { type: "array" });
+        const sheet = wb.Sheets[wb.SheetNames[0]];
+        workbookData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+        alert("📁 تم تحميل الملف بنجاح!");
+      };
+      reader.readAsArrayBuffer(file);
     });
 
-    function extractCoordinates(text) {
-      const pattern = /N\s*(\d{7,})\s*E\s*(\d{7,})/i;
-      const match = text.match(pattern);
-      if (match) {
-        return { lat: match[1], lon: match[2] };
-      }
-      return null;
-    }
+    function processExcel() {
+      const output = document.getElementById("results");
+      output.innerHTML = "";
 
-    function convertDMS(dms, isLat) {
-      const padded = dms.padStart(isLat ? 7 : 7, '0');
-      const degLength = isLat ? 2 : 3;
-      const deg = parseInt(padded.slice(0, degLength));
-      const min = parseInt(padded.slice(degLength, degLength + 2));
-      const sec = parseInt(padded.slice(degLength + 2, degLength + 4));
-      return deg + min / 60 + sec / 3600;
-    }
-
-    function showResults(results) {
-      progressBar.style.display = "none";
-      if (!results.length) {
-        resultsDiv.innerHTML = "<p>لم يتم العثور على إحداثيات صالحة.</p>";
+      if (workbookData.length === 0) {
+        alert("📄 لم يتم تحميل أي ملف بعد.");
         return;
       }
 
-      results.forEach((r, i) => {
-        const block = document.createElement("div");
-        block.innerHTML = `
-          <h4>📍 الموقع ${i + 1}</h4>
-          <p><strong>الإحداثيات الأصلية:</strong> ${r.original}</p>
-          <p><strong>Decimal:</strong> ${r.lat}, ${r.lon}</p>
-          <div class="map">
-            <iframe width="100%" height="250" frameborder="0" src="${r.embed}" allowfullscreen></iframe>
-          </div>
-          <a href="${r.mapLink}" target="_blank">فتح في خرائط Google</a>
-          <hr/>
-        `;
-        resultsDiv.appendChild(block);
-      });
+      for (let i = 1; i < workbookData.length; i++) {
+        const row = workbookData[i];
+
+        for (let cell of row) {
+          if (typeof cell === "string" && cell.includes("N") && cell.includes("E")) {
+            const parsed = parseCoords(cell);
+            if (!parsed) continue;
+
+            const { latDecimal, lonDecimal, mapLink } = parsed;
+
+            const div = document.createElement("div");
+            div.className = "result";
+            div.innerHTML = `
+              <h3>🗺️ النتيجة ${i}</h3>
+              <div class="coord"><strong>الإحداثيات الأصلية:</strong> ${cell}</div>
+              <div class="coord"><strong>Decimal:</strong> ${latDecimal.toFixed(7)}, ${lonDecimal.toFixed(7)}</div>
+              <a class="maplink" href="${mapLink}" target="_blank">🌍 فتح في خرائط Google</a>
+              <div style="margin-top: 10px;">
+                <iframe src="https://maps.google.com/maps?q=${latDecimal},${lonDecimal}&z=16&output=embed"></iframe>
+              </div>
+            `;
+            output.appendChild(div);
+            break; // stop at first coordinate per row
+          }
+        }
+      }
+
+      if (!output.innerHTML) {
+        output.innerHTML = "<p>❌ لم يتم العثور على إحداثيات في الملف.</p>";
+      }
+    }
+
+    function parseCoords(cell) {
+      const regex = /N\s*(\d+)\s*E\s*(\d+)/i;
+      const match = cell.match(regex);
+      if (!match) return null;
+
+      const latRaw = match[1]; // مثل 3121258
+      const lonRaw = match[2]; // مثل 2713105
+
+      const latDecimal = convertDMS(latRaw);
+      const lonDecimal = convertDMS(lonRaw);
+
+      if (latDecimal > 90 || lonDecimal > 180) return null;
+
+      return {
+        latDecimal,
+        lonDecimal,
+        mapLink: `https://www.google.com/maps?q=${latDecimal},${lonDecimal}&z=16`
+      };
+    }
+
+    function convertDMS(dmsStr) {
+      dmsStr = dmsStr.padStart(7, '0');
+      const deg = parseInt(dmsStr.substring(0, 2));
+      const min = parseInt(dmsStr.substring(2, 4));
+      const sec = parseInt(dmsStr.substring(4, 6));
+      return deg + (min / 60) + (sec / 3600);
     }
   </script>
-
 </body>
 </html>
