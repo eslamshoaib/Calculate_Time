@@ -1,17 +1,34 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> 🌍🌍🌍 </title>
+    <title>    🌍🌍🌍🌍</title>
     <style>
-        body {
-            font-family: 'Tajawal', Arial, sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 20px;
-            color: #333;
+        :root {
+            --primary-color: #1a73e8;
+            --secondary-color: #34a853;
+            --accent-color: #ea4335;
+            --light-gray: #f5f5f5;
+            --dark-gray: #202124;
+            --white: #ffffff;
         }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #f8f9fa;
+            color: var(--dark-gray);
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
         .container {
             max-width: 100%;
             margin: 0 auto;
@@ -20,210 +37,362 @@
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
+        
         h1 {
-            color: #1a73e8;
+            color: var(--primary-color);
             text-align: center;
-            margin-bottom: 30px;
-        }
-        .input-section {
             margin-bottom: 20px;
-            padding: 15px;
-            background: #f8f9fa;
+        }
+        
+        .upload-section {
+            background-color: var(--white);
+            padding: 20px;
             border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 2px dashed #dadce0;
         }
-        .coordinate-input {
+        
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
             width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
+            margin-bottom: 15px;
         }
+        
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        
+        .custom-file-button {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: var(--white);
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
         button {
-            background-color: #1a73e8;
-            color: white;
+            background-color: var(--secondary-color);
+            color: var(--white);
             border: none;
-            padding: 12px 20px;
+            padding: 12px 24px;
             border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
             width: 100%;
-            margin-top: 10px;
+            max-width: 300px;
+            margin: 10px auto;
+            display: block;
         }
-        button:hover {
-            background-color: #1765cc;
+        
+        button:disabled {
+            background-color: #bdc1c6;
+            cursor: not-allowed;
         }
-        .result-section {
+        
+        .results-container {
+            margin-top: 30px;
             display: none;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
             margin-top: 20px;
-            padding: 15px;
-            background: #e8f0fe;
-            border-radius: 8px;
         }
-        .result-item {
-            margin-bottom: 10px;
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
         }
-        .result-label {
-            font-weight: bold;
-            color: #1a73e8;
+        
+        th {
+            background-color: var(--light-gray);
+            position: sticky;
+            top: 0;
         }
+        
         .map-link {
-            display: inline-block;
-            margin-top: 15px;
-            padding: 10px 15px;
-            background-color: #34a853;
-            color: white;
+            color: var(--primary-color);
             text-decoration: none;
-            border-radius: 4px;
-            font-weight: bold;
         }
+        
         .map-link:hover {
-            background-color: #2d9249;
+            text-decoration: underline;
         }
-        .conversion-steps {
-            background: #f1f3f4;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            font-size: 14px;
+        
+        .status-message {
+            text-align: center;
+            margin: 15px 0;
+            font-weight: 500;
+            color: var(--primary-color);
         }
-        .step {
-            margin-bottom: 10px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #ddd;
+        
+        .error-message {
+            color: var(--accent-color);
+            text-align: center;
+            margin: 15px 0;
+            display: none;
         }
-        @media (min-width: 768px) {
-            .container {
-                max-width: 600px;
-            }
+        
+        .coordinate-value {
+            font-family: monospace;
+            background-color: var(--light-gray);
+            padding: 2px 5px;
+            border-radius: 3px;
         }
     </style>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
-        <h1>محول الإحداثيات الدقيق</h1>
+        <h1>محول إحداثيات الخلايا إلى خرائط Google</h1>
         
-        <div class="input-section">
-            <h3>أدخل الإحداثيات:</h3>
-            <input type="text" id="northing" class="coordinate-input" placeholder="N 3121258" value="N 3121258">
-            <input type="text" id="easting" class="coordinate-input" placeholder="E 2713105" value="E 2713105">
-            <button onclick="convertCoordinates()">تحويل الإحداثيات</button>
+        <div class="upload-section">
+            <div class="file-input-wrapper">
+                <input type="file" id="excelFile" accept=".xlsx, .xls" />
+                <label for="excelFile" class="custom-file-button">
+                    اختر ملف Excel
+                </label>
+            </div>
+            <div id="fileName" style="margin: 10px 0; color: #5f6368;">لم يتم اختيار ملف</div>
+            <button id="processBtn" onclick="processFile()" disabled>معالجة الملف</button>
+            
+            <div class="status-message" id="statusMessage"></div>
+            <div class="error-message" id="errorMessage"></div>
         </div>
         
-        <div id="resultSection" class="result-section">
-            <h3>النتائج:</h3>
-            <div class="result-item">
-                <span class="result-label">الإحداثيات الأصلية:</span>
-                <span id="originalCoords"></span>
-            </div>
-            <div class="result-item">
-                <span class="result-label">التفسير:</span>
-                <span id="interpretation"></span>
-            </div>
-            <div class="result-item">
-                <span class="result-label">خط العرض (DD):</span>
-                <span id="latitude"></span>
-            </div>
-            <div class="result-item">
-                <span class="result-label">خط الطول (DD):</span>
-                <span id="longitude"></span>
-            </div>
-            <a id="mapLink" class="map-link" href="#" target="_blank">عرض على خرائط جوجل</a>
-            
-            <div class="conversion-steps">
-                <h4>خطوات التحويل:</h4>
-                <div id="conversionSteps"></div>
-            </div>
+        <div class="results-container" id="resultsContainer">
+            <table id="resultsTable">
+                <thead>
+                    <tr>
+                        <th>MSISDN</th>
+                        <th>معرف الخلية</th>
+                        <th>المدينة</th>
+                        <th>الإحداثيات الأصلية</th>
+                        <th>خط العرض (N)</th>
+                        <th>خط الطول (E)</th>
+                        <th>رابط الخريطة</th>
+                    </tr>
+                </thead>
+                <tbody id="resultsBody">
+                </tbody>
+            </table>
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
-        function convertCoordinates() {
-            // Get input values
-            const northing = document.getElementById('northing').value.trim();
-            const easting = document.getElementById('easting').value.trim();
+        // Global variables
+        let processing = false;
+        
+        // DOM elements
+        const excelFileInput = document.getElementById('excelFile');
+        const processBtn = document.getElementById('processBtn');
+        const fileNameDisplay = document.getElementById('fileName');
+        const statusMessage = document.getElementById('statusMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const resultsBody = document.getElementById('resultsBody');
+        
+        // Event listeners
+        excelFileInput.addEventListener('change', function(e) {
+            if (this.files.length > 0) {
+                fileNameDisplay.textContent = `الملف المختار: ${this.files[0].name}`;
+                processBtn.disabled = false;
+            } else {
+                fileNameDisplay.textContent = 'لم يتم اختيار ملف';
+                processBtn.disabled = true;
+            }
+        });
+        
+        // Main processing function
+        async function processFile() {
+            if (processing) return;
             
-            // Validate inputs
-            if (!northing || !easting) {
-                alert("الرجاء إدخال قيم للإحداثيات");
+            const file = excelFileInput.files[0];
+            if (!file) {
+                showError('الرجاء اختيار ملف Excel أولاً');
                 return;
             }
             
-            // Process coordinates
-            const result = processMilitaryCoordinates(northing, easting);
+            // Reset UI
+            processing = true;
+            processBtn.disabled = true;
+            processBtn.textContent = 'جاري المعالجة...';
+            errorMessage.style.display = 'none';
+            resultsContainer.style.display = 'none';
+            statusMessage.textContent = 'جاري تحميل الملف...';
             
-            // Display results
-            document.getElementById('originalCoords').textContent = `${northing} ${easting}`;
-            document.getElementById('interpretation').textContent = result.interpretation;
-            document.getElementById('latitude').textContent = result.latitude.toFixed(7) + '°';
-            document.getElementById('longitude').textContent = result.longitude.toFixed(7) + '°';
-            document.getElementById('mapLink').href = `https://www.google.com/maps?q=${result.latitude},${result.longitude}`;
-            
-            // Show conversion steps
-            document.getElementById('conversionSteps').innerHTML = `
-                <div class="step"><strong>خط العرض:</strong> ${result.latSteps.join(" → ")}</div>
-                <div class="step"><strong>خط الطول:</strong> ${result.lonSteps.join(" → ")}</div>
-            `;
-            
-            // Show result section
-            document.getElementById('resultSection').style.display = 'block';
+            try {
+                const data = await readFile(file);
+                const jsonData = convertToJson(data);
+                const processedData = processExcelData(jsonData);
+                
+                displayResults(processedData);
+                
+                processing = false;
+                processBtn.disabled = false;
+                processBtn.textContent = 'معالجة الملف';
+                statusMessage.textContent = 'تم معالجة الملف بنجاح!';
+                
+                setTimeout(() => {
+                    statusMessage.textContent = '';
+                }, 3000);
+                
+            } catch (err) {
+                console.error(err);
+                showError('حدث خطأ أثناء معالجة الملف. يرجى التأكد من تنسيق الملف');
+                processing = false;
+                processBtn.disabled = false;
+                processBtn.textContent = 'معالجة الملف';
+            }
         }
         
-        function processMilitaryCoordinates(northing, easting) {
-            // Initialize steps for explanation
-            const latSteps = [];
-            const lonSteps = [];
+        function readFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    resolve(new Uint8Array(e.target.result));
+                };
+                reader.onerror = reject;
+                reader.readAsArrayBuffer(file);
+            });
+        }
+        
+        function convertToJson(data) {
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            return XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+        }
+        
+        function processExcelData(jsonData) {
+            // Find column indices
+            const headerRow = jsonData[0];
+            const msisdnIndex = headerRow.indexOf('MSISDN');
+            const cellIdIndex = headerRow.indexOf('Cell_ID');
+            const cityIndex = headerRow.indexOf('CITY');
+            const coordsIndex = headerRow.findIndex(col => col.includes("'N'||LATITUDE||'E'||LONGITUDE"));
             
-            // Process Northing (Latitude) - format: N 3121258
-            const latMatch = northing.match(/N\s*(\d{2})(\d{2})(\d{2})(\d+)?/i);
-            if (!latMatch) {
-                throw new Error("تنسيق خط العرض غير صحيح");
+            if (msisdnIndex === -1 || cellIdIndex === -1 || coordsIndex === -1) {
+                throw new Error('تنسيق الملف غير متوافق. يرجى التأكد من وجود الأعمدة المطلوبة');
             }
             
-            const latDeg = parseInt(latMatch[1]);
-            const latMin = parseInt(latMatch[2]);
-            const latSec = parseInt(latMatch[3]);
-            const latDecimal = parseFloat(`0.${latMatch[4] || '0'}`) * 60; // Convert decimal part to seconds
+            const results = [];
             
-            const totalLatSec = latSec + latDecimal;
-            const latDec = latDeg + (latMin / 60) + (totalLatSec / 3600);
-            
-            latSteps.push(
-                `N ${latDeg}${latMin}${latSec}.${latMatch[4] || '0'}`,
-                `تقسيم: ${latDeg}° ${latMin}' ${totalLatSec.toFixed(1)}"`,
-                `التحويل: ${latDeg} + (${latMin}/60) + (${totalLatSec.toFixed(1)}/3600)`,
-                `النتيجة: ${latDec.toFixed(7)}°`
-            );
-            
-            // Process Easting (Longitude) - format: E 2713105
-            const lonMatch = easting.match(/E\s*(\d{3})(\d{2})(\d{2})(\d+)?/i);
-            if (!lonMatch) {
-                throw new Error("تنسيق خط الطول غير صحيح");
+            // Process each row (skip header)
+            for (let i = 1; i < jsonData.length; i++) {
+                const row = jsonData[i];
+                if (!row || row.length === 0) continue;
+                
+                const originalCoords = row[coordsIndex];
+                const coordinateResult = parseCoordinates(originalCoords);
+                
+                results.push({
+                    msisdn: row[msisdnIndex] || 'غير متوفر',
+                    cellId: row[cellIdIndex] || 'غير متوفر',
+                    city: row[cityIndex] || 'غير متوفر',
+                    originalCoords: originalCoords || 'غير متوفر',
+                    latitude: coordinateResult.latitude,
+                    longitude: coordinateResult.longitude,
+                    mapLink: coordinateResult.mapLink
+                });
             }
             
-            const lonDeg = parseInt(lonMatch[1]);
-            const lonMin = parseInt(lonMatch[2]);
-            const lonSec = parseInt(lonMatch[3]);
-            const lonDecimal = parseFloat(`0.${lonMatch[4] || '0'}`) * 60; // Convert decimal part to seconds
+            return results;
+        }
+        
+        function parseCoordinates(coordString) {
+            if (!coordString) {
+                return {
+                    latitude: 'غير صالح',
+                    longitude: 'غير صالح',
+                    mapLink: '#'
+                };
+            }
             
-            const totalLonSec = lonSec + lonDecimal;
-            const lonDec = lonDeg + (lonMin / 60) + (totalLonSec / 3600);
+            // Extract numeric parts from format: 'N'||3121258||'E'||2713105
+            const pattern = /'N'\|\|(\d+)\|\|'E'\|\|(\d+)/;
+            const match = coordString.match(pattern);
             
-            lonSteps.push(
-                `E ${lonDeg}${lonMin}${lonSec}.${lonMatch[4] || '0'}`,
-                `تقسيم: ${lonDeg}° ${lonMin}' ${totalLonSec.toFixed(1)}"`,
-                `التحويل: ${lonDeg} + (${lonMin}/60) + (${totalLonSec.toFixed(1)}/3600)`,
-                `النتيجة: ${lonDec.toFixed(7)}°`
-            );
+            if (!match || match.length < 3) {
+                return {
+                    latitude: 'تنسيق غير معروف',
+                    longitude: 'تنسيق غير معروف',
+                    mapLink: '#'
+                };
+            }
+            
+            const latStr = match[1]; // e.g. "3121258"
+            const lonStr = match[2];  // e.g. "2713105"
+            
+            // Convert from DMS format (DDMMSS) to decimal degrees
+            const latitude = convertDmsToDecimal(latStr, true);
+            const longitude = convertDmsToDecimal(lonStr, false);
             
             return {
-                latitude: latDec,
-                longitude: lonDec,
-                interpretation: "صيغة عسكرية/ميدانية (DDMMSS.D): درجة-دقيقة-ثانية مع كسر عشري",
-                latSteps: latSteps,
-                lonSteps: lonSteps
+                latitude: latitude.toFixed(7),
+                longitude: longitude.toFixed(7),
+                mapLink: `https://www.google.com/maps?q=${latitude},${longitude}`
             };
+        }
+        
+        function convertDmsToDecimal(dmsStr, isLatitude) {
+            // Pad with zeros if necessary to ensure 7 digits
+            const padded = dmsStr.padStart(7, '0');
+            
+            // For latitude (N/S): DDMMSS
+            // For longitude (E/W): DDDMMSS
+            const degDigits = isLatitude ? 2 : 3;
+            
+            const deg = parseInt(padded.substring(0, degDigits));
+            const min = parseInt(padded.substring(degDigits, degDigits + 2));
+            const sec = parseInt(padded.substring(degDigits + 2, degDigits + 4));
+            
+            // Convert to decimal degrees
+            return deg + (min / 60) + (sec / 3600);
+        }
+        
+        function displayResults(data) {
+            resultsBody.innerHTML = '';
+            
+            if (data.length === 0) {
+                showError('لا توجد بيانات صالحة في الملف');
+                return;
+            }
+            
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${item.msisdn}</td>
+                    <td>${item.cellId}</td>
+                    <td>${item.city}</td>
+                    <td><span class="coordinate-value">${item.originalCoords}</span></td>
+                    <td><span class="coordinate-value">${item.latitude}</span></td>
+                    <td><span class="coordinate-value">${item.longitude}</span></td>
+                    <td><a href="${item.mapLink}" target="_blank" class="map-link">عرض الخريطة</a></td>
+                `;
+                
+                resultsBody.appendChild(row);
+            });
+            
+            resultsContainer.style.display = 'block';
+        }
+        
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
         }
     </script>
 </body>
