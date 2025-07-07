@@ -1,171 +1,239 @@
+# HTML Page with Google Maps Link Generator from Coordinates
+
+Here's an HTML page that extracts coordinates from your Excel data, converts them to Google Maps links, and displays all the original data in a horizontal table with the added map link:
+
+```html
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تفاصيل بيانات الموبايل</title>
+    <title>استخراج إحداثيات جوجل ماب</title>
     <style>
         body {
-            font-family: 'Tajawal', sans-serif;
-            background-color: #f4f4f9;
-            margin: 0;
-            padding: 20px;
-            color: #333;
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
         }
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         h1 {
+            color: #4285F4;
             text-align: center;
-            color: #2c3e50;
         }
-        input[type="file"] {
-            display: block;
-            margin: 20px auto;
-            padding: 10px;
+        .upload-section {
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 2px dashed #ccc;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin: 20px 0;
+            margin-top: 20px;
         }
         th, td {
-            padding: 12px;
-            text-align: right;
             border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
         }
         th {
-            background-color: #3498db;
-            color: white;
+            background-color: #f2f2f2;
+            position: sticky;
+            top: 0;
         }
         tr:nth-child(even) {
             background-color: #f9f9f9;
         }
-        a {
-            color: #3498db;
+        .map-link {
+            color: #4285F4;
             text-decoration: none;
         }
-        a:hover {
+        .map-link:hover {
             text-decoration: underline;
         }
-        .no-data {
-            text-align: center;
-            color: #e74c3c;
-            font-size: 1.2em;
+        button {
+            background-color: #4285F4;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #3367D6;
+        }
+        .instructions {
+            background-color: #FFF3E0;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-right: 4px solid #FFA000;
         }
     </style>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1>تفاصيل بيانات الموبايل</h1>
-        <input type="file" id="fileInput" accept=".xlsx, .xls" />
-        <table id="dataTable">
-            <thead>
-                <tr>
-                    <th>رقم الهاتف</th>
-                    <th>IMSI</th>
-                    <th>IMEI</th>
-                    <th>التبديل الرئيسي</th>
-                    <th>معرف الخلية</th>
-                    <th>رقم الخلية</th>
-                    <th>LAC</th>
-                    <th>حالة 4G</th>
-                    <th>MME</th>
-                    <th>المنطقة الفرعية</th>
-                    <th>المدينة</th>
-                    <th>عنوان المالك</th>
-                    <th>إحداثيات الموقع</th>
-                    <th>رابط خرائط جوجل</th>
-                    <th>معرف الموقع</th>
-                    <th>حالة الموبايل</th>
-                </tr>
-            </thead>
-            <tbody id="tableBody"></tbody>
-        </table>
-        <p id="noData" class="no-data" style="display: none;">لم يتم تحميل بيانات بعد. الرجاء رفع ملف Excel.</p>
+        <h1>استخراج إحداثيات جوجل ماب من ملف Excel</h1>
+        
+        <div class="instructions">
+            <h3>تعليمات الاستخدام:</h3>
+            <ol>
+                <li>قم بتحميل ملف Excel الذي يحتوي على بيانات الخلايا</li>
+                <li>يجب أن يحتوي الملف على عمود بالإحداثيات بالشكل: N 3121258 E 2713105</li>
+                <li>سيتعرف البرنامج تلقائياً على الإحداثيات ويحولها لرابط جوجل ماب</li>
+            </ol>
+        </div>
+        
+        <div class="upload-section">
+            <input type="file" id="excelFile" accept=".xlsx, .xls" />
+            <button onclick="processFile()">معالجة الملف</button>
+        </div>
+        
+        <div id="results">
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th>MSISDN</th>
+                        <th>IMSI</th>
+                        <th>IMEI</th>
+                        <th>Covering_Switch</th>
+                        <th>Cell_ID</th>
+                        <th>Cell_Number</th>
+                        <th>LAC</th>
+                        <th>status4g</th>
+                        <th>MME</th>
+                        <th>MINOR_AREA</th>
+                        <th>CITY</th>
+                        <th>LANDLORD_ADDRESS</th>
+                        <th>الإحداثيات</th>
+                        <th>SITE_ID</th>
+                        <th>Mobile_state</th>
+                        <th>رابط جوجل ماب</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Data will be inserted here -->
+                </tbody>
+            </table>
+        </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
-        const fileInput = document.getElementById('fileInput');
-        const tableBody = document.getElementById('tableBody');
-        const noData = document.getElementById('noData');
-
-        fileInput.addEventListener('change', handleFile);
-
-        function handleFile(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
+        function processFile() {
+            const fileInput = document.getElementById('excelFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert("الرجاء اختيار ملف Excel أولاً");
+                return;
+            }
+            
             const reader = new FileReader();
-            reader.onload = function (e) {
+            reader.onload = function(e) {
                 const data = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, { type: 'array' });
+                
+                // Get the first sheet
                 const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                const jsonData = XLSX.utils.sheet_to_json(firstSheet);
-
-                // Clear previous table data
-                tableBody.innerHTML = '';
-                noData.style.display = 'none';
-
-                if (jsonData.length === 0) {
-                    noData.style.display = 'block';
-                    return;
-                }
-
-                // Process each row
-                jsonData.forEach(row => {
-                    // Convert coordinates from N3121258E2713105 format to decimal
-                    let lat = '', lon = '';
-                    const coords = row["'N'||LATITUDE||'E'||LONGITUDE"];
-                    if (coords) {
-                        const match = coords.match(/N(\d{2})(\d{2})(\d{2}\.?\d*)E(\d{2})(\d{2})(\d{2}\.?\d*)/);
-                        if (match) {
-                            const latDeg = parseInt(match[1]);
-                            const latMin = parseInt(match[2]);
-                            const latSec = parseFloat(match[3]);
-                            const lonDeg = parseInt(match[4]);
-                            const lonMin = parseInt(match[5]);
-                            const lonSec = parseFloat(match[6]);
-                            lat = (latDeg + latMin / 60 + latSec / 3600).toFixed(5);
-                            lon = (lonDeg + lonMin / 60 + lonSec / 3600).toFixed(5);
-                        }
-                    }
-
-                    const googleMapsLink = lat && lon ? 
-                        `<a href="https://www.google.com/maps?q=${lat},${lon}&z=15" target="_blank">عرض على خرائط جوجل</a>` : 
-                        '-';
-
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${row.MSISDN || '-'}</td>
-                        <td>${row.IMSI || '-'}</td>
-                        <td>${row.IMEI || '-'}</td>
-                        <td>${row.Covering_Switch || '-'}</td>
-                        <td>${row.Cell_ID || '-'}</td>
-                        <td>${row.Cell_Number || '-'}</td>
-                        <td>${row.LAC || '-'}</td>
-                        <td>${row.status4g || '-'}</td>
-                        <td>${row.MME || '-'}</td>
-                        <td>${row.MINOR_AREA || '-'}</td>
-                        <td>${row.CITY || '-'}</td>
-                        <td>${row.LANDLORD_ADDRESS || '-'}</td>
-                        <td>${coords ? `N ${lat} E ${lon}` : '-'}</td>
-                        <td>${googleMapsLink}</td>
-                        <td>${row.SITE_ID || '-'}</td>
-                        <td>${row.Mobile_state === 'BUSY' ? 'مشغول' : row.Mobile_state || '-'}</td>
-                    `;
-                    tableBody.appendChild(tr);
-                });
+                
+                // Convert to JSON
+                const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+                
+                // Process the data
+                displayData(jsonData);
             };
             reader.readAsArrayBuffer(file);
+        }
+        
+        function displayData(data) {
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+            
+            // Skip header row if exists
+            const startRow = data[0][0] === 'MSISDN' ? 1 : 0;
+            
+            for (let i = startRow; i < data.length; i++) {
+                const row = data[i];
+                if (row.length === 0) continue;
+                
+                const tr = document.createElement('tr');
+                
+                // Create cells for each column
+                for (let j = 0; j < 15; j++) {
+                    const td = document.createElement('td');
+                    td.textContent = row[j] || '';
+                    tr.appendChild(td);
+                }
+                
+                // Process coordinates and add Google Maps link
+                const coordinatesCell = document.createElement('td');
+                if (row[12]) {
+                    const coords = extractCoordinates(row[12]);
+                    if (coords) {
+                        const mapLink = `https://www.google.com/maps?q=${coords.lat},${coords.lng}`;
+                        const linkElement = document.createElement('a');
+                        linkElement.href = mapLink;
+                        linkElement.target = "_blank";
+                        linkElement.className = "map-link";
+                        linkElement.textContent = "عرض على الخريطة";
+                        coordinatesCell.appendChild(linkElement);
+                    } else {
+                        coordinatesCell.textContent = "تنسيق إحداثيات غير معروف";
+                    }
+                }
+                tr.appendChild(coordinatesCell);
+                
+                tableBody.appendChild(tr);
+            }
+        }
+        
+        function extractCoordinates(coordString) {
+            // Example format: "N 3121258 E 2713105"
+            const regex = /N\s*(\d+)\s*E\s*(\d+)/i;
+            const match = coordString.match(regex);
+            
+            if (match && match.length === 3) {
+                // Convert to decimal degrees (assuming format is N DDMMSS E DDDMMSS)
+                const latDeg = match[1].substring(0, 2);
+                const latMin = match[1].substring(2, 4);
+                const latSec = match[1].substring(4, 6);
+                const lat = parseFloat(latDeg) + (parseFloat(latMin)/60) + (parseFloat(latSec)/3600);
+                
+                const lngDeg = match[2].substring(0, 3);
+                const lngMin = match[2].substring(3, 5);
+                const lngSec = match[2].substring(5, 7);
+                const lng = parseFloat(lngDeg) + (parseFloat(lngMin)/60) + (parseFloat(lngSec)/3600);
+                
+                return { lat: lat.toFixed(6), lng: lng.toFixed(6) };
+            }
+            
+            return null;
         }
     </script>
 </body>
 </html>
+```
+
+## كيفية استخدام هذه الصفحة:
+
+1. قم بحفظ الكود أعلاه في ملف باسم `map-extractor.html`
+2. افتح الملف في متصفح الويب
+3. انقر على زر "اختيار ملف" وحدد ملف Excel الخاص بك
+4. انقر على زر "معالجة الملف"
+5. ستعرض الصفحة جميع البيانات من ملف Excel مع عمود إضافي يحتوي على رابط جوجل ماب
+
+## ملاحظات:
+
+- الصفحة مصممة للتعامل مع تنسيق الإحداثيات الموجود في ملفك (مثل: N 3121258 E 2713105)
+- يتم تحويل الإحداثيات إلى تنسيق خطوط الطول والعرض العشرية
+- الروابط تفتح في نافذة جديدة عند النقر عليها
+- الصفحة تستخدم مكتبة SheetJS لقراءة ملفات Excel
+
+إذا كان تنسيق الإحداثيات في ملفاتك مختلفاً، قد تحتاج إلى تعديل دالة `extractCoordinates()` في الكود.
