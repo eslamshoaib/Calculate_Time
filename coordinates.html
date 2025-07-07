@@ -1,18 +1,19 @@
-
+ 
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>    🌍🌍🌍🌍</title>
+    <title>محول الإحداثيات الذكي - خرائط جوجل</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #1a73e8;
-            --secondary-color: #34a853;
-            --accent-color: #ea4335;
-            --light-gray: #f5f5f5;
-            --dark-gray: #202124;
-            --white: #ffffff;
+            --primary-blue: #4285F4;
+            --google-green: #34A853;
+            --google-yellow: #FBBC05;
+            --google-red: #EA4335;
+            --light-gray: #F1F3F4;
+            --dark-gray: #3C4043;
         }
         
         * {
@@ -23,171 +24,236 @@
         
         body {
             font-family: 'Tajawal', sans-serif;
-            background-color: #f8f9fa;
+            background: #F8F9FA;
             color: var(--dark-gray);
             line-height: 1.6;
-            padding: 20px;
         }
         
-        .container {
+        .app-container {
             max-width: 100%;
             margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
             background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 16px;
+            box-shadow: 0 1px 2px rgba(60,64,67,0.3), 0 1px 3px rgba(60,64,67,0.15);
         }
         
-        h1 {
-            color: var(--primary-color);
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        
-        .upload-section {
-            background-color: var(--white);
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            text-align: center;
-            border: 2px dashed #dadce0;
-        }
-        
-        .file-input-wrapper {
-            position: relative;
-            display: inline-block;
-            width: 100%;
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
             margin-bottom: 15px;
         }
         
-        .file-input-wrapper input[type="file"] {
-            position: absolute;
-            left: 0;
-            top: 0;
-            opacity: 0;
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
+        .logo-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 5px;
         }
         
-        .custom-file-button {
-            display: inline-block;
-            background-color: var(--primary-color);
-            color: var(--white);
-            padding: 12px 24px;
-            border-radius: 4px;
-            font-weight: 500;
-            cursor: pointer;
-        }
+        .blue { background: var(--primary-blue); }
+        .green { background: var(--google-green); }
+        .yellow { background: var(--google-yellow); }
+        .red { background: var(--google-red); }
         
-        button {
-            background-color: var(--secondary-color);
-            color: var(--white);
-            border: none;
-            padding: 12px 24px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            width: 100%;
-            max-width: 300px;
-            margin: 10px auto;
-            display: block;
-        }
-        
-        button:disabled {
-            background-color: #bdc1c6;
-            cursor: not-allowed;
-        }
-        
-        .results-container {
-            margin-top: 30px;
-            display: none;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        
-        th, td {
-            border: 1px solid #ddd;
-            padding: 12px;
+        .upload-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 1px 2px rgba(60,64,67,0.3), 0 1px 3px rgba(60,64,67,0.15);
             text-align: center;
         }
         
-        th {
-            background-color: var(--light-gray);
-            position: sticky;
-            top: 0;
+        .file-input {
+            display: none;
         }
         
-        .map-link {
-            color: var(--primary-color);
-            text-decoration: none;
+        .file-label {
+            display: inline-block;
+            background: var(--primary-blue);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px rgba(66,133,244,0.2);
         }
         
-        .map-link:hover {
-            text-decoration: underline;
+        .file-label:hover {
+            background: #3367D6;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(66,133,244,0.2);
+        }
+        
+        .process-btn {
+            background: var(--google-green);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 16px;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 300px;
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px rgba(52,168,83,0.2);
+        }
+        
+        .process-btn:hover {
+            background: #2D9249;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(52,168,83,0.2);
+        }
+        
+        .process-btn:disabled {
+            background: #E0E0E0;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .results-container {
+            display: none;
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 1px 2px rgba(60,64,67,0.3), 0 1px 3px rgba(60,64,67,0.15);
+        }
+        
+        .result-card {
+            border: 1px solid #E0E0E0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.2s;
+        }
+        
+        .result-card:hover {
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            transform: translateY(-2px);
+        }
+        
+        .map-preview {
+            height: 200px;
+            background: var(--light-gray);
+            border-radius: 8px;
+            margin-top: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .map-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #5F6368;
+        }
+        
+        .map-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .coordinates-display {
+            background: var(--light-gray);
+            padding: 12px;
+            border-radius: 8px;
+            font-family: 'Roboto Mono', monospace;
+            margin: 10px 0;
+        }
+        
+        .copy-btn {
+            background: white;
+            border: 1px solid #DADCE0;
+            color: var(--primary-blue);
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+            transition: all 0.2s;
+        }
+        
+        .copy-btn:hover {
+            background: #F1F3F4;
         }
         
         .status-message {
             text-align: center;
-            margin: 15px 0;
-            font-weight: 500;
-            color: var(--primary-color);
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 8px;
         }
         
-        .error-message {
-            color: var(--accent-color);
-            text-align: center;
-            margin: 15px 0;
-            display: none;
+        .loading {
+            background: #E8F0FE;
+            color: var(--primary-blue);
         }
         
-        .coordinate-value {
-            font-family: monospace;
-            background-color: var(--light-gray);
-            padding: 2px 5px;
-            border-radius: 3px;
+        .error {
+            background: #FCE8E6;
+            color: var(--google-red);
+        }
+        
+        .success {
+            background: #E6F4EA;
+            color: var(--google-green);
+        }
+        
+        @media (min-width: 768px) {
+            .app-container {
+                max-width: 800px;
+            }
         }
     </style>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <div class="container">
-        <h1>محول إحداثيات الخلايا إلى خرائط Google</h1>
-        
-        <div class="upload-section">
-            <div class="file-input-wrapper">
-                <input type="file" id="excelFile" accept=".xlsx, .xls" />
-                <label for="excelFile" class="custom-file-button">
-                    اختر ملف Excel
-                </label>
+    <div class="app-container">
+        <div class="header">
+            <div class="logo">
+                <div class="logo-circle blue"><i class="fas fa-map-marker-alt" style="color: white;"></i></div>
+                <div class="logo-circle red"><i class="fas fa-file-excel" style="color: white;"></i></div>
+                <div class="logo-circle yellow"><i class="fas fa-exchange-alt" style="color: white;"></i></div>
+                <div class="logo-circle green"><i class="fas fa-map" style="color: white;"></i></div>
             </div>
-            <div id="fileName" style="margin: 10px 0; color: #5f6368;">لم يتم اختيار ملف</div>
-            <button id="processBtn" onclick="processFile()" disabled>معالجة الملف</button>
-            
-            <div class="status-message" id="statusMessage"></div>
-            <div class="error-message" id="errorMessage"></div>
+            <h1>محول الإحداثيات الذكي</h1>
+            <p>تحويل إحداثيات الخلايا إلى خرائط جوجل بدقة عالية</p>
         </div>
         
-        <div class="results-container" id="resultsContainer">
-            <table id="resultsTable">
-                <thead>
-                    <tr>
-                        <th>MSISDN</th>
-                        <th>معرف الخلية</th>
-                        <th>المدينة</th>
-                        <th>الإحداثيات الأصلية</th>
-                        <th>خط العرض (N)</th>
-                        <th>خط الطول (E)</th>
-                        <th>رابط الخريطة</th>
-                    </tr>
-                </thead>
-                <tbody id="resultsBody">
-                </tbody>
-            </table>
+        <div class="upload-card">
+            <input type="file" id="excelFile" class="file-input" accept=".xlsx, .xls">
+            <label for="excelFile" class="file-label">
+                <i class="fas fa-file-upload"></i> اختر ملف Excel
+            </label>
+            <div id="fileName" style="margin: 15px 0; color: #5F6368;">لم يتم اختيار ملف</div>
+            <button id="processBtn" class="process-btn" disabled>
+                <i class="fas fa-cogs"></i> معالجة الملف
+            </button>
+            
+            <div id="statusMessage" class="status-message" style="display: none;"></div>
+        </div>
+        
+        <div id="resultsContainer" class="results-container">
+            <h2 style="margin-bottom: 20px; text-align: center;">النتائج</h2>
+            <div id="resultsList"></div>
         </div>
     </div>
 
@@ -201,9 +267,8 @@
         const processBtn = document.getElementById('processBtn');
         const fileNameDisplay = document.getElementById('fileName');
         const statusMessage = document.getElementById('statusMessage');
-        const errorMessage = document.getElementById('errorMessage');
         const resultsContainer = document.getElementById('resultsContainer');
-        const resultsBody = document.getElementById('resultsBody');
+        const resultsList = document.getElementById('resultsList');
         
         // Event listeners
         excelFileInput.addEventListener('change', function(e) {
@@ -216,23 +281,24 @@
             }
         });
         
+        processBtn.addEventListener('click', processFile);
+        
         // Main processing function
         async function processFile() {
             if (processing) return;
             
             const file = excelFileInput.files[0];
             if (!file) {
-                showError('الرجاء اختيار ملف Excel أولاً');
+                showStatus('الرجاء اختيار ملف Excel أولاً', 'error');
                 return;
             }
             
             // Reset UI
             processing = true;
             processBtn.disabled = true;
-            processBtn.textContent = 'جاري المعالجة...';
-            errorMessage.style.display = 'none';
+            processBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري المعالجة...';
+            showStatus('جاري معالجة الملف، الرجاء الانتظار...', 'loading');
             resultsContainer.style.display = 'none';
-            statusMessage.textContent = 'جاري تحميل الملف...';
             
             try {
                 const data = await readFile(file);
@@ -243,19 +309,19 @@
                 
                 processing = false;
                 processBtn.disabled = false;
-                processBtn.textContent = 'معالجة الملف';
-                statusMessage.textContent = 'تم معالجة الملف بنجاح!';
+                processBtn.innerHTML = '<i class="fas fa-cogs"></i> معالجة الملف';
+                showStatus('تم معالجة الملف بنجاح!', 'success');
                 
                 setTimeout(() => {
-                    statusMessage.textContent = '';
+                    statusMessage.style.display = 'none';
                 }, 3000);
                 
             } catch (err) {
                 console.error(err);
-                showError('حدث خطأ أثناء معالجة الملف. يرجى التأكد من تنسيق الملف');
+                showStatus('حدث خطأ أثناء معالجة الملف. يرجى التأكد من تنسيق الملف', 'error');
                 processing = false;
                 processBtn.disabled = false;
-                processBtn.textContent = 'معالجة الملف';
+                processBtn.innerHTML = '<i class="fas fa-cogs"></i> معالجة الملف';
             }
         }
         
@@ -305,7 +371,8 @@
                     originalCoords: originalCoords || 'غير متوفر',
                     latitude: coordinateResult.latitude,
                     longitude: coordinateResult.longitude,
-                    mapLink: coordinateResult.mapLink
+                    mapLink: coordinateResult.mapLink,
+                    embedLink: coordinateResult.embedLink
                 });
             }
             
@@ -317,7 +384,8 @@
                 return {
                     latitude: 'غير صالح',
                     longitude: 'غير صالح',
-                    mapLink: '#'
+                    mapLink: '#',
+                    embedLink: ''
                 };
             }
             
@@ -329,7 +397,8 @@
                 return {
                     latitude: 'تنسيق غير معروف',
                     longitude: 'تنسيق غير معروف',
-                    mapLink: '#'
+                    mapLink: '#',
+                    embedLink: ''
                 };
             }
             
@@ -343,7 +412,8 @@
             return {
                 latitude: latitude.toFixed(7),
                 longitude: longitude.toFixed(7),
-                mapLink: `https://www.google.com/maps?q=${latitude},${longitude}`
+                mapLink: `https://www.google.com/maps?q=${latitude},${longitude}&z=16`,
+                embedLink: `https://maps.google.com/maps?q=${latitude},${longitude}&z=16&output=embed`
             };
         }
         
@@ -364,35 +434,63 @@
         }
         
         function displayResults(data) {
-            resultsBody.innerHTML = '';
+            resultsList.innerHTML = '';
             
             if (data.length === 0) {
-                showError('لا توجد بيانات صالحة في الملف');
+                showStatus('لا توجد بيانات صالحة في الملف', 'error');
                 return;
             }
             
-            data.forEach(item => {
-                const row = document.createElement('tr');
+            data.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'result-card';
                 
-                row.innerHTML = `
-                    <td>${item.msisdn}</td>
-                    <td>${item.cellId}</td>
-                    <td>${item.city}</td>
-                    <td><span class="coordinate-value">${item.originalCoords}</span></td>
-                    <td><span class="coordinate-value">${item.latitude}</span></td>
-                    <td><span class="coordinate-value">${item.longitude}</span></td>
-                    <td><a href="${item.mapLink}" target="_blank" class="map-link">عرض الخريطة</a></td>
+                card.innerHTML = `
+                    <h3><i class="fas fa-map-marker-alt" style="color: var(--google-red);"></i> الموقع ${index + 1}</h3>
+                    <p><strong>رقم الهاتف:</strong> ${item.msisdn}</p>
+                    <p><strong>معرف الخلية:</strong> ${item.cellId}</p>
+                    <p><strong>المدينة:</strong> ${item.city}</p>
+                    
+                    <div class="coordinates-display">
+                        <p><strong>الإحداثيات الأصلية:</strong> ${item.originalCoords}</p>
+                        <p><strong>الإحداثيات المحولة:</strong> ${item.latitude}° N, ${item.longitude}° E</p>
+                    </div>
+                    
+                    <div class="map-preview">
+                        ${item.embedLink ? 
+                            `<iframe class="map-iframe" src="${item.embedLink}" loading="lazy"></iframe>` : 
+                            `<div class="map-placeholder"><i class="fas fa-map-marked-alt"></i> لا توجد خريطة متاحة</div>`
+                        }
+                    </div>
+                    
+                    <div style="margin-top: 15px;">
+                        <a href="${item.mapLink}" target="_blank" class="process-btn" style="text-decoration: none; display: inline-block;">
+                            <i class="fas fa-external-link-alt"></i> فتح في خرائط جوجل
+                        </a>
+                        <button class="copy-btn" onclick="copyToClipboard('${item.latitude}, ${item.longitude}')">
+                            <i class="fas fa-copy"></i> نسخ الإحداثيات
+                        </button>
+                    </div>
                 `;
                 
-                resultsBody.appendChild(row);
+                resultsList.appendChild(card);
             });
             
             resultsContainer.style.display = 'block';
         }
         
-        function showError(message) {
-            errorMessage.textContent = message;
-            errorMessage.style.display = 'block';
+        function showStatus(message, type) {
+            statusMessage.textContent = message;
+            statusMessage.className = `status-message ${type}`;
+            statusMessage.style.display = 'block';
+        }
+        
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('تم نسخ الإحداثيات: ' + text);
+            }).catch(err => {
+                alert('فشل في نسخ الإحداثيات');
+            });
         }
     </script>
 </body>
