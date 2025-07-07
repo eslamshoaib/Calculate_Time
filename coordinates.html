@@ -1,497 +1,168 @@
- 
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>محول الإحداثيات الذكي - خرائط جوجل</title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary-blue: #4285F4;
-            --google-green: #34A853;
-            --google-yellow: #FBBC05;
-            --google-red: #EA4335;
-            --light-gray: #F1F3F4;
-            --dark-gray: #3C4043;
-        }
-        
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        
         body {
             font-family: 'Tajawal', sans-serif;
-            background: #F8F9FA;
-            color: var(--dark-gray);
-            line-height: 1.6;
-        }
-        
-        .app-container {
-            max-width: 100%;
-            margin: 0 auto;
+            background: #f8f9fa;
             padding: 20px;
         }
-        
-        .header {
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+        h1 {
             text-align: center;
             margin-bottom: 30px;
-            padding: 20px;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 1px 2px rgba(60,64,67,0.3), 0 1px 3px rgba(60,64,67,0.15);
         }
-        
-        .logo {
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        input[type="file"] {
+            display: none;
+        }
+        label {
+            background: #4285F4;
+            color: white;
+            padding: 12px 25px;
+            display: inline-block;
+            border-radius: 8px;
+            cursor: pointer;
             margin-bottom: 15px;
         }
-        
-        .logo-circle {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-left: 5px;
-        }
-        
-        .blue { background: var(--primary-blue); }
-        .green { background: var(--google-green); }
-        .yellow { background: var(--google-yellow); }
-        .red { background: var(--google-red); }
-        
-        .upload-card {
-            background: white;
-            border-radius: 16px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 1px 2px rgba(60,64,67,0.3), 0 1px 3px rgba(60,64,67,0.15);
-            text-align: center;
-        }
-        
-        .file-input {
-            display: none;
-        }
-        
-        .file-label {
-            display: inline-block;
-            background: var(--primary-blue);
+        button {
+            background: #34A853;
             color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.2s;
-            box-shadow: 0 1px 3px rgba(66,133,244,0.2);
-        }
-        
-        .file-label:hover {
-            background: #3367D6;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(66,133,244,0.2);
-        }
-        
-        .process-btn {
-            background: var(--google-green);
-            color: white;
+            padding: 10px 20px;
             border: none;
-            padding: 12px 24px;
             border-radius: 8px;
             cursor: pointer;
-            font-weight: 500;
-            font-size: 16px;
-            margin-top: 20px;
-            width: 100%;
-            max-width: 300px;
-            transition: all 0.2s;
-            box-shadow: 0 1px 3px rgba(52,168,83,0.2);
-        }
-        
-        .process-btn:hover {
-            background: #2D9249;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(52,168,83,0.2);
-        }
-        
-        .process-btn:disabled {
-            background: #E0E0E0;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        
-        .results-container {
-            display: none;
-            background: white;
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 1px 2px rgba(60,64,67,0.3), 0 1px 3px rgba(60,64,67,0.15);
-        }
-        
-        .result-card {
-            border: 1px solid #E0E0E0;
-            border-radius: 12px;
-            padding: 20px;
             margin-bottom: 20px;
-            transition: all 0.2s;
+            font-size: 16px;
         }
-        
-        .result-card:hover {
-            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-            transform: translateY(-2px);
+        .result {
+            margin-top: 30px;
         }
-        
-        .map-preview {
-            height: 200px;
-            background: var(--light-gray);
-            border-radius: 8px;
-            margin-top: 15px;
-            overflow: hidden;
-            position: relative;
+        .card {
+            background: #f1f3f4;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
         }
-        
-        .map-placeholder {
+        .card a {
+            color: #4285F4;
+        }
+        iframe {
             width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #5F6368;
-        }
-        
-        .map-iframe {
-            width: 100%;
-            height: 100%;
+            height: 300px;
             border: none;
-        }
-        
-        .coordinates-display {
-            background: var(--light-gray);
-            padding: 12px;
-            border-radius: 8px;
-            font-family: 'Roboto Mono', monospace;
-            margin: 10px 0;
-        }
-        
-        .copy-btn {
-            background: white;
-            border: 1px solid #DADCE0;
-            color: var(--primary-blue);
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
             margin-top: 10px;
-            transition: all 0.2s;
-        }
-        
-        .copy-btn:hover {
-            background: #F1F3F4;
-        }
-        
-        .status-message {
-            text-align: center;
-            margin: 20px 0;
-            padding: 10px;
             border-radius: 8px;
-        }
-        
-        .loading {
-            background: #E8F0FE;
-            color: var(--primary-blue);
-        }
-        
-        .error {
-            background: #FCE8E6;
-            color: var(--google-red);
-        }
-        
-        .success {
-            background: #E6F4EA;
-            color: var(--google-green);
-        }
-        
-        @media (min-width: 768px) {
-            .app-container {
-                max-width: 800px;
-            }
         }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <div class="app-container">
-        <div class="header">
-            <div class="logo">
-                <div class="logo-circle blue"><i class="fas fa-map-marker-alt" style="color: white;"></i></div>
-                <div class="logo-circle red"><i class="fas fa-file-excel" style="color: white;"></i></div>
-                <div class="logo-circle yellow"><i class="fas fa-exchange-alt" style="color: white;"></i></div>
-                <div class="logo-circle green"><i class="fas fa-map" style="color: white;"></i></div>
-            </div>
-            <h1>محول الإحداثيات الذكي</h1>
-            <p>تحويل إحداثيات الخلايا إلى خرائط جوجل بدقة عالية</p>
-        </div>
-        
-        <div class="upload-card">
-            <input type="file" id="excelFile" class="file-input" accept=".xlsx, .xls">
-            <label for="excelFile" class="file-label">
-                <i class="fas fa-file-upload"></i> اختر ملف Excel
-            </label>
-            <div id="fileName" style="margin: 15px 0; color: #5F6368;">لم يتم اختيار ملف</div>
-            <button id="processBtn" class="process-btn" disabled>
-                <i class="fas fa-cogs"></i> معالجة الملف
-            </button>
-            
-            <div id="statusMessage" class="status-message" style="display: none;"></div>
-        </div>
-        
-        <div id="resultsContainer" class="results-container">
-            <h2 style="margin-bottom: 20px; text-align: center;">النتائج</h2>
-            <div id="resultsList"></div>
-        </div>
-    </div>
+<div class="container">
+    <h1>محول الإحداثيات الذكي</h1>
+    <label for="excelFile">📄 اختر ملف Excel</label>
+    <input type="file" id="excelFile" accept=".xlsx,.xls"/>
+    <br>
+    <button onclick="processFile()">🔄 تحويل الإحداثيات</button>
+    <div id="output" class="result"></div>
+</div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script>
-        // Global variables
-        let processing = false;
-        
-        // DOM elements
-        const excelFileInput = document.getElementById('excelFile');
-        const processBtn = document.getElementById('processBtn');
-        const fileNameDisplay = document.getElementById('fileName');
-        const statusMessage = document.getElementById('statusMessage');
-        const resultsContainer = document.getElementById('resultsContainer');
-        const resultsList = document.getElementById('resultsList');
-        
-        // Event listeners
-        excelFileInput.addEventListener('change', function(e) {
-            if (this.files.length > 0) {
-                fileNameDisplay.textContent = `الملف المختار: ${this.files[0].name}`;
-                processBtn.disabled = false;
-            } else {
-                fileNameDisplay.textContent = 'لم يتم اختيار ملف';
-                processBtn.disabled = true;
-            }
-        });
-        
-        processBtn.addEventListener('click', processFile);
-        
-        // Main processing function
-        async function processFile() {
-            if (processing) return;
-            
-            const file = excelFileInput.files[0];
-            if (!file) {
-                showStatus('الرجاء اختيار ملف Excel أولاً', 'error');
-                return;
-            }
-            
-            // Reset UI
-            processing = true;
-            processBtn.disabled = true;
-            processBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري المعالجة...';
-            showStatus('جاري معالجة الملف، الرجاء الانتظار...', 'loading');
-            resultsContainer.style.display = 'none';
-            
-            try {
-                const data = await readFile(file);
-                const jsonData = convertToJson(data);
-                const processedData = processExcelData(jsonData);
-                
-                displayResults(processedData);
-                
-                processing = false;
-                processBtn.disabled = false;
-                processBtn.innerHTML = '<i class="fas fa-cogs"></i> معالجة الملف';
-                showStatus('تم معالجة الملف بنجاح!', 'success');
-                
-                setTimeout(() => {
-                    statusMessage.style.display = 'none';
-                }, 3000);
-                
-            } catch (err) {
-                console.error(err);
-                showStatus('حدث خطأ أثناء معالجة الملف. يرجى التأكد من تنسيق الملف', 'error');
-                processing = false;
-                processBtn.disabled = false;
-                processBtn.innerHTML = '<i class="fas fa-cogs"></i> معالجة الملف';
-            }
-        }
-        
-        function readFile(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    resolve(new Uint8Array(e.target.result));
-                };
-                reader.onerror = reject;
-                reader.readAsArrayBuffer(file);
-            });
-        }
-        
-        function convertToJson(data) {
-            const workbook = XLSX.read(data, { type: 'array' });
-            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-            return XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
-        }
-        
-        function processExcelData(jsonData) {
-            // Find column indices
-            const headerRow = jsonData[0];
-            const msisdnIndex = headerRow.indexOf('MSISDN');
-            const cellIdIndex = headerRow.indexOf('Cell_ID');
-            const cityIndex = headerRow.indexOf('CITY');
-            const coordsIndex = headerRow.findIndex(col => col.includes("'N'||LATITUDE||'E'||LONGITUDE"));
-            
-            if (msisdnIndex === -1 || cellIdIndex === -1 || coordsIndex === -1) {
-                throw new Error('تنسيق الملف غير متوافق. يرجى التأكد من وجود الأعمدة المطلوبة');
-            }
-            
-            const results = [];
-            
-            // Process each row (skip header)
-            for (let i = 1; i < jsonData.length; i++) {
-                const row = jsonData[i];
-                if (!row || row.length === 0) continue;
-                
-                const originalCoords = row[coordsIndex];
-                const coordinateResult = parseCoordinates(originalCoords);
-                
-                results.push({
-                    msisdn: row[msisdnIndex] || 'غير متوفر',
-                    cellId: row[cellIdIndex] || 'غير متوفر',
-                    city: row[cityIndex] || 'غير متوفر',
-                    originalCoords: originalCoords || 'غير متوفر',
-                    latitude: coordinateResult.latitude,
-                    longitude: coordinateResult.longitude,
-                    mapLink: coordinateResult.mapLink,
-                    embedLink: coordinateResult.embedLink
-                });
-            }
-            
-            return results;
-        }
-        
-        function parseCoordinates(coordString) {
-            if (!coordString) {
-                return {
-                    latitude: 'غير صالح',
-                    longitude: 'غير صالح',
-                    mapLink: '#',
-                    embedLink: ''
-                };
-            }
-            
-            // Extract numeric parts from format: 'N'||3121258||'E'||2713105
-            const pattern = /'N'\|\|(\d+)\|\|'E'\|\|(\d+)/;
-            const match = coordString.match(pattern);
-            
-            if (!match || match.length < 3) {
-                return {
-                    latitude: 'تنسيق غير معروف',
-                    longitude: 'تنسيق غير معروف',
-                    mapLink: '#',
-                    embedLink: ''
-                };
-            }
-            
-            const latStr = match[1]; // e.g. "3121258"
-            const lonStr = match[2];  // e.g. "2713105"
-            
-            // Convert from DMS format (DDMMSS) to decimal degrees
-            const latitude = convertDmsToDecimal(latStr, true);
-            const longitude = convertDmsToDecimal(lonStr, false);
-            
-            return {
-                latitude: latitude.toFixed(7),
-                longitude: longitude.toFixed(7),
-                mapLink: `https://www.google.com/maps?q=${latitude},${longitude}&z=16`,
-                embedLink: `https://maps.google.com/maps?q=${latitude},${longitude}&z=16&output=embed`
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+    function readExcel(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = e => {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: "array" });
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                resolve(json);
             };
+            reader.onerror = reject;
+            reader.readAsArrayBuffer(file);
+        });
+    }
+
+    async function processFile() {
+        const fileInput = document.getElementById('excelFile');
+        const outputDiv = document.getElementById('output');
+        outputDiv.innerHTML = '';
+
+        if (fileInput.files.length === 0) {
+            alert("الرجاء اختيار ملف Excel");
+            return;
         }
-        
-        function convertDmsToDecimal(dmsStr, isLatitude) {
-            // Pad with zeros if necessary to ensure 7 digits
-            const padded = dmsStr.padStart(7, '0');
-            
-            // For latitude (N/S): DDMMSS
-            // For longitude (E/W): DDDMMSS
-            const degDigits = isLatitude ? 2 : 3;
-            
-            const deg = parseInt(padded.substring(0, degDigits));
-            const min = parseInt(padded.substring(degDigits, degDigits + 2));
-            const sec = parseInt(padded.substring(degDigits + 2, degDigits + 4));
-            
-            // Convert to decimal degrees
-            return deg + (min / 60) + (sec / 3600);
+
+        const file = fileInput.files[0];
+        const rows = await readExcel(file);
+
+        const header = rows[0];
+        const coordsIndex = header.findIndex(h => typeof h === 'string' && h.includes('N') && h.includes('E'));
+
+        if (coordsIndex === -1) {
+            outputDiv.innerHTML = '<p style="color:red;">⚠️ لم يتم العثور على عمود الإحداثيات</p>';
+            return;
         }
-        
-        function displayResults(data) {
-            resultsList.innerHTML = '';
-            
-            if (data.length === 0) {
-                showStatus('لا توجد بيانات صالحة في الملف', 'error');
-                return;
-            }
-            
-            data.forEach((item, index) => {
-                const card = document.createElement('div');
-                card.className = 'result-card';
-                
-                card.innerHTML = `
-                    <h3><i class="fas fa-map-marker-alt" style="color: var(--google-red);"></i> الموقع ${index + 1}</h3>
-                    <p><strong>رقم الهاتف:</strong> ${item.msisdn}</p>
-                    <p><strong>معرف الخلية:</strong> ${item.cellId}</p>
-                    <p><strong>المدينة:</strong> ${item.city}</p>
-                    
-                    <div class="coordinates-display">
-                        <p><strong>الإحداثيات الأصلية:</strong> ${item.originalCoords}</p>
-                        <p><strong>الإحداثيات المحولة:</strong> ${item.latitude}° N, ${item.longitude}° E</p>
-                    </div>
-                    
-                    <div class="map-preview">
-                        ${item.embedLink ? 
-                            `<iframe class="map-iframe" src="${item.embedLink}" loading="lazy"></iframe>` : 
-                            `<div class="map-placeholder"><i class="fas fa-map-marked-alt"></i> لا توجد خريطة متاحة</div>`
-                        }
-                    </div>
-                    
-                    <div style="margin-top: 15px;">
-                        <a href="${item.mapLink}" target="_blank" class="process-btn" style="text-decoration: none; display: inline-block;">
-                            <i class="fas fa-external-link-alt"></i> فتح في خرائط جوجل
-                        </a>
-                        <button class="copy-btn" onclick="copyToClipboard('${item.latitude}, ${item.longitude}')">
-                            <i class="fas fa-copy"></i> نسخ الإحداثيات
-                        </button>
-                    </div>
-                `;
-                
-                resultsList.appendChild(card);
-            });
-            
-            resultsContainer.style.display = 'block';
+
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            const coordStr = (row[coordsIndex] || '').toString().trim();
+
+            const parsed = parseCoordinate(coordStr);
+            if (!parsed) continue;
+
+            const { lat, lon, mapUrl, iframeUrl } = parsed;
+
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+                <p><strong>الإحداثيات الأصلية:</strong> ${coordStr}</p>
+                <p><strong>الموقع:</strong> ${lat.toFixed(6)}°, ${lon.toFixed(6)}°</p>
+                <a href="${mapUrl}" target="_blank">🌍 فتح في خرائط جوجل</a>
+                <iframe src="${iframeUrl}" loading="lazy"></iframe>
+            `;
+            outputDiv.appendChild(card);
         }
-        
-        function showStatus(message, type) {
-            statusMessage.textContent = message;
-            statusMessage.className = `status-message ${type}`;
-            statusMessage.style.display = 'block';
-        }
-        
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                alert('تم نسخ الإحداثيات: ' + text);
-            }).catch(err => {
-                alert('فشل في نسخ الإحداثيات');
-            });
-        }
-    </script>
+    }
+
+    function parseCoordinate(text) {
+        if (!text) return null;
+
+        // يحاول استخلاص الشكل: 'N 3121258 E 2713105' أو 'N'||3121258||'E'||2713105
+        const match = text.match(/N\s*([0-9]{7})\s*E\s*([0-9]{7})/) ||
+                      text.match(/'N'\|\|(\d{7})\|\|'E'\|\|(\d{7})/);
+
+        if (!match) return null;
+
+        const latDMS = match[1];
+        const lonDMS = match[2];
+
+        const lat = dmsToDecimal(latDMS, true);
+        const lon = dmsToDecimal(lonDMS, false);
+
+        const mapUrl = `https://www.google.com/maps?q=${lat},${lon}&z=16`;
+        const iframeUrl = `https://maps.google.com/maps?q=${lat},${lon}&z=16&output=embed`;
+
+        return { lat, lon, mapUrl, iframeUrl };
+    }
+
+    function dmsToDecimal(dms, isLat) {
+        const dLen = isLat ? 2 : 3;
+        const deg = parseInt(dms.slice(0, dLen));
+        const min = parseInt(dms.slice(dLen, dLen + 2));
+        const sec = parseInt(dms.slice(dLen + 2, dLen + 4));
+        return deg + (min / 60) + (sec / 3600);
+    }
+</script>
 </body>
 </html>
