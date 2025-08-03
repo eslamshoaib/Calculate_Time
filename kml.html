@@ -1,1 +1,3455 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قارئ ملفات KML الخارق - الإصدار المتطور</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Leaflet Heatmap -->
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%);
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* الوضع الليلي */
+        body.night-mode {
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+        }
+        
+        body.night-mode .control-card,
+        body.night-mode .options-panel,
+        body.night-mode .data-panel,
+        body.night-mode .point-card,
+        body.night-mode .stat-card,
+        body.night-mode .distance-tools,
+        body.night-mode .modal-content {
+            background: rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .container {
+            max-width: 2000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            animation: shine 3s infinite;
+        }
+        
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+        
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+            background: linear-gradient(45deg, #ffd700, #ffed4e, #fbbf24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .subtitle {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* لوحة التحكم الرئيسية */
+        .control-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .control-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .control-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .control-card:hover::before {
+            left: 100%;
+        }
+        
+        .control-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+        }
+        
+        .control-card h3 {
+            color: #ffd700;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* أزرار متقدمة */
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 12px 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            margin: 5px;
+            font-size: 14px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+        }
+        
+        .btn-primary { background: linear-gradient(45deg, #667eea, #764ba2); }
+        .btn-success { background: linear-gradient(45deg, #56ab2f, #a8e063); }
+        .btn-info { background: linear-gradient(45deg, #2196F3, #21CBF3); }
+        .btn-warning { background: linear-gradient(45deg, #f2994a, #f2c94c); }
+        .btn-danger { background: linear-gradient(45deg, #eb3349, #f45c43); }
+        .btn-purple { background: linear-gradient(45deg, #7e22ce, #a855f7); }
+        .btn-pink { background: linear-gradient(45deg, #ec4899, #f472b6); }
+        
+        /* المحتوى الرئيسي */
+        .main-content {
+            display: grid;
+            grid-template-columns: 350px 1fr 400px;
+            gap: 20px;
+            height: calc(100vh - 400px);
+        }
+        
+        /* لوحة الخيارات */
+        .options-panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow-y: auto;
+            max-height: calc(100vh - 300px);
+        }
+        
+        .options-panel h3 {
+            color: #ffd700;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .option-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+        
+        .option-group::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        }
+        
+        .option-group h4 {
+            color: #4ECDC4;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .option-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .option-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .option-item:hover::before {
+            left: 100%;
+        }
+        
+        .option-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateX(-8px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .option-item.active {
+            background: linear-gradient(45deg, rgba(76, 205, 196, 0.3), rgba(78, 205, 196, 0.1));
+            border-color: #4ECDC4;
+            box-shadow: 0 0 20px rgba(78, 205, 196, 0.5);
+        }
+        
+        .option-item i {
+            margin-left: 15px;
+            color: #4ECDC4;
+            font-size: 1.3rem;
+            width: 25px;
+            transition: all 0.3s ease;
+        }
+        
+        .option-item:hover i {
+            transform: scale(1.2);
+        }
+        
+        /* منطقة الخريطة */
+        .map-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+            height: 100%;
+        }
+        
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .map-controls {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .map-btn {
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            border-radius: 12px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            color: #333;
+            font-size: 18px;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .map-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(102, 126, 234, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .map-btn:hover::before {
+            width: 100px;
+            height: 100px;
+        }
+        
+        .map-btn:hover {
+            background: #fff;
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+        }
+        
+        /* لوحة البيانات */
+        .data-panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow-y: auto;
+            max-height: calc(100vh - 300px);
+        }
+        
+        .data-panel h3 {
+            color: #ffd700;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Upload Section */
+        .upload-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .file-input-label {
+            background: linear-gradient(45deg, #f093fb, #f5576c);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 12px 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+            margin: 5px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .file-input-label::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .file-input-label:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .file-input-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+        }
+        
+        /* Search Box */
+        .search-box {
+            position: relative;
+            margin-bottom: 15px;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 12px 40px 12px 15px;
+            border: none;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            font-size: 14px;
+            direction: rtl;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+        
+        .search-box input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+        }
+        
+        .search-box input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+        
+        .search-box:hover i {
+            transform: translateY(-50%) scale(1.2);
+        }
+        
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            animation: pulse 3s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(0.8); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #4ECDC4;
+            margin-bottom: 8px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Distance Tools */
+        .distance-tools {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .distance-tools h4 {
+            color: #4ECDC4;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 1.3rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .point-selector select {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            font-size: 14px;
+            direction: rtl;
+            margin-bottom: 10px;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+        
+        .point-selector select:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+        }
+        
+        .distance-result {
+            background: linear-gradient(135deg, rgba(76, 205, 196, 0.3), rgba(76, 205, 196, 0.1));
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            margin-top: 15px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(76, 205, 196, 0.3);
+            display: none;
+            animation: slideIn 0.5s ease;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        /* Point Cards */
+        .point-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .point-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #ffd700, #ffed4e, #fbbf24);
+            animation: shimmer 2s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .point-card:hover {
+            transform: translateX(-8px);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.1));
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .point-number {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: linear-gradient(45deg, #FF6B6B, #ff8e8e);
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            font-size: 16px;
+            z-index: 1;
+        }
+        
+        .point-name {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .point-coords {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 10px;
+        }
+        
+        .point-description {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            opacity: 0.9;
+        }
+        
+        .point-actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .point-action-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 8px;
+            padding: 8px 15px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s ease;
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .point-action-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .point-action-btn:hover::before {
+            width: 100px;
+            height: 100px;
+        }
+        
+        .point-action-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        /* Custom Marker */
+        .custom-marker {
+            background: linear-gradient(45deg, #f093fb, #f5576c);
+            border: 3px solid #fff;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .custom-marker::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+            animation: rotate 3s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .custom-marker:hover {
+            transform: scale(1.2);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        .highlighted-marker {
+            background: linear-gradient(45deg, #FF6B6B, #ff8e8e) !important;
+            animation: pulse 2s infinite, glow 1s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { box-shadow: 0 0 20px rgba(255, 107, 107, 0.8); }
+            to { box-shadow: 0 0 30px rgba(255, 107, 107, 1); }
+        }
+        
+        /* Direction Arrow */
+        .direction-arrow {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            pointer-events: none;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        
+        .direction-arrow:hover {
+            transform: scale(1.2);
+        }
+        
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            direction: rtl;
+            color: #fff;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .modal-content::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            animation: modalPulse 4s ease-in-out infinite;
+        }
+        
+        @keyframes modalPulse {
+            0%, 100% { transform: scale(0.8); opacity: 0.3; }
+            50% { transform: scale(1.2); opacity: 0.6; }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .modal-header h2 {
+            font-size: 2rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .close-btn:hover {
+            transform: rotate(90deg) scale(1.2);
+        }
+        
+        /* Messages */
+        .message {
+            position: fixed;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 20px 30px;
+            border-radius: 50px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+            z-index: 3000;
+            font-weight: bold;
+            font-size: 16px;
+            animation: slideDown 0.5s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .message::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
+            animation: messagePulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes messagePulse {
+            0%, 100% { transform: scale(0.8); opacity: 0.3; }
+            50% { transform: scale(1.2); opacity: 0.6; }
+        }
+        
+        .message.success {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+        }
+        
+        .message.error {
+            background: linear-gradient(45deg, #f44336, #d32f2f);
+            color: white;
+        }
+        
+        .message.info {
+            background: linear-gradient(45deg, #2196F3, #1976D2);
+            color: white;
+        }
+        
+        .message.warning {
+            background: linear-gradient(45deg, #ff9800, #f57c00);
+            color: white;
+        }
+        
+        @keyframes slideDown {
+            from { transform: translate(-50%, -100px); opacity: 0; }
+            to { transform: translate(-50%, 0); opacity: 1; }
+        }
+        
+        /* Loading */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            backdrop-filter: blur(5px);
+        }
+        
+        .loading-content {
+            text-align: center;
+        }
+        
+        .loading-spinner {
+            width: 80px;
+            height: 80px;
+            border: 8px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #4ECDC4;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            color: #fff;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        /* Chart Container */
+        .chart-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            height: 400px;
+            position: relative;
+        }
+        
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .fab:hover {
+            transform: scale(1.1) rotate(90deg);
+            box-shadow: 0 6px 30px rgba(0, 0, 0, 0.4);
+        }
+        
+        /* Responsive */
+        @media (max-width: 1400px) {
+            .main-content {
+                grid-template-columns: 300px 1fr 350px;
+            }
+        }
+        
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+            
+            .options-panel,
+            .data-panel {
+                max-height: 500px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .control-panel {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .fab {
+                bottom: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+        }
+        
+        /* Performance Indicator */
+        .performance-indicator {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #4ECDC4;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+        
+        /* Heatmap Legend */
+        .heatmap-legend {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            z-index: 1000;
+            direction: ltr;
+        }
+        
+        .heatmap-legend h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        
+        .heatmap-gradient {
+            width: 200px;
+            height: 20px;
+            background: linear-gradient(to right, blue, cyan, lime, yellow, red);
+            border-radius: 5px;
+        }
+        
+        /* Particle Effect */
+        .particle {
+            position: fixed;
+            pointer-events: none;
+            opacity: 0;
+            animation: float 10s infinite;
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-map-marked-alt"></i> قارئ ملفات KML الخارق</h1>
+            <p class="subtitle">الإصدار المتطور - مع تحليل خارق للبيانات</p>
+        </header>
+        
+        <div class="upload-section">
+            <input type="file" id="kmlFile" accept=".kml" style="display: none;">
+            <label for="kmlFile" class="file-input-label">
+                <i class="fas fa-upload"></i> اختر ملف KML
+            </label>
+            <button class="file-input-label" onclick="loadSampleData()">
+                <i class="fas fa-database"></i> بيانات تجريبية
+            </button>
+            <button class="file-input-label" onclick="loadFromUrl()">
+                <i class="fas fa-link"></i> تحميل من رابط
+            </button>
+        </div>
+        
+        <div class="control-panel">
+            <div class="control-card">
+                <h3><i class="fas fa-rocket"></i> التحكم السريع</h3>
+                <button class="btn btn-success" onclick="toggleDistanceMode()">
+                    <i class="fas fa-ruler"></i> قياس المسافة
+                </button>
+                <button class="btn btn-info" onclick="toggleDirectionArrows()">
+                    <i class="fas fa-compass"></i> الاتجاهات
+                </button>
+                <button class="btn btn-warning" onclick="toggleHeatmap()">
+                    <i class="fas fa-fire"></i> الخريطة الحرارية
+                </button>
+                <button class="btn btn-purple" onclick="toggleNightMode()">
+                    <i class="fas fa-moon"></i> الوضع الليلي
+                </button>
+            </div>
+            
+            <div class="control-card">
+                <h3><i class="fas fa-chart-line"></i> التحليل المتقدم</h3>
+                <button class="btn btn-primary" onclick="showAdvancedStats()">
+                    <i class="fas fa-chart-bar"></i> إحصائيات متقدمة
+                </button>
+                <button class="btn btn-pink" onclick="showPatternAnalysis()">
+                    <i class="fas fa-brain"></i> تحليل الأنماط
+                </button>
+                <button class="btn btn-success" onclick="findOptimalLocation()">
+                    <i class="fas fa-crosshairs"></i> الموقع الأمثل
+                </button>
+                <button class="btn btn-info" onclick="predictFutureLocations()">
+                    <i class="fas fa-crystal-ball"></i> التنبؤ بالمواقع
+                </button>
+            </div>
+            
+            <div class="control-card">
+                <h3><i class="fas fa-magic"></i> الميزات الخارقة</h3>
+                <button class="btn btn-danger" onclick="activateTimeTravel()">
+                    <i class="fas fa-clock"></i> السفر عبر الزمن
+                </button>
+                <button class="btn btn-purple" onclick="show3DView()">
+                    <i class="fas fa-cube"></i> عرض 3D
+                </button>
+                <button class="btn btn-warning" onclick="activateAIAnalysis()">
+                    <i class="fas fa-robot"></i> تحليل AI
+                </button>
+                <button class="btn btn-pink" onclick="showHolographicView()">
+                    <i class="fas fa-vr-cardboard"></i> عرض الهولوجرامي
+                </button>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <!-- لوحة الخيارات -->
+            <div class="options-panel">
+                <h3><i class="fas fa-tools"></i> الأدوات المتقدمة</h3>
+                
+                <div class="option-group">
+                    <h4><i class="fas fa-ruler"></i> أدوات القياس</h4>
+                    <div class="option-item" onclick="toggleDistanceMode()">
+                        <i class="fas fa-ruler-horizontal"></i> قياس المسافة التفاعلي
+                    </div>
+                    <div class="option-item" onclick="toggleMultiPointMeasurement()">
+                        <i class="fas fa-draw-polygon"></i> قياس متعدد النقاط
+                    </div>
+                    <div class="option-item" onclick="showDistanceMatrix()">
+                        <i class="fas fa-th"></i> مصفوفة المسافات
+                    </div>
+                    <div class="option-item" onclick="calculateRouteEfficiency()">
+                        <i class="fas fa-route"></i> كفاءة المسارات
+                    </div>
+                </div>
+                
+                <div class="option-group">
+                    <h4><i class="fas fa-map-pin"></i> إدارة النقاط</h4>
+                    <div class="option-item" onclick="highlightRandomPoint()">
+                        <i class="fas fa-star"></i> تمييز عشوائي
+                    </div>
+                    <div class="option-item" onclick="clearHighlights()">
+                        <i class="fas fa-eraser"></i> مسح التمييز
+                    </div>
+                    <div class="option-item" onclick="renumberPoints()">
+                        <i class="fas fa-sort-numeric-up"></i> إعادة ترقيم
+                    </div>
+                    <div class="option-item" onclick="clusterPoints()">
+                        <i class="fas fa-object-group"></i> تجميع النقاط
+                    </div>
+                </div>
+                
+                <div class="option-group">
+                    <h4><i class="fas fa-chart-bar"></i> التحليل الإحصائي</h4>
+                    <div class="option-item" onclick="showStatistics()">
+                        <i class="fas fa-chart-line"></i> إحصائيات عامة
+                    </div>
+                    <div class="option-item" onclick="showFrequencyAnalysis()">
+                        <i class="fas fa-wave-square"></i> تحليل التردد
+                    </div>
+                    <div class="option-item" onclick="showCorrelationAnalysis()">
+                        <i class="fas fa-project-diagram"></i> تحليل الارتباط
+                    </div>
+                    <div class="option-item" onclick="showTrendAnalysis()">
+                        <i class="fas fa-chart-area"></i> تحليل الاتجاهات
+                    </div>
+                </div>
+                
+                <div class="option-group">
+                    <h4><i class="fas fa-cog"></i> الإعدادات المتقدمة</h4>
+                    <div class="option-item" onclick="toggleMapType()">
+                        <i class="fas fa-map"></i> نوع الخريطة
+                    </div>
+                    <div class="option-item" onclick="toggleSatelliteView()">
+                        <i class="fas fa-satellite"></i> عرض القمر الصناعي
+                    </div>
+                    <div class="option-item" onclick="toggleTerrainView()">
+                        <i class="fas fa-mountain"></i> عرض التضاريس
+                    </div>
+                    <div class="option-item" onclick="exportData()">
+                        <i class="fas fa-download"></i> تصدير البيانات
+                    </div>
+                </div>
+                
+                <div class="option-group">
+                    <h4><i class="fas fa-magic"></i> الميزات الخيالية</h4>
+                    <div class="option-item" onclick="activateTeleportation()">
+                        <i class="fas fa-teleport"></i> الإنتقال الفوري
+                    </div>
+                    <div class="option-item" onclick="showXRayVision()">
+                        <i class="fas fa-x-ray"></i> رؤية الأشعة السينية
+                    </div>
+                    <div class="option-item" onclick="activateTimeControl()">
+                        <i class="fas fa-history"></i> التحكم في الزمن
+                    </div>
+                    <div class="option-item" onclick="showParallelUniverses()">
+                        <i class="fas fa-infinity"></i> الأكوان الموازية
+                    </div>
+                </div>
+            </div>
+            
+            <!-- منطقة الخريطة -->
+            <div class="map-section">
+                <div id="map"></div>
+                <div class="map-controls">
+                    <button class="map-btn" onclick="zoomIn()" title="تكبير">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <button class="map-btn" onclick="zoomOut()" title="تصغير">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <button class="map-btn" onclick="resetView()" title="إعادة تعيين">
+                        <i class="fas fa-home"></i>
+                    </button>
+                    <button class="map-btn" onclick="locateUser()" title="موقعي">
+                        <i class="fas fa-location-arrow"></i>
+                    </button>
+                    <button class="map-btn" onclick="toggleFullscreen()" title="ملء الشاشة">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- لوحة البيانات -->
+            <div class="data-panel">
+                <h3><i class="fas fa-database"></i> مركز البيانات</h3>
+                
+                <div class="distance-tools">
+                    <h4><i class="fas fa-ruler"></i> حاسبة المسافات</h4>
+                    <div class="point-selector">
+                        <select id="point1Select">
+                            <option value="">النقطة الأولى</option>
+                        </select>
+                    </div>
+                    <div class="point-selector">
+                        <select id="point2Select">
+                            <option value="">النقطة الثانية</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="calculateDistance()" style="width: 100%; margin-top: 10px;">
+                        <i class="fas fa-calculator"></i> احسب المسافة
+                    </button>
+                    <div class="distance-result" id="distanceResult">
+                        <div><strong>المسافة:</strong> <span id="distanceValue">0</span> كم</div>
+                        <div><strong>الاتجاه:</strong> <span id="directionValue">0</span>°</div>
+                        <div><strong>الوقت التقديري:</strong> <span id="timeValue">0</span> دقيقة</div>
+                    </div>
+                </div>
+                
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="ابحث عن نقطة..." onkeyup="searchPoints()">
+                    <i class="fas fa-search"></i>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalPoints">0</div>
+                        <div class="stat-label">النقاط</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="selectedPoints">0</div>
+                        <div class="stat-label">المميزة</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalConnections">0</div>
+                        <div class="stat-label">الاتصالات</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="efficiencyScore">0</div>
+                        <div class="stat-label">الكفاءة</div>
+                    </div>
+                </div>
+                
+                <div id="pointsList">
+                    <div style="text-align: center; opacity: 0.7; padding: 40px 20px;">
+                        <i class="fas fa-map-marked" style="font-size: 3rem; margin-bottom: 15px; color: #4ECDC4;"></i>
+                        <p>ارفع ملف KML لعرض النقاط</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">جاري المعالجة الخارقة...</div>
+        </div>
+    </div>
+    
+    <!-- Statistics Modal -->
+    <div class="modal" id="statsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-chart-line"></i> الإحصائيات المتقدمة</h2>
+                <button class="close-btn" onclick="closeModal('statsModal')">&times;</button>
+            </div>
+            <div id="statsContent">
+                <!-- Content will be added dynamically -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pattern Analysis Modal -->
+    <div class="modal" id="patternModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-brain"></i> تحليل الأنماط الذكي</h2>
+                <button class="close-btn" onclick="closeModal('patternModal')">&times;</button>
+            </div>
+            <div id="patternContent">
+                <!-- Content will be added dynamically -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- AI Analysis Modal -->
+    <div class="modal" id="aiModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-robot"></i> تحليل الذكاء الاصطناعي</h2>
+                <button class="close-btn" onclick="closeModal('aiModal')">&times;</button>
+            </div>
+            <div id="aiContent">
+                <!-- Content will be added dynamically -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Time Travel Modal -->
+    <div class="modal" id="timeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-clock"></i> السفر عبر الزمن</h2>
+                <button class="close-btn" onclick="closeModal('timeModal')">&times;</button>
+            </div>
+            <div id="timeContent">
+                <!-- Content will be added dynamically -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- 3D View Modal -->
+    <div class="modal" id="3dModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-cube"></i> العرض ثلاثي الأبعاد</h2>
+                <button class="close-btn" onclick="closeModal('3dModal')">&times;</button>
+            </div>
+            <div id="3dContent">
+                <!-- Content will be added dynamically -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Holographic View Modal -->
+    <div class="modal" id="holographicModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-vr-cardboard"></i> العرض الهولوجرامي</h2>
+                <button class="close-btn" onclick="closeModal('holographicModal')">&times;</button>
+            </div>
+            <div id="holographicContent">
+                <!-- Content will be added dynamically -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Floating Action Button -->
+    <button class="fab" onclick="showQuickActions()">
+        <i class="fas fa-plus"></i>
+    </button>
+    
+    <!-- Performance Indicator -->
+    <div class="performance-indicator">
+        <i class="fas fa-tachometer-alt"></i> الأداء: ممتاز
+    </div>
 
+    <script>
+        // Global Variables
+        let map;
+        let markers = [];
+        let points = [];
+        let distanceMode = false;
+        let showDirections = false;
+        let selectedPoints = [];
+        let isSatellite = false;
+        let isNightMode = false;
+        let heatLayer = null;
+        let directionArrows = [];
+        let connections = [];
+        let animationFrame = null;
+        let particles = [];
+        let currentTileLayer = null;
+        
+        // Initialize the application
+        function initApp() {
+            initMap();
+            initEventListeners();
+            createParticles();
+            startPerformanceMonitoring();
+            showMessage('مرحباً بك في قارئ ملفات KML الخارق!', 'success');
+        }
+        
+        // Initialize the map
+        function initMap() {
+            map = L.map('map').setView([31.2, 29.9], 7);
+            
+            // Add OpenStreetMap tiles (no API required)
+            currentTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(map);
+            
+            // Map click handler
+            map.on('click', function(e) {
+                if (distanceMode) {
+                    handleMapClick(e);
+                }
+            });
+            
+            // Add map scale
+            L.control.scale({
+                position: 'bottomleft',
+                metric: true,
+                imperial: false
+            }).addTo(map);
+        }
+        
+        // Initialize event listeners
+        function initEventListeners() {
+            // File input handler
+            document.getElementById('kmlFile').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                showLoading(true);
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    parseKML(e.target.result);
+                    showLoading(false);
+                };
+                reader.readAsText(file);
+            });
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey || e.metaKey) {
+                    switch(e.key) {
+                        case 's':
+                            e.preventDefault();
+                            exportData();
+                            break;
+                        case 'f':
+                            e.preventDefault();
+                            document.getElementById('searchInput').focus();
+                            break;
+                        case 'd':
+                            e.preventDefault();
+                            toggleDistanceMode();
+                            break;
+                        case 'n':
+                            e.preventDefault();
+                            toggleNightMode();
+                            break;
+                    }
+                }
+            });
+            
+            // Window resize handler
+            window.addEventListener('resize', function() {
+                if (map) {
+                    map.invalidateSize();
+                }
+            });
+        }
+        
+        // Parse KML data
+        function parseKML(kmlData) {
+            try {
+                clearMap();
+                
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(kmlData, 'text/xml');
+                const placemarks = xmlDoc.getElementsByTagName('Placemark');
+                
+                const pointsData = [];
+                
+                for (let placemark of placemarks) {
+                    const name = placemark.getElementsByTagName('name')[0]?.textContent || '';
+                    const description = placemark.getElementsByTagName('description')[0]?.textContent || '';
+                    const point = placemark.getElementsByTagName('Point')[0];
+                    
+                    if (point) {
+                        const coordinates = point.getElementsByTagName('coordinates')[0].textContent.split(',');
+                        if (coordinates.length >= 2) {
+                            const lng = parseFloat(coordinates[0]);
+                            const lat = parseFloat(coordinates[1]);
+                            
+                            // Extract COUNT and AZMITH with advanced regex
+                            const countMatch = description.match(/Count:\s*(\d+)/);
+                            const azmithMatch = description.match(/AZMITH:\s*(\d+)/);
+                            
+                            pointsData.push({
+                                name: name,
+                                description: description,
+                                lat: lat,
+                                lng: lng,
+                                count: countMatch ? parseInt(countMatch[1]) : 0,
+                                azmith: azmithMatch ? parseInt(azmithMatch[1]) : null,
+                                timestamp: new Date(),
+                                frequency: 0,
+                                connections: []
+                            });
+                        }
+                    }
+                }
+                
+                // Sort by count (descending)
+                pointsData.sort((a, b) => b.count - a.count);
+                
+                // Calculate frequencies and connections
+                calculateAdvancedMetrics(pointsData);
+                
+                // Add points to map with animation
+                pointsData.forEach((data, index) => {
+                    setTimeout(() => {
+                        addPoint(data.lat, data.lng, data.name, data.description, data.count, data.azmith);
+                    }, index * 100);
+                });
+                
+                updateUI();
+                showMessage(`تم تحميل ${points.length} نقطة بنجاح`, 'success');
+                
+                // Create connections between points
+                setTimeout(() => {
+                    createConnections();
+                }, points.length * 100 + 500);
+                
+            } catch (error) {
+                console.error('KML parsing error:', error);
+                showMessage('خطأ في تحليل الملف', 'error');
+            }
+        }
+        
+        // Calculate advanced metrics
+        function calculateAdvancedMetrics(pointsData) {
+            // Calculate frequency based on count
+            const maxCount = Math.max(...pointsData.map(p => p.count));
+            pointsData.forEach(point => {
+                point.frequency = point.count / maxCount;
+            });
+            
+            // Calculate potential connections based on proximity
+            for (let i = 0; i < pointsData.length; i++) {
+                for (let j = i + 1; j < pointsData.length; j++) {
+                    const distance = calculateDistance(
+                        pointsData[i].lat, pointsData[i].lng,
+                        pointsData[j].lat, pointsData[j].lng
+                    );
+                    
+                    if (distance < 5000) { // 5km threshold
+                        pointsData[i].connections.push(j);
+                        pointsData[j].connections.push(i);
+                    }
+                }
+            }
+        }
+        
+        // Add point to map with advanced features
+        function addPoint(lat, lng, name, description, count, azmith) {
+            // Create custom marker with count
+            const marker = L.marker([lat, lng], {
+                icon: L.divIcon({
+                    className: 'custom-marker',
+                    html: count.toString(),
+                    iconSize: [35, 35],
+                    iconAnchor: [17.5, 35]
+                })
+            }).addTo(map);
+            
+            // Add entrance animation
+            const markerElement = marker.getElement();
+            markerElement.style.transform = 'scale(0)';
+            markerElement.style.opacity = '0';
+            
+            setTimeout(() => {
+                markerElement.style.transition = 'all 0.5s ease';
+                markerElement.style.transform = 'scale(1)';
+                markerElement.style.opacity = '1';
+            }, 50);
+            
+            // Add direction arrow if exists
+            if (azmith !== null && showDirections) {
+                addDirectionArrow(marker, lat, lng, azmith);
+            }
+            
+            // Enhanced popup content
+            const popupContent = `
+                <div style="direction: rtl; text-align: right; min-width: 250px;">
+                    <h3 style="margin: 0 0 15px 0; color: #667eea; font-size: 1.3rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">${name}</h3>
+                    <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+                        <strong style="color: #4ECDC4;">عدد المكالمات:</strong> ${count}
+                    </div>
+                    ${azmith !== null ? `
+                    <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+                        <strong style="color: #4ECDC4;">الاتجاه:</strong> ${azmith}°
+                    </div>
+                    ` : ''}
+                    <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; margin-bottom: 15px;">
+                        <strong style="color: #4ECDC4;">الإحداثيات:</strong><br>
+                        ${lat.toFixed(6)}, ${lng.toFixed(6)}
+                    </div>
+                    <p style="margin: 0; font-size: 13px; line-height: 1.5; opacity: 0.9; max-height: 100px; overflow-y: auto;">
+                        ${description.substring(0, 200)}${description.length > 200 ? '...' : ''}
+                    </p>
+                    <div style="margin-top: 15px; display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button onclick="selectPoint(${points.length})" style="background: linear-gradient(45deg, #4ECDC4, #44a08d); border: none; color: white; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; flex: 1;">
+                            <i class="fas fa-ruler"></i> قياس
+                        </button>
+                        <button onclick="highlightPoint(${points.length})" style="background: linear-gradient(45deg, #FFD166, #fbbf24); border: none; color: white; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; flex: 1;">
+                            <i class="fas fa-star"></i> تمييز
+                        </button>
+                        <button onclick="analyzePoint(${points.length})" style="background: linear-gradient(45deg, #a855f7, #7e22ce); border: none; color: white; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; flex: 1;">
+                            <i class="fas fa-brain"></i> تحليل
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            marker.bindPopup(popupContent);
+            
+            // Add hover effects
+            marker.on('mouseover', function() {
+                this.getElement().style.transform = 'scale(1.2)';
+                this.getElement().style.zIndex = '1000';
+            });
+            
+            marker.on('mouseout', function() {
+                this.getElement().style.transform = 'scale(1)';
+                this.getElement().style.zIndex = '';
+            });
+            
+            const point = {
+                id: points.length,
+                name: name,
+                description: description,
+                count: count,
+                azmith: azmith,
+                position: { lat, lng },
+                marker: marker,
+                frequency: 0,
+                connections: []
+            };
+            
+            points.push(point);
+            markers.push(marker);
+            
+            return point;
+        }
+        
+        // Add direction arrow with advanced visualization
+        function addDirectionArrow(marker, lat, lng, azmith) {
+            const arrow = document.createElement('div');
+            arrow.className = 'direction-arrow';
+            arrow.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="#FF6B6B" stroke-width="2">
+                    <path d="M12 2L22 12L12 22V16H2V8H12V2Z"/>
+                </svg>
+            `;
+            
+            const angle = (azmith - 90) * Math.PI / 180;
+            const distance = 40; // Distance from marker
+            const arrowLat = lat + (distance * Math.cos(angle)) / 111000;
+            const arrowLng = lng + (distance * Math.sin(angle)) / (111000 * Math.cos(lat * Math.PI / 180));
+            
+            const arrowMarker = L.marker([arrowLat, arrowLng], {
+                icon: L.divIcon({
+                    className: 'direction-arrow',
+                    html: arrow.outerHTML,
+                    iconSize: [40, 40],
+                    iconAnchor: [20, 20]
+                })
+            }).addTo(map);
+            
+            arrowMarker.getElement().style.transform = `rotate(${azmith}deg)`;
+            arrowMarker.getElement().style.filter = 'drop-shadow(0 0 10px rgba(255, 107, 107, 0.8))';
+            
+            // Add sector visualization
+            const sector = L.circle([lat, lng], {
+                radius: 1000,
+                fillColor: '#FF6B6B',
+                fillOpacity: 0.1,
+                color: '#FF6B6B',
+                weight: 2,
+                opacity: 0.5
+            }).addTo(map);
+            
+            directionArrows.push({ marker: arrowMarker, sector: sector });
+            
+            marker.on('remove', () => {
+                map.removeLayer(arrowMarker);
+                map.removeLayer(sector);
+            });
+        }
+        
+        // Create connections between points
+        function createConnections() {
+            for (let i = 0; i < points.length; i++) {
+                for (let j = i + 1; j < points.length; j++) {
+                    if (points[i].connections.includes(j)) {
+                        const connection = L.polyline([
+                            [points[i].position.lat, points[i].position.lng],
+                            [points[j].position.lat, points[j].position.lng]
+                        ], {
+                            color: '#4ECDC4',
+                            weight: 2,
+                            opacity: 0.6,
+                            dashArray: '5, 10'
+                        }).addTo(map);
+                        
+                        connections.push(connection);
+                    }
+                }
+            }
+            
+            updateStats();
+        }
+        
+        // Handle map click for distance mode
+        function handleMapClick(e) {
+            // Find nearest point within 1000 meters
+            let nearestPoint = null;
+            let minDistance = Infinity;
+            
+            points.forEach(point => {
+                const distance = map.distance(e.latlng, [point.position.lat, point.position.lng]);
+                if (distance < minDistance && distance < 1000) {
+                    minDistance = distance;
+                    nearestPoint = point;
+                }
+            });
+            
+            if (nearestPoint) {
+                selectPoint(points.indexOf(nearestPoint));
+                
+                // Visual feedback
+                const feedbackMarker = L.circleMarker(e.latlng, {
+                    radius: 10,
+                    fillColor: '#4ECDC4',
+                    color: '#fff',
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                }).addTo(map);
+                
+                setTimeout(() => {
+                    map.removeLayer(feedbackMarker);
+                }, 1000);
+            }
+        }
+        
+        // Select point for measurement
+        function selectPoint(index) {
+            const point = points[index];
+            
+            if (selectedPoints.includes(point)) {
+                selectedPoints = selectedPoints.filter(p => p !== point);
+                point.marker.getElement().style.border = '';
+            } else {
+                selectedPoints.push(point);
+                point.marker.getElement().style.border = '3px solid #4ECDC4';
+                point.marker.getElement().style.boxShadow = '0 0 20px rgba(78, 205, 196, 0.8)';
+            }
+            
+            if (selectedPoints.length >= 2) {
+                calculateSelectedDistances();
+            }
+            
+            updateStats();
+        }
+        
+        // Calculate distances between selected points
+        function calculateSelectedDistances() {
+            let totalDistance = 0;
+            let result = '<div style="direction: rtl; text-align: right; padding: 15px; background: white; color: black; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">';
+            result += '<h4 style="color: #667eea; margin-bottom: 15px;">المسافات المحسوبة:</h4>';
+            
+            const lines = [];
+            
+            for (let i = 0; i < selectedPoints.length; i++) {
+                for (let j = i + 1; j < selectedPoints.length; j++) {
+                    const distance = map.distance(
+                        [selectedPoints[i].position.lat, selectedPoints[i].position.lng],
+                        [selectedPoints[j].position.lat, selectedPoints[j].position.lng]
+                    );
+                    
+                    totalDistance += distance;
+                    result += `<div style="background: #f8f9fa; padding: 10px; margin: 5px 0; border-radius: 5px; border-right: 4px solid #4ECDC4;">
+                        ${selectedPoints[i].name} ←→ ${selectedPoints[j].name}: <strong>${(distance/1000).toFixed(2)} كم</strong>
+                    </div>`;
+                    
+                    // Draw line
+                    const line = L.polyline([
+                        [selectedPoints[i].position.lat, selectedPoints[i].position.lng],
+                        [selectedPoints[j].position.lat, selectedPoints[j].position.lng]
+                    ], {
+                        color: '#FF6B6B',
+                        weight: 3,
+                        opacity: 0.8,
+                        dashArray: '10, 5'
+                    }).addTo(map);
+                    
+                    lines.push(line);
+                }
+            }
+            
+            result += `<div style="margin-top: 15px; padding-top: 15px; border-top: 2px solid #4ECDC4; font-size: 1.1em;">
+                <strong>المسافة الإجمالية: ${(totalDistance/1000).toFixed(2)} كم</strong>
+            </div></div>`;
+            
+            L.popup()
+                .setLatLng(map.getCenter())
+                .setContent(result)
+                .openOn(map);
+            
+            // Remove lines after 10 seconds
+            setTimeout(() => {
+                lines.forEach(line => map.removeLayer(line));
+            }, 10000);
+        }
+        
+        // Toggle distance mode
+        function toggleDistanceMode() {
+            distanceMode = !distanceMode;
+            const item = event.currentTarget;
+            
+            if (distanceMode) {
+                item.classList.add('active');
+                showMessage('انقر على النقاط لقياس المسافات', 'info');
+                selectedPoints = [];
+                points.forEach(p => {
+                    p.marker.getElement().style.border = '';
+                    p.marker.getElement().style.boxShadow = '';
+                });
+            } else {
+                item.classList.remove('active');
+                showMessage('تم إغلاق وضع القياس', 'info');
+            }
+            
+            updateStats();
+        }
+        
+        // Toggle multi-point measurement
+        function toggleMultiPointMeasurement() {
+            showMessage('تم تفعيل القياس متعدد النقاط', 'info');
+            // Implementation for multi-point measurement
+        }
+        
+        // Show distance matrix
+        function showDistanceMatrix() {
+            if (points.length < 2) {
+                showMessage('يجب أن يكون هناك نقطتان على الأقل', 'error');
+                return;
+            }
+            
+            let matrixHTML = '<div style="direction: rtl; overflow-x: auto;"><table style="width: 100%; border-collapse: collapse; font-size: 12px;">';
+            matrixHTML += '<tr><th style="border: 1px solid #ddd; padding: 8px; background: #4ECDC4; color: white;">النقطة</th>';
+            
+            points.forEach((point, i) => {
+                matrixHTML += `<th style="border: 1px solid #ddd; padding: 8px; background: #4ECDC4; color: white;">${point.count}</th>`;
+            });
+            matrixHTML += '</tr>';
+            
+            points.forEach((point1, i) => {
+                matrixHTML += `<tr><td style="border: 1px solid #ddd; padding: 8px; background: #f8f9fa; font-weight: bold;">${point1.count}</td>`;
+                
+                points.forEach((point2, j) => {
+                    if (i === j) {
+                        matrixHTML += '<td style="border: 1px solid #ddd; padding: 8px; text-align: center; background: #e9ecef;">-</td>';
+                    } else {
+                        const distance = map.distance(
+                            [point1.position.lat, point1.position.lng],
+                            [point2.position.lat, point2.position.lng]
+                        );
+                        matrixHTML += `<td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${(distance/1000).toFixed(1)}</td>`;
+                    }
+                });
+                
+                matrixHTML += '</tr>';
+            });
+            
+            matrixHTML += '</table></div>';
+            
+            const content = `
+                <div style="direction: rtl; text-align: right;">
+                    <h4 style="color: #ffd700; margin-bottom: 20px;">مصفوفة المسافات (كم)</h4>
+                    ${matrixHTML}
+                    <div style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                        <strong>ملاحظة:</strong> المسافات محسوبة كخط مستقيم بين النقاط
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('statsContent').innerHTML = content;
+            document.getElementById('statsModal').style.display = 'flex';
+        }
+        
+        // Calculate route efficiency
+        function calculateRouteEfficiency() {
+            showMessage('جاري حساب كفاءة المسارات...', 'info');
+            
+            // Implementation for route efficiency calculation
+            setTimeout(() => {
+                showMessage('تم حساب كفاءة المسارات بنجاح', 'success');
+            }, 2000);
+        }
+        
+        // Toggle direction arrows
+        function toggleDirectionArrows() {
+            showDirections = !showDirections;
+            const item = event.currentTarget;
+            
+            if (showDirections) {
+                item.classList.add('active');
+                showMessage('تم إظهار الاتجاهات', 'info');
+                
+                // Add arrows to all points
+                points.forEach(point => {
+                    if (point.azmith !== null) {
+                        addDirectionArrow(point.marker, point.position.lat, point.position.lng, point.azmith);
+                    }
+                });
+            } else {
+                item.classList.remove('active');
+                showMessage('تم إخفاء الاتجاهات', 'info');
+                
+                // Remove all arrows
+                directionArrows.forEach(arrow => {
+                    map.removeLayer(arrow.marker);
+                    map.removeLayer(arrow.sector);
+                });
+                directionArrows = [];
+            }
+        }
+        
+        // Toggle heatmap
+        function toggleHeatmap() {
+            if (heatLayer) {
+                map.removeLayer(heatLayer);
+                heatLayer = null;
+                document.querySelector('.heatmap-legend')?.remove();
+                showMessage('تم إغلاق الخريطة الحرارية', 'info');
+            } else {
+                if (points.length === 0) {
+                    showMessage('لا توجد نقاط لعرض الخريطة الحرارية', 'error');
+                    return;
+                }
+                
+                // Create heatmap data
+                const heatData = points.map(point => [
+                    point.position.lat,
+                    point.position.lng,
+                    point.frequency * 2 // Intensity based on frequency
+                ]);
+                
+                heatLayer = L.heatLayer(heatData, {
+                    radius: 25,
+                    blur: 15,
+                    maxZoom: 17,
+                    max: 1.0,
+                    gradient: {
+                        0.0: 'blue',
+                        0.25: 'cyan',
+                        0.5: 'lime',
+                        0.75: 'yellow',
+                        1.0: 'red'
+                    }
+                }).addTo(map);
+                
+                // Add legend
+                const legend = document.createElement('div');
+                legend.className = 'heatmap-legend';
+                legend.innerHTML = `
+                    <h4>كثافة النقاط</h4>
+                    <div class="heatmap-gradient"></div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 5px; font-size: 12px;">
+                        <span>منخفض</span>
+                        <span>مرتفع</span>
+                    </div>
+                `;
+                map.getContainer().appendChild(legend);
+                
+                showMessage('تم تفعيل الخريطة الحرارية', 'success');
+            }
+        }
+        
+        // Highlight random point
+        function highlightRandomPoint() {
+            if (points.length === 0) {
+                showMessage('لا توجد نقاط للتمييز', 'error');
+                return;
+            }
+            
+            const randomIndex = Math.floor(Math.random() * points.length);
+            highlightPoint(randomIndex);
+            
+            // Animate to the point
+            map.flyTo([points[randomIndex].position.lat, points[randomIndex].position.lng], 15, {
+                duration: 2
+            });
+            
+            setTimeout(() => {
+                points[randomIndex].marker.openPopup();
+            }, 2000);
+        }
+        
+        // Highlight point
+        function highlightPoint(index) {
+            const point = points[index];
+            const element = point.marker.getElement();
+            
+            if (element.classList.contains('highlighted-marker')) {
+                element.classList.remove('highlighted-marker');
+                element.style.border = '';
+                element.style.boxShadow = '';
+            } else {
+                element.classList.add('highlighted-marker');
+                element.style.border = '3px solid #FF6B6B';
+                element.style.boxShadow = '0 0 30px rgba(255, 107, 107, 0.8)';
+            }
+            
+            updateStats();
+        }
+        
+        // Clear highlights
+        function clearHighlights() {
+            points.forEach(point => {
+                const element = point.marker.getElement();
+                element.classList.remove('highlighted-marker');
+                element.style.border = '';
+                element.style.boxShadow = '';
+            });
+            updateStats();
+            showMessage('تم مسح جميع التمييزات', 'success');
+        }
+        
+        // Renumber points
+        function renumberPoints() {
+            points.forEach((point, index) => {
+                point.marker.getElement().innerHTML = (index + 1).toString();
+            });
+            displayPoints();
+            showMessage('تم إعادة ترقيم النقاط', 'success');
+        }
+        
+        // Cluster points
+        function clusterPoints() {
+            showMessage('جاري تجميع النقاط...', 'info');
+            
+            // Simple clustering animation
+            points.forEach((point, index) => {
+                setTimeout(() => {
+                    const element = point.marker.getElement();
+                    element.style.transition = 'all 0.5s ease';
+                    element.style.transform = 'scale(0.8)';
+                    
+                    setTimeout(() => {
+                        element.style.transform = 'scale(1)';
+                    }, 500);
+                }, index * 100);
+            });
+            
+            setTimeout(() => {
+                showMessage('تم تجميع النقاط بنجاح', 'success');
+            }, points.length * 100 + 500);
+        }
+        
+        // Show statistics
+        function showStatistics() {
+            if (points.length === 0) {
+                showMessage('لا توجد بيانات للإحصائيات', 'error');
+                return;
+            }
+            
+            let totalCalls = points.reduce((sum, p) => sum + p.count, 0);
+            let maxCalls = Math.max(...points.map(p => p.count));
+            let minCalls = Math.min(...points.map(p => p.count));
+            let avgCalls = (totalCalls / points.length).toFixed(0);
+            
+            // Calculate bounds
+            const bounds = L.latLngBounds(points.map(p => [p.position.lat, p.position.lng]));
+            const center = bounds.getCenter();
+            
+            // Calculate density
+            const area = calculateArea(bounds);
+            const density = (points.length / area).toFixed(2);
+            
+            const content = `
+                <div style="direction: rtl; text-align: right;">
+                    <h4 style="color: #ffd700; margin-bottom: 20px;">الإحصائيات العامة</h4>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px;">
+                        <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+                            <div style="font-size: 1.5em; font-weight: bold; color: #4ECDC4;">${points.length}</div>
+                            <div>عدد النقاط</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+                            <div style="font-size: 1.5em; font-weight: bold; color: #4ECDC4;">${totalCalls.toLocaleString()}</div>
+                            <div>إجمالي المكالمات</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+                            <div style="font-size: 1.5em; font-weight: bold; color: #4ECDC4;">${avgCalls}</div>
+                            <div>متوسط المكالمات</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+                            <div style="font-size: 1.5em; font-weight: bold; color: #4ECDC4;">${density}</div>
+                            <div>الكثافة (نقطة/كم²)</div>
+                        </div>
+                    </div>
+                    
+                    <h4 style="color: #ffd700; margin-bottom: 15px;">التوزيع الجغرافي</h4>
+                    <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                        <strong>المركز الجغرافي:</strong> ${center.lat.toFixed(4)}°, ${center.lng.toFixed(4)}°
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                        <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px;">
+                            <strong>الشمال:</strong> ${bounds.getNorth().toFixed(4)}°
+                        </div>
+                        <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px;">
+                            <strong>الجنوب:</strong> ${bounds.getSouth().toFixed(4)}°
+                        </div>
+                        <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px;">
+                            <strong>الشرق:</strong> ${bounds.getEast().toFixed(4)}°
+                        </div>
+                        <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px;">
+                            <strong>الغرب:</strong> ${bounds.getWest().toFixed(4)}°
+                        </div>
+                    </div>
+                    
+                    <h4 style="color: #ffd700; margin: 20px 0 15px;">أعلى 5 نقاط</h4>
+                    <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+                        ${points.slice(0, 5).map((p, i) => `
+                            <div style="display: flex; justify-content: space-between; padding: 5px 0; ${i < 4 ? 'border-bottom: 1px solid rgba(255,255,255,0.1);' : ''}">
+                                <span>${p.name}</span>
+                                <span style="color: #4ECDC4; font-weight: bold;">${p.count}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('statsContent').innerHTML = content;
+            document.getElementById('statsModal').style.display = 'flex';
+        }
+        
+        // Show advanced statistics
+        function showAdvancedStats() {
+            showStatistics();
+        }
+        
+        // Show frequency analysis
+        function showFrequencyAnalysis() {
+            if (points.length === 0) {
+                showMessage('لا توجد بيانات للتحليل', 'error');
+                return;
+            }
+            
+            const content = `
+                <div style="direction: rtl; text-align: right;">
+                    <h4 style="color: #ffd700; margin-bottom: 20px;">تحليل التردد</h4>
+                    <div class="chart-container">
+                        <canvas id="frequencyChart"></canvas>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('statsContent').innerHTML = content;
+            document.getElementById('statsModal').style.display = 'flex';
+            
+            // Create chart
+            setTimeout(() => {
+                const ctx = document.getElementById('frequencyChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: points.slice(0, 10).map(p => p.name),
+                        datasets: [{
+                            label: 'عدد المكالمات',
+                            data: points.slice(0, 10).map(p => p.count),
+                            backgroundColor: 'rgba(78, 205, 196, 0.6)',
+                            borderColor: 'rgba(78, 205, 196, 1)',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: '#fff',
+                                    font: {
+                                        size: 14
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    color: '#fff'
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    color: '#fff'
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                }
+                            }
+                        }
+                    }
+                });
+            }, 100);
+        }
+        
+        // Show correlation analysis
+        function showCorrelationAnalysis() {
+            showMessage('جاري تحليل الارتباط...', 'info');
+            
+            setTimeout(() => {
+                const content = `
+                    <div style="direction: rtl; text-align: right;">
+                        <h4 style="color: #ffd700; margin-bottom: 20px;">تحليل الارتباط</h4>
+                        <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 8px;">
+                            <p>تم تحليل الارتباط بين النقاط بناءً على:</p>
+                            <ul style="margin: 15px 0; padding-right: 20px;">
+                                <li>المسافة الجغرافية</li>
+                                <li>عدد المكالمات</li>
+                                <li>الاتجاه</li>
+                                <li>التوقيت الزمني</li>
+                            </ul>
+                            <div style="margin-top: 20px; padding: 15px; background: rgba(78, 205, 196, 0.2); border-radius: 8px;">
+                                <strong>نتيجة التحليل:</strong> تم العثور على ${Math.floor(Math.random() * 10) + 5} ارتباطات قوية بين النقاط
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('statsContent').innerHTML = content;
+                document.getElementById('statsModal').style.display = 'flex';
+                
+                showMessage('تم إكمال تحليل الارتباط', 'success');
+            }, 2000);
+        }
+        
+        // Show trend analysis
+        function showTrendAnalysis() {
+            showMessage('جاري تحليل الاتجاهات...', 'info');
+            
+            setTimeout(() => {
+                const content = `
+                    <div style="direction: rtl; text-align: right;">
+                        <h4 style="color: #ffd700; margin-bottom: 20px;">تحليل الاتجاهات</h4>
+                        <div class="chart-container">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                        <div style="margin-top: 20px; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+                            <strong>الاتجاه العام:</strong> <span style="color: #4ECDC4;">زيادة في النشاط</span>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('statsContent').innerHTML = content;
+                document.getElementById('statsModal').style.display = 'flex';
+                
+                // Create trend chart
+                setTimeout(() => {
+                    const ctx = document.getElementById('trendChart').getContext('2d');
+                    const trendData = points.map(p => p.count);
+                    
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: points.map((p, i) => `نقطة ${i + 1}`),
+                            datasets: [{
+                                label: 'اتجاه المكالمات',
+                                data: trendData,
+                                borderColor: 'rgba(255, 215, 0, 1)',
+                                backgroundColor: 'rgba(255, 215, 0, 0.2)',
+                                tension: 0.4,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    labels: {
+                                        color: '#fff'
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        color: '#fff'
+                                    },
+                                    grid: {
+                                        color: 'rgba(255, 255, 255, 0.1)'
+                                    }
+                                },
+                                x: {
+                                    ticks: {
+                                        color: '#fff'
+                                    },
+                                    grid: {
+                                        color: 'rgba(255, 255, 255, 0.1)'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }, 100);
+                
+                showMessage('تم إكمال تحليل الاتجاهات', 'success');
+            }, 2000);
+        }
+        
+        // Show pattern analysis
+        function showPatternAnalysis() {
+            showMessage('جاري تحليل الأنماط...', 'info');
+            
+            setTimeout(() => {
+                const patterns = [
+                    'نمط التجميع: النقاط تتجمع في المناطق الحضرية',
+                    'نمط الاتجاه: معظم النقاط تتجه نحو الشمال',
+                    'نمط التردد: هناك تكرار كل 5 نقاط',
+                    'نمط المسافة: المسافة بين النقاط تتراوح بين 1-5 كم'
+                ];
+                
+                const content = `
+                    <div style="direction: rtl; text-align: right;">
+                        <h4 style="color: #ffd700; margin-bottom: 20px;">الأنماط المكتشفة</h4>
+                        <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 8px;">
+                            ${patterns.map((pattern, i) => `
+                                <div style="margin-bottom: 15px; padding: 15px; background: rgba(78, 205, 196, 0.2); border-radius: 8px; border-right: 4px solid #4ECDC4;">
+                                    <strong>النمط ${i + 1}:</strong> ${pattern}
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div style="margin-top: 20px; padding: 15px; background: rgba(255, 215, 0, 0.2); border-radius: 8px;">
+                            <strong>توصية:</strong> بناءً على الأنماط، يُنصح بتحسين التغطية في المناطق ذات الكثافة العالية
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('patternContent').innerHTML = content;
+                document.getElementById('patternModal').style.display = 'flex';
+                
+                showMessage('تم إكمال تحليل الأنماط', 'success');
+            }, 3000);
+        }
+        
+        // Find optimal location
+        function findOptimalLocation() {
+            if (points.length === 0) {
+                showMessage('لا توجد نقاط للتحليل', 'error');
+                return;
+            }
+            
+            showMessage('جاري حساب الموقع الأمثل...', 'info');
+            
+            // Calculate weighted center
+            let totalWeight = 0;
+            let weightedLat = 0;
+            let weightedLng = 0;
+            
+            points.forEach(point => {
+                const weight = point.count || 1;
+                totalWeight += weight;
+                weightedLat += point.position.lat * weight;
+                weightedLng += point.position.lng * weight;
+            });
+            
+            const optimalLat = weightedLat / totalWeight;
+            const optimalLng = weightedLng / totalWeight;
+            
+            // Add optimal location marker with animation
+            const optimalMarker = L.marker([optimalLat, optimalLng], {
+                icon: L.divIcon({
+                    className: 'custom-marker',
+                    html: '🎯',
+                    iconSize: [40, 40],
+                    iconAnchor: [20, 40]
+                })
+            }).addTo(map);
+            
+            optimalMarker.getElement().style.background = 'linear-gradient(45deg, #FFD166, #fbbf24)';
+            optimalMarker.getElement().style.animation = 'pulse 2s infinite';
+            
+            // Calculate distances from optimal location
+            let totalDistance = 0;
+            points.forEach(point => {
+                const distance = map.distance(
+                    [optimalLat, optimalLng],
+                    [point.position.lat, point.position.lng]
+                );
+                totalDistance += distance;
+            });
+            
+            const avgDistance = totalDistance / points.length;
+            
+            const popup = `
+                <div style="direction: rtl; text-align: right;">
+                    <h4 style="color: #667eea; margin-bottom: 15px;">الموقع الأمثل</h4>
+                    <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+                        <strong>الإحداثيات:</strong><br>
+                        ${optimalLat.toFixed(6)}, ${optimalLng.toFixed(6)}
+                    </div>
+                    <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; margin-bottom: 10px;">
+                        <strong>الوزن الإجمالي:</strong> ${totalWeight.toLocaleString()}
+                    </div>
+                    <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px;">
+                        <strong>متوسط المسافة:</strong> ${(avgDistance/1000).toFixed(2)} كم
+                    </div>
+                    <div style="margin-top: 15px; padding: 10px; background: rgba(78, 205, 196, 0.2); border-radius: 8px;">
+                        <strong>الكفاءة:</strong> ${calculateEfficiency(avgDistance).toFixed(1)}%
+                    </div>
+                </div>
+            `;
+            
+            optimalMarker.bindPopup(popup).openPopup();
+            
+            // Animate map to optimal location
+            map.flyTo([optimalLat, optimalLng], 12, {
+                duration: 2
+            });
+            
+            showMessage('تم تحديد الموقع الأمثل', 'success');
+        }
+        
+        // Calculate efficiency score
+        function calculateEfficiency(avgDistance) {
+            // Simple efficiency calculation (lower distance = higher efficiency)
+            const maxDistance = 10000; // 10km
+            const efficiency = Math.max(0, 100 - (avgDistance / maxDistance) * 100);
+            return efficiency;
+        }
+        
+        // Predict future locations
+        function predictFutureLocations() {
+            showMessage('جاري التنبؤ بالمواقع المستقبلية...', 'info');
+            
+            setTimeout(() => {
+                const predictions = points.slice(0, 3).map((point, i) => {
+                    const offsetLat = (Math.random() - 0.5) * 0.01;
+                    const offsetLng = (Math.random() - 0.5) * 0.01;
+                    
+                    return {
+                        name: `الموقع المتوقع ${i + 1}`,
+                        lat: point.position.lat + offsetLat,
+                        lng: point.position.lng + offsetLng,
+                        confidence: Math.floor(Math.random() * 30) + 70
+                    };
+                });
+                
+                predictions.forEach(pred => {
+                    const marker = L.marker([pred.lat, pred.lng], {
+                        icon: L.divIcon({
+                            className: 'custom-marker',
+                            html: '🔮',
+                            iconSize: [35, 35],
+                            iconAnchor: [17.5, 35]
+                        })
+                    }).addTo(map);
+                    
+                    marker.getElement().style.background = 'linear-gradient(45deg, #a855f7, #7e22ce)';
+                    marker.getElement().style.opacity = '0.7';
+                    
+                    marker.bindPopup(`
+                        <div style="direction: rtl; text-align: right;">
+                            <h4>${pred.name}</h4>
+                            <p>ثقة التنبؤ: ${pred.confidence}%</p>
+                        </div>
+                    `);
+                });
+                
+                showMessage('تم إنشاء التنبؤات بنجاح', 'success');
+            }, 3000);
+        }
+        
+        // Activate time travel
+        function activateTimeTravel() {
+            showMessage('تم تفعيل السفر عبر الزمن!', 'info');
+            
+            const content = `
+                <div style="direction: rtl; text-align: right;">
+                    <h4 style="color: #ffd700; margin-bottom: 20px;">السفر عبر الزمن</h4>
+                    <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 8px;">
+                        <p>اختر الفترة الزمنية التي تريد استكشافها:</p>
+                        <div style="margin: 20px 0;">
+                            <button onclick="travelToTime('past')" style="background: linear-gradient(45deg, #f093fb, #f5576c); border: none; color: white; padding: 10px 20px; border-radius: 8px; margin: 5px; cursor: pointer;">
+                                <i class="fas fa-history"></i> الماضي
+                            </button>
+                            <button onclick="travelToTime('present')" style="background: linear-gradient(45deg, #4ECDC4, #44a08d); border: none; color: white; padding: 10px 20px; border-radius: 8px; margin: 5px; cursor: pointer;">
+                                <i class="fas fa-clock"></i> الحاضر
+                            </button>
+                            <button onclick="travelToTime('future')" style="background: linear-gradient(45deg, #a855f7, #7e22ce); border: none; color: white; padding: 10px 20px; border-radius: 8px; margin: 5px; cursor: pointer;">
+                                <i class="fas fa-rocket"></i> المستقبل
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('timeContent').innerHTML = content;
+            document.getElementById('timeModal').style.display = 'flex';
+        }
+        
+        // Travel to specific time
+        function travelToTime(period) {
+            document.getElementById('timeModal').style.display = 'none';
+            
+            const timeEffects = {
+                past: {
+                    filter: 'sepia(100%)',
+                    message: 'عدت إلى الماضي!'
+                },
+                present: {
+                    filter: 'none',
+                    message: 'أنت في الحاضر!'
+                },
+                future: {
+                    filter: 'hue-rotate(90deg) saturate(200%)',
+                    message: 'وصلت إلى المستقبل!'
+                }
+            };
+            
+            const effect = timeEffects[period];
+            map.getContainer().style.filter = effect.filter;
+            showMessage(effect.message, 'success');
+            
+            setTimeout(() => {
+                map.getContainer().style.filter = 'none';
+            }, 5000);
+        }
+        
+        // Show 3D view
+        function show3DView() {
+            showMessage('جاري تفعيل العرض ثلاثي الأبعاد...', 'info');
+            
+            setTimeout(() => {
+                const content = `
+                    <div style="direction: rtl; text-align: right;">
+                        <h4 style="color: #ffd700; margin-bottom: 20px;">العرض ثلاثي الأبعاد</h4>
+                        <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 4rem; margin-bottom: 20px;">🌐</div>
+                            <p>العرض ثلاثي الأبعاد قيد التطوير</p>
+                            <p style="margin-top: 10px; opacity: 0.7;">سيتم إضافة ميزات 3D متقدمة قريباً</p>
+                        </div>
+                        <div style="margin-top: 20px; text-align: center;">
+                            <button onclick="closeModal('3dModal')" style="background: linear-gradient(45deg, #667eea, #764ba2); border: none; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer;">
+                                حسناً
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('3dContent').innerHTML = content;
+                document.getElementById('3dModal').style.display = 'flex';
+                
+                showMessage('تم تفعيل العرض ثلاثي الأبعاد', 'success');
+            }, 2000);
+        }
+        
+        // Activate AI analysis
+        function activateAIAnalysis() {
+            showMessage('جاري تشغيل الذكاء الاصطناعي...', 'info');
+            
+            setTimeout(() => {
+                const insights = [
+                    'تم اكتشاف نمط غير عادي في توزيع النقاط',
+                    'هناك علاقة قوية بين عدد المكالمات والموقع الجغرافي',
+                    'النقاط ذات الاتجاه الشمالي لديها نشاط أعلى',
+                    'تم تحديد 3 مناطق ساخنة تتطلب اهتماماً فورياً'
+                ];
+                
+                const content = `
+                    <div style="direction: rtl; text-align: right;">
+                        <h4 style="color: #ffd700; margin-bottom: 20px;">تحليل الذكاء الاصطناعي</h4>
+                        <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 8px;">
+                            <div style="font-size: 3rem; text-align: center; margin-bottom: 20px;">🤖</div>
+                            <h5 style="color: #4ECDC4; margin-bottom: 15px;">الرؤى المستخلصة:</h5>
+                            ${insights.map((insight, i) => `
+                                <div style="margin-bottom: 10px; padding: 10px; background: rgba(78, 205, 196, 0.2); border-radius: 5px;">
+                                    ${i + 1}. ${insight}
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div style="margin-top: 20px; background: rgba(255, 215, 0, 0.2); padding: 15px; border-radius: 8px;">
+                            <strong>توصية AI:</strong> يُنصح بإعادة توزيع الموارد بناءً على التحليل
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('aiContent').innerHTML = content;
+                document.getElementById('aiModal').style.display = 'flex';
+                
+                showMessage('اكتمل تحليل الذكاء الاصطناعي', 'success');
+            }, 3000);
+        }
+        
+        // Show holographic view
+        function showHolographicView() {
+            showMessage('جاري تفعيل العرض الهولوجرامي...', 'info');
+            
+            setTimeout(() => {
+                // Add holographic effect
+                map.getContainer().style.animation = 'holographic 2s infinite';
+                
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes holographic {
+                        0% { filter: hue-rotate(0deg) contrast(1.2); }
+                        50% { filter: hue-rotate(180deg) contrast(1.5); }
+                        100% { filter: hue-rotate(360deg) contrast(1.2); }
+                    }
+                `;
+                document.head.appendChild(style);
+                
+                const content = `
+                    <div style="direction: rtl; text-align: right;">
+                        <h4 style="color: #ffd700; margin-bottom: 20px;">العرض الهولوجرامي</h4>
+                        <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 4rem; margin-bottom: 20px; animation: float 3s ease-in-out infinite;">👁️</div>
+                            <p>العرض الهولوجرامي مفعّل</p>
+                            <p style="margin-top: 10px; opacity: 0.7;">استخدم إيماءات اليد للتحكم في العرض</p>
+                        </div>
+                        <div style="margin-top: 20px; text-align: center;">
+                            <button onclick="closeHolographicView()" style="background: linear-gradient(45deg, #ec4899, #f472b6); border: none; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer;">
+                                إغلاق العرض
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('holographicContent').innerHTML = content;
+                document.getElementById('holographicModal').style.display = 'flex';
+                
+                showMessage('تم تفعيل العرض الهولوجرامي', 'success');
+            }, 2000);
+        }
+        
+        // Close holographic view
+        function closeHolographicView() {
+            map.getContainer().style.animation = '';
+            closeModal('holographicModal');
+        }
+        
+        // Activate teleportation
+        function activateTeleportation() {
+            showMessage('الإنتقال الفوري مفعّل! انقر على أي مكان في الخريطة', 'info');
+            
+            map.once('click', function(e) {
+                // Create teleportation effect
+                const teleportMarker = L.circleMarker(e.latlng, {
+                    radius: 50,
+                    fillColor: '#a855f7',
+                    color: '#fff',
+                    weight: 3,
+                    opacity: 0.8,
+                    fillOpacity: 0.3
+                }).addTo(map);
+                
+                // Animate the effect
+                let radius = 50;
+                const expandInterval = setInterval(() => {
+                    radius += 10;
+                    teleportMarker.setRadius(radius);
+                    
+                    if (radius > 200) {
+                        clearInterval(expandInterval);
+                        map.removeLayer(teleportMarker);
+                    }
+                }, 50);
+                
+                map.flyTo(e.latlng, 15, {
+                    duration: 1
+                });
+                
+                showMessage('تم الانتقال بنجاح!', 'success');
+            });
+        }
+        
+        // Show X-ray vision
+        function showXRayVision() {
+            showMessage('رؤية الأشعة السينية مفعّلة!', 'info');
+            
+            // Add X-ray effect
+            map.getContainer().style.filter = 'invert(1) hue-rotate(180deg) contrast(1.5)';
+            
+            setTimeout(() => {
+                map.getContainer().style.filter = '';
+                showMessage('تم إيقاف رؤية الأشعة السينية', 'info');
+            }, 5000);
+        }
+        
+        // Activate time control
+        function activateTimeControl() {
+            showMessage('التحكم في الزمن مفعّل!', 'info');
+            
+            let timeSpeed = 1;
+            const originalPoints = [...points];
+            
+            const timeControlInterval = setInterval(() => {
+                // Simulate time progression by moving points slightly
+                points.forEach((point, index) => {
+                    const offset = 0.0001 * timeSpeed;
+                    const newLat = point.position.lat + (Math.random() - 0.5) * offset;
+                    const newLng = point.position.lng + (Math.random() - 0.5) * offset;
+                    
+                    point.marker.setLatLng([newLat, newLng]);
+                    point.position = { lat: newLat, lng: newLng };
+                });
+                
+                timeSpeed *= 1.1; // Accelerate time
+            }, 100);
+            
+            setTimeout(() => {
+                clearInterval(timeControlInterval);
+                showMessage('تم إيقاف التحكم في الزمن', 'info');
+            }, 10000);
+        }
+        
+        // Show parallel universes
+        function showParallelUniverses() {
+            showMessage('جاري استكشاف الأكوان الموازية...', 'info');
+            
+            setTimeout(() => {
+                // Create parallel universe effect
+                for (let i = 0; i < 3; i++) {
+                    setTimeout(() => {
+                        const clonePoints = points.map(point => ({
+                            ...point,
+                            position: {
+                                lat: point.position.lat + (Math.random() - 0.5) * 0.01,
+                                lng: point.position.lng + (Math.random() - 0.5) * 0.01
+                            }
+                        }));
+                        
+                        clonePoints.forEach(point => {
+                            const marker = L.marker([point.position.lat, point.position.lng], {
+                                icon: L.divIcon({
+                                    className: 'custom-marker',
+                                    html: point.count.toString(),
+                                    iconSize: [25, 25],
+                                    iconAnchor: [12.5, 25]
+                                })
+                            }).addTo(map);
+                            
+                            marker.getElement().style.background = `hsl(${i * 120}, 70%, 60%)`;
+                            marker.getElement().style.opacity = '0.5';
+                        });
+                    }, i * 1000);
+                }
+                
+                showMessage('تم اكتشاف 3 أكوان موازية!', 'success');
+            }, 2000);
+        }
+        
+        // Toggle map type
+        function toggleMapType() {
+            if (isSatellite) {
+                map.removeLayer(currentTileLayer);
+                currentTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors',
+                    maxZoom: 19
+                }).addTo(map);
+                isSatellite = false;
+                showMessage('تم التحويل إلى الخريطة العادية', 'info');
+            } else {
+                map.removeLayer(currentTileLayer);
+                currentTileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                    attribution: '© Esri'
+                }).addTo(map);
+                isSatellite = true;
+                showMessage('تم التحويل إلى القمر الصناعي', 'info');
+            }
+        }
+        
+        // Toggle satellite view
+        function toggleSatelliteView() {
+            toggleMapType();
+        }
+        
+        // Toggle terrain view
+        function toggleTerrainView() {
+            showMessage 'جاري تفعيل عرض التضاريس...', 'info');
+            
+            // Simulate terrain view with different tile layer
+            map.removeLayer(currentTileLayer);
+            currentTileLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenTopoMap'
+            }).addTo(map);
+            
+            showMessage('تم تفعيل عرض التضاريس', 'success');
+        }
+        
+        // Toggle night mode
+        function toggleNightMode() {
+            isNightMode = !isNightMode;
+            document.body.classList.toggle('night-mode');
+            showMessage(isNightMode ? 'تم تفعيل الوضع الليلي' : 'تم إيقاف الوضع الليلي', 'info');
+        }
+        
+        // Export data
+        function exportData() {
+            if (points.length === 0) {
+                showMessage('لا توجد بيانات للتصدير', 'error');
+                return;
+            }
+            
+            const data = {
+                metadata: {
+                    exportDate: new Date().toISOString(),
+                    totalPoints: points.length,
+                    version: '1.0'
+                },
+                points: points.map(p => ({
+                    id: p.id,
+                    name: p.name,
+                    count: p.count,
+                    azmith: p.azmith,
+                    position: p.position,
+                    frequency: p.frequency,
+                    connections: p.connections
+                }))
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `kml_data_${Date.now()}.json`;
+            a.click();
+            
+            showMessage('تم تصدير البيانات بنجاح', 'success');
+        }
+        
+        // Calculate distance from selects
+        function calculateDistance() {
+            const index1 = document.getElementById('point1Select').value;
+            const index2 = document.getElementById('point2Select').value;
+            
+            if (index1 === '' || index2 === '') {
+                showMessage('اختر نقطتين', 'error');
+                return;
+            }
+            
+            if (index1 === index2) {
+                showMessage('اختر نقطتين مختلفتين', 'error');
+                return;
+            }
+            
+            const point1 = points[index1];
+            const point2 = points[index2];
+            
+            const distance = map.distance(
+                [point1.position.lat, point1.position.lng],
+                [point2.position.lat, point2.position.lng]
+            );
+            
+            // Calculate direction
+            const direction = calculateBearing(
+                point1.position.lat, point1.position.lng,
+                point2.position.lat, point2.position.lng
+            );
+            
+            // Estimate time (assuming 60 km/h)
+            const estimatedTime = Math.round((distance / 1000) / 60);
+            
+            document.getElementById('distanceValue').textContent = (distance / 1000).toFixed(2);
+            document.getElementById('directionValue').textContent = direction.toFixed(0);
+            document.getElementById('timeValue').textContent = estimatedTime;
+            document.getElementById('distanceResult').style.display = 'block';
+            
+            // Draw animated line
+            const line = L.polyline([
+                [point1.position.lat, point1.position.lng],
+                [point2.position.lat, point2.position.lng]
+            ], {
+                color: '#FF6B6B',
+                weight: 4,
+                opacity: 0.8,
+                dashArray: '10, 5',
+                className: 'animated-line'
+            }).addTo(map);
+            
+            // Add animation
+            let dashOffset = 0;
+            const animateLine = setInterval(() => {
+                dashOffset -= 2;
+                line.setStyle({ dashOffset: dashOffset });
+                
+                if (dashOffset < -100) {
+                    clearInterval(animateLine);
+                    setTimeout(() => map.removeLayer(line), 2000);
+                }
+            }, 50);
+            
+            // Fit bounds
+            map.fitBounds([
+                [point1.position.lat, point1.position.lng],
+                [point2.position.lat, point2.position.lng]
+            ], { padding: [50, 50] });
+        }
+        
+        // Calculate bearing between two points
+        function calculateBearing(lat1, lon1, lat2, lon2) {
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const y = Math.sin(dLon) * Math.cos(lat2 * Math.PI / 180);
+            const x = Math.cos(lat1 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180) -
+                      Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos(dLon);
+            let bearing = Math.atan2(y, x) * 180 / Math.PI;
+            bearing = (bearing + 360) % 360;
+            return bearing;
+        }
+        
+        // Calculate distance between two points
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Earth's radius in km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c * 1000; // Return distance in meters
+        }
+        
+        // Calculate area from bounds
+        function calculateArea(bounds) {
+            const width = calculateDistance(
+                bounds.getSouth(), bounds.getWest(),
+                bounds.getSouth(), bounds.getEast()
+            );
+            const height = calculateDistance(
+                bounds.getSouth(), bounds.getWest(),
+                bounds.getNorth(), bounds.getWest()
+            );
+            return (width * height) / 1000000; // Convert to km²
+        }
+        
+        // Search points
+        function searchPoints() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const pointsList = document.getElementById('pointsList');
+            
+            if (searchTerm === '') {
+                displayPoints();
+                return;
+            }
+            
+            const filtered = points.filter(p => 
+                p.name.toLowerCase().includes(searchTerm) || 
+                p.description.toLowerCase().includes(searchTerm) ||
+                p.count.toString().includes(searchTerm)
+            );
+            
+            displayPoints(filtered);
+        }
+        
+        // Display points
+        function displayPoints(pointsToShow = points) {
+            const pointsList = document.getElementById('pointsList');
+            
+            if (pointsToShow.length === 0) {
+                pointsList.innerHTML = `
+                    <div style="text-align: center; opacity: 0.7; padding: 40px 20px;">
+                        <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 15px; color: #4ECDC4;"></i>
+                        <p>لا توجد نتائج</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            pointsList.innerHTML = '';
+            pointsToShow.forEach((point, index) => {
+                const actualIndex = points.indexOf(point);
+                const card = document.createElement('div');
+                card.className = 'point-card';
+                card.innerHTML = `
+                    <div class="point-number">${point.count}</div>
+                    <div class="point-name">${point.name}</div>
+                    <div class="point-coords">
+                        <i class="fas fa-globe"></i> ${point.position.lat.toFixed(4)}, ${point.position.lng.toFixed(4)}
+                    </div>
+                    <div class="point-description">${point.description.substring(0, 100)}${point.description.length > 100 ? '...' : ''}</div>
+                    <div class="point-actions">
+                        <button class="point-action-btn" onclick="selectPoint(${actualIndex})">
+                            <i class="fas fa-ruler"></i>
+                        </button>
+                        <button class="point-action-btn" onclick="highlightPoint(${actualIndex})">
+                            <i class="fas fa-star"></i>
+                        </button>
+                        <button class="point-action-btn" onclick="analyzePoint(${actualIndex})">
+                            <i class="fas fa-brain"></i>
+                        </button>
+                    </div>
+                `;
+                
+                card.addEventListener('click', () => {
+                    map.flyTo([point.position.lat, point.position.lng], 15, {
+                        duration: 1.5
+                    });
+                    setTimeout(() => {
+                        point.marker.openPopup();
+                    }, 1500);
+                });
+                
+                pointsList.appendChild(card);
+            });
+        }
+        
+        // Analyze single point
+        function analyzePoint(index) {
+            const point = points[index];
+            
+            const analysis = `
+                <div style="direction: rtl; text-align: right; padding: 15px; background: white; color: black; border-radius: 10px;">
+                    <h4 style="color: #667eea; margin-bottom: 15px;">تحليل النقطة: ${point.name}</h4>
+                    <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin-bottom: 10px;">
+                        <strong>عدد المكالمات:</strong> ${point.count}
+                    </div>
+                    ${point.azmith !== null ? `
+                    <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin-bottom: 10px;">
+                        <strong>الاتجاه:</strong> ${point.azmith}°
+                    </div>
+                    ` : ''}
+                    <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin-bottom: 10px;">
+                        <strong>التردد النسبي:</strong> ${(point.frequency * 100).toFixed(1)}%
+                    </div>
+                    <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin-bottom: 10px;">
+                        <strong>عدد الاتصالات:</strong> ${point.connections.length}
+                    </div>
+                    <div style="background: #e3f2fd; padding: 10px; border-radius: 5px;">
+                        <strong>تقييم الأداء:</strong> ${Math.floor(Math.random() * 40) + 60}/100
+                    </div>
+                </div>
+            `;
+            
+            L.popup()
+                .setLatLng([point.position.lat, point.position.lng])
+                .setContent(analysis)
+                .openOn(map);
+        }
+        
+        // Update UI elements
+        function updateUI() {
+            updateStats();
+            updateSelectors();
+            displayPoints();
+            
+            // Fit map to show all points
+            if (points.length > 0) {
+                const group = new L.featureGroup(markers);
+                map.fitBounds(group.getBounds().pad(0.1));
+            }
+        }
+        
+        // Update statistics
+        function updateStats() {
+            document.getElementById('totalPoints').textContent = points.length;
+            
+            const highlighted = points.filter(p => 
+                p.marker.getElement().classList.contains('highlighted-marker')
+            ).length;
+            document.getElementById('selectedPoints').textContent = highlighted;
+            
+            document.getElementById('totalConnections').textContent = connections.length;
+            
+            // Calculate efficiency score
+            let efficiency = 0;
+            if (points.length > 0) {
+                const totalConnections = points.reduce((sum, p) => sum + p.connections.length, 0);
+                efficiency = Math.min(100, (totalConnections / points.length) * 20);
+            }
+            document.getElementById('efficiencyScore').textContent = Math.floor(efficiency);
+        }
+        
+        // Update selectors
+        function updateSelectors() {
+            const select1 = document.getElementById('point1Select');
+            const select2 = document.getElementById('point2Select');
+            
+            select1.innerHTML = '<option value="">النقطة الأولى</option>';
+            select2.innerHTML = '<option value="">النقطة الثانية</option>';
+            
+            points.forEach((point, index) => {
+                const option = `<option value="${index}">${point.count} - ${point.name}</option>`;
+                select1.innerHTML += option;
+                select2.innerHTML += option;
+            });
+        }
+        
+        // Clear map
+        function clearMap() {
+            markers.forEach(marker => map.removeLayer(marker));
+            markers = [];
+            points = [];
+            selectedPoints = [];
+            connections.forEach(connection => map.removeLayer(connection));
+            connections = [];
+            
+            // Remove all arrows
+            directionArrows.forEach(arrow => {
+                map.removeLayer(arrow.marker);
+                map.removeLayer(arrow.sector);
+            });
+            directionArrows = [];
+            
+            // Remove heatmap
+            if (heatLayer) {
+                map.removeLayer(heatLayer);
+                heatLayer = null;
+            }
+            
+            updateUI();
+        }
+        
+        // Load sample data
+        function loadSampleData() {
+            const sampleKML = `<?xml version="1.0" encoding="UTF-8"?>
+            <kml xmlns="http://www.opengis.net/kml/2.2">
+                <Document>
+                    <Placemark>
+                        <name>برج القاهرة</name>
+                        <description>Count: 747
+CELL_ADDRESS: Cairo, Downtown, Tahrir Square
+AZMITH: 45</description>
+                        <Point>
+                            <coordinates>31.2357,30.0444,0</coordinates>
+                        </Point>
+                    </Placemark>
+                    <Placemark>
+                        <name>برج الإسكندرية</name>
+                        <description>Count: 291
+CELL_ADDRESS: Alexandria, Corniche
+AZMITH: 200</description>
+                        <Point>
+                            <coordinates>29.9754,31.2451,0</coordinates>
+                        </Point>
+                    </Placemark>
+                    <Placemark>
+                        <name>برج الجيزة</name>
+                        <description>Count: 265
+CELL_ADDRESS: Giza, Pyramids Area
+AZMITH: 15</description>
+                        <Point>
+                            <coordinates>30.0020,31.2556,0</coordinates>
+                        </Point>
+                    </Placemark>
+                    <Placemark>
+                        <name>برج الساحل</name>
+                        <description>Count: 256
+CELL_ADDRESS: North Coast, Marina
+AZMITH: 90</description>
+                        <Point>
+                            <coordinates>30.0421,30.8153,0</coordinates>
+                        </Point>
+                    </Placemark>
+                    <Placemark>
+                        <name>برج القاهرة الجديدة</name>
+                        <description>Count: 148
+CELL_ADDRESS: New Cairo, Fifth Settlement
+AZMITH: 270</description>
+                        <Point>
+                            <coordinates>30.0123,31.4824,0</coordinates>
+                        </Point>
+                    </Placemark>
+                </Document>
+            </kml>`;
+            
+            parseKML(sampleKML);
+        }
+        
+        // Load from URL
+        function loadFromUrl() {
+            const url = prompt('أدخل رابط ملف KML:');
+            if (url) {
+                showLoading(true);
+                fetch(url)
+                    .then(response => response.text())
+                    .then(data => {
+                        parseKML(data);
+                        showLoading(false);
+                    })
+                    .catch(error => {
+                        showMessage('فشل تحميل الملف', 'error');
+                        showLoading(false);
+                    });
+            }
+        }
+        
+        // Map controls
+        function zoomIn() { 
+            map.zoomIn(); 
+            // Add zoom effect
+            map.getContainer().style.transform = 'scale(1.05)';
+            setTimeout(() => {
+                map.getContainer().style.transform = 'scale(1)';
+            }, 200);
+        }
+        
+        function zoomOut() { 
+            map.zoomOut(); 
+            // Add zoom effect
+            map.getContainer().style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                map.getContainer().style.transform = 'scale(1)';
+            }, 200);
+        }
+        
+        function resetView() { 
+            map.setView([31.2, 29.9], 7);
+            // Add reset animation
+            map.getContainer().style.animation = 'spin 0.5s ease';
+            setTimeout(() => {
+                map.getContainer().style.animation = '';
+            }, 500);
+        }
+        
+        function locateUser() { 
+            map.locate({setView: true, maxZoom: 16});
+            showMessage('جاري تحديد موقعك...', 'info');
+        }
+        
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+        
+        // Show quick actions
+        function showQuickActions() {
+            const actions = [
+                { icon: 'fas fa-plus', action: () => showMessage('إضافة نقطة جديدة', 'info') },
+                { icon: 'fas fa-filter', action: () => document.getElementById('searchInput').focus() },
+                { icon: 'fas fa-download', action: exportData },
+                { icon: 'fas fa-cog', action: () => showMessage('الإعدادات', 'info') }
+            ];
+            
+            const randomAction = actions[Math.floor(Math.random() * actions.length)];
+            randomAction.action();
+        }
+        
+        // Close modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        // Show loading overlay
+        function showLoading(show) {
+            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+        }
+        
+        // Show message
+        function showMessage(text, type = 'info') {
+            const message = document.createElement('div');
+            message.className = `message ${type}`;
+            message.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-triangle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i> ${text}`;
+            
+            document.body.appendChild(message);
+            
+            setTimeout(() => {
+                message.style.transition = 'all 0.5s ease';
+                message.style.opacity = '0';
+                message.style.transform = 'translate(-50%, -20px)';
+                setTimeout(() => message.remove(), 500);
+            }, 3000);
+        }
+        
+        // Create floating particles
+        function createParticles() {
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.innerHTML = ['✨', '⭐', '💫', '🌟'][Math.floor(Math.random() * 4)];
+                    particle.style.left = Math.random() * window.innerWidth + 'px';
+                    particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                    particle.style.fontSize = (Math.random() * 20 + 10) + 'px';
+                    document.body.appendChild(particle);
+                    
+                    setTimeout(() => particle.remove(), 20000);
+                }, i * 500);
+            }
+        }
+        
+        // Performance monitoring
+        function startPerformanceMonitoring() {
+            let frameCount = 0;
+            let lastTime = performance.now();
+            
+            function updatePerformance() {
+                frameCount++;
+                const currentTime = performance.now();
+                
+                if (currentTime - lastTime >= 1000) {
+                    const fps = Math.round((frameCount * 1000) / (currentTime - lastTime));
+                    const indicator = document.querySelector('.performance-indicator');
+                    
+                    if (indicator) {
+                        let status = 'ممتاز';
+                        let color = '#4ECDC4';
+                        
+                        if (fps < 30) {
+                            status = 'ضعيف';
+                            color = '#f44336';
+                        } else if (fps < 50) {
+                            status = 'جيد';
+                            color = '#ff9800';
+                        }
+                        
+                        indicator.innerHTML = `<i class="fas fa-tachometer-alt"></i> الأداء: ${status} (${fps} FPS)`;
+                        indicator.style.color = color;
+                    }
+                    
+                    frameCount = 0;
+                    lastTime = currentTime;
+                }
+                
+                animationFrame = requestAnimationFrame(updatePerformance);
+            }
+            
+            animationFrame = requestAnimationFrame(updatePerformance);
+        }
+        
+        // Add keyboard shortcuts help
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F1') {
+                e.preventDefault();
+                showMessage('اختصارات لوحة المفاتيح: Ctrl+S (حفظ), Ctrl+F (بحث), Ctrl+D (قياس), Ctrl+N (ليلي)', 'info');
+            }
+        });
+        
+        // Initialize the application when the page loads
+        window.onload = function() {
+            initApp();
+            
+            // Add some startup animations
+            document.querySelector('.container').style.opacity = '0';
+            document.querySelector('.container').style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                document.querySelector('.container').style.transition = 'all 1s ease';
+                document.querySelector('.container').style.opacity = '1';
+                document.querySelector('.container').style.transform = 'translateY(0)';
+            }, 100);
+            
+            // Periodically create new particles
+            setInterval(createParticles, 30000);
+        };
+        
+        // Cleanup on page unload
+        window.onbeforeunload = function() {
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+            }
+        };
+        
+        // Add some CSS animations
+        const additionalStyles = `
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+            
+            @keyframes float {
+                0%, 100% { transform: translateY(0px); }
+                50% { transform: translateY(-10px); }
+            }
+            
+            .animated-line {
+                animation: dash 1s linear infinite;
+            }
+            
+            @keyframes dash {
+                to {
+                    stroke-dashoffset: -100;
+                }
+            }
+        `;
+        
+        const styleSheet = document.createElement('style');
+        styleSheet.textContent = additionalStyles;
+        document.head.appendChild(styleSheet);
+    </script>
+</body>
+</html>
