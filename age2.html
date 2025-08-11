@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌍</title>
+    <title>🌍 محلل الرقم القومي المصري</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src='https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js'></script>
     <style>
         :root {
             --primary-color: #4a6fa5;
@@ -26,13 +27,13 @@
             background: var(--gradient-bg);
             display: flex;
             justify-content: center;
-            align-items: flex-start; /* تغيير من center إلى flex-start */
+            align-items: flex-start;
             min-height: 100vh;
             direction: rtl;
             color: var(--text-dark);
             background-attachment: fixed;
             background-size: cover;
-            padding: 20px; /* إضافة padding للجسم */
+            padding: 20px;
             line-height: 1.6;
         }
         
@@ -184,6 +185,96 @@
             z-index: 999;
         }
         
+        .section {
+            margin-bottom: 25px;
+        }
+        
+        [tabindex]:focus {
+            outline: 2px solid var(--accent-color);
+            outline-offset: 2px;
+        }
+        
+        /* ميزات جديدة لرفع الصور */
+        .image-upload {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border: 2px dashed #ccc;
+            transition: all 0.3s;
+        }
+        
+        .image-upload:hover {
+            border-color: var(--primary-color);
+        }
+        
+        .image-upload.dragover {
+            background-color: rgba(74, 111, 165, 0.1);
+            border-color: var(--primary-color);
+        }
+        
+        .upload-area {
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+        }
+        
+        .upload-area i {
+            font-size: 40px;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .upload-area p {
+            margin: 5px 0;
+            color: var(--text-dark);
+        }
+        
+        #imagePreview {
+            max-width: 100%;
+            max-height: 200px;
+            margin: 10px auto;
+            display: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin: 10px 0;
+            display: none;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background-color: var(--primary-color);
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .status-message {
+            margin-top: 10px;
+            font-size: 14px;
+            color: var(--primary-color);
+            display: none;
+        }
+        
+        .extracted-id {
+            background-color: rgba(74, 111, 165, 0.1);
+            border: 1px solid var(--primary-color);
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--primary-color);
+            display: none;
+        }
+        
         /* تحسينات للعرض على الشاشات الصغيرة */
         @media (max-width: 480px) {
             body {
@@ -203,22 +294,11 @@
                 font-size: 14px;
             }
         }
-
-        /* إضافة مسافات بين العناصر */
-        .section {
-            margin-bottom: 25px;
-        }
-
-        /* تحسينات لإمكانية الوصول */
-        [tabindex]:focus {
-            outline: 2px solid var(--accent-color);
-            outline-offset: 2px;
-        }
     </style>
 </head>
 <body>
 <div class="container" tabindex="0">
-    <h1><i class="fas fa-id-card"></i> 🌍</h1>
+    <h1><i class="fas fa-id-card"></i> 🌍 محلل الرقم القومي المصري</h1>
     
     <div class="section">
         <div class="input-group">
@@ -231,6 +311,26 @@
     </div>
     
     <div class="section">
+        <div class="image-upload" id="imageUpload">
+            <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p id="uploadText">انقر لرفع صورة البطاقة الشخصية أو اسحب الصورة هنا</p>
+                <p style="font-size: 12px; color: #777;">(PNG, JPG, JPEG)</p>
+            </div>
+            <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
+            <img id="imagePreview" alt="معاينة الصورة">
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <div class="status-message" id="statusMessage"></div>
+            <div class="extracted-id" id="extractedId"></div>
+            <button id="analyzeFromImageBtn" onclick="analyzeFromExtractedID()" style="display: none;">
+                <i class="fas fa-search"></i> <span id="analyzeImageBtnText">تحليل الرقم القومي المستخرج</span>
+            </button>
+        </div>
+    </div>
+    
+    <div class="section">
         <div class="input-group">
             <i class="fas fa-fingerprint"></i>
             <input type="text" id="nationalID" placeholder="أدخل الرقم القومي هنا (14 رقمًا)..." 
@@ -238,13 +338,13 @@
         </div>
         <div id="idError" class="error"></div>
         <button onclick="analyzeNationalID()" tabindex="3">
-            <i class="fas fa-search"></i> تحليل الرقم القومي
+            <i class="fas fa-search"></i> <span id="analyzeBtnText">تحليل الرقم القومي</span>
         </button>
     </div>
     
     <div class="section">
         <div class="date-picker">
-            <label for="dob"><i class="fas fa-birthday-cake"></i> تاريخ الميلاد:</label>
+            <label for="dob"><i class="fas fa-birthday-cake"></i> <span id="dobLabel">تاريخ الميلاد:</span></label>
             <div class="input-group">
                 <i class="fas fa-calendar-alt"></i>
                 <input type="text" id="dob" placeholder="يوم-شهر-سنة (مثال: 15-08-1990)" 
@@ -252,23 +352,23 @@
             </div>
             <div id="dobError" class="error"></div>
             <button onclick="calculateAge()" tabindex="5">
-                <i class="fas fa-calculator"></i> احسب العمر
+                <i class="fas fa-calculator"></i> <span id="ageBtnText">احسب العمر</span>
             </button>
         </div>
     </div>
     
     <div class="section">
         <div class="date-picker">
-            <label><i class="fas fa-calendar-check"></i> حساب الفرق بين تاريخين:</label>
+            <label><i class="fas fa-calendar-check"></i> <span id="dateDiffLabel">حساب الفرق بين تاريخين:</span></label>
             
-            <label for="date1">التاريخ الأول:</label>
+            <label for="date1"><span id="date1Label">التاريخ الأول:</span></label>
             <div class="input-group">
                 <i class="fas fa-calendar-alt"></i>
                 <input type="text" id="date1" placeholder="يوم-شهر-سنة" 
                        oninput="validateDateInput(this)" tabindex="6">
             </div>
             
-            <label for="date2">التاريخ الثاني:</label>
+            <label for="date2"><span id="date2Label">التاريخ الثاني:</span></label>
             <div class="input-group">
                 <i class="fas fa-calendar-alt"></i>
                 <input type="text" id="date2" placeholder="يوم-شهر-سنة" 
@@ -277,16 +377,15 @@
             
             <div id="dateError" class="error"></div>
             <button onclick="calculateDateDifference()" tabindex="8">
-                <i class="fas fa-clock"></i> احسب الفرق
+                <i class="fas fa-clock"></i> <span id="dateDiffBtnText">احسب الفرق</span>
             </button>
         </div>
     </div>
 </div>
-
 <!-- نافذة النتائج -->
 <div class="popup" id="resultsPopup" tabindex="0">
     <div class="popup-header">
-        <h2 class="popup-title"><i class="fas fa-chart-pie"></i> نتائج التحليل</h2>
+        <h2 class="popup-title"><i class="fas fa-chart-pie"></i> <span id="popupTitle">نتائج التحليل</span></h2>
         <button class="close-btn" onclick="closePopup()" tabindex="9">&times;</button>
     </div>
     
@@ -295,17 +394,16 @@
     </div>
     
     <button onclick="closePopup()" style="margin-top: 15px;" tabindex="10">
-        <i class="fas fa-check"></i> موافق
+        <i class="fas fa-check"></i> <span id="closeBtnText">موافق</span>
     </button>
 </div>
-
 <!-- طبقة التعتيم -->
 <div class="overlay" id="overlay"></div>
-
 <script>
     const languageTexts = {
         ar: {
             analyzeBtn: "<i class='fas fa-search'></i> تحليل الرقم القومي",
+            analyzeImageBtn: "<i class='fas fa-search'></i> تحليل الرقم القومي المستخرج",
             ageBtn: "<i class='fas fa-calculator'></i> احسب العمر",
             dateDiffBtn: "<i class='fas fa-clock'></i> احسب الفرق بين التاريخين",
             dobPlaceholder: "يوم-شهر-سنة (مثال: 15-08-1990)",
@@ -316,6 +414,12 @@
             closeBtn: "موافق",
             idError: "الرقم القومي يجب أن يتكون من 14 رقمًا فقط!",
             dateError: "تاريخ غير صحيح! يرجى استخدام الصيغة (يوم-شهر-سنة)",
+            uploadText: "انقر لرفع صورة البطاقة الشخصية أو اسحب الصورة هنا",
+            processingText: "جاري معالجة الصورة...",
+            extractingText: "جاري استخراج الرقم القومي...",
+            analyzingText: "جاري تحليل الرقم القومي...",
+            noIDFound: "لم يتم العثور على رقم قومي صالح في الصورة!",
+            extractedID: "الرقم القومي المستخرج:",
             governorates: {
                 "01": "القاهرة", "02": "الإسكندرية", "03": "بورسعيد", "04": "السويس", 
                 "11": "دمياط", "12": "الدقهلية", "13": "الشرقية", "14": "القليوبية", 
@@ -336,10 +440,17 @@
             gender: {
                 male: "ذكر",
                 female: "أنثى"
+            },
+            labels: {
+                dobLabel: "تاريخ الميلاد:",
+                dateDiffLabel: "حساب الفرق بين تاريخين:",
+                date1Label: "التاريخ الأول:",
+                date2Label: "التاريخ الثاني:"
             }
         },
         en: {
             analyzeBtn: "<i class='fas fa-search'></i> Analyze National ID",
+            analyzeImageBtn: "<i class='fas fa-search'></i> Analyze Extracted ID",
             ageBtn: "<i class='fas fa-calculator'></i> Calculate Age",
             dateDiffBtn: "<i class='fas fa-clock'></i> Calculate Date Difference",
             dobPlaceholder: "DD-MM-YYYY (e.g. 15-08-1990)",
@@ -350,6 +461,12 @@
             closeBtn: "OK",
             idError: "National ID must be exactly 14 digits!",
             dateError: "Invalid date! Please use format (DD-MM-YYYY)",
+            uploadText: "Click to upload ID card image or drag image here",
+            processingText: "Processing image...",
+            extractingText: "Extracting national ID...",
+            analyzingText: "Analyzing national ID...",
+            noIDFound: "No valid national ID found in the image!",
+            extractedID: "Extracted National ID:",
             governorates: {
                 "01": "Cairo", "02": "Alexandria", "03": "Port Said", "04": "Suez", 
                 "11": "Damietta", "12": "Dakahlia", "13": "Sharqia", "14": "Qalyubia", 
@@ -370,31 +487,44 @@
             gender: {
                 male: "Male",
                 female: "Female"
+            },
+            labels: {
+                dobLabel: "Date of Birth:",
+                dateDiffLabel: "Calculate Date Difference:",
+                date1Label: "First Date:",
+                date2Label: "Second Date:"
             }
         }
     };
-
+    
     let currentLanguage = "ar";
-
+    let extractedNationalID = "";
+    
     function changeLanguage() {
         currentLanguage = document.getElementById("language").value;
         updateUI();
     }
-
+    
     function updateUI() {
         const lang = languageTexts[currentLanguage];
         
-        document.querySelector('button[onclick="analyzeNationalID()"]').innerHTML = lang.analyzeBtn;
-        document.querySelector('button[onclick="calculateAge()"]').innerHTML = lang.ageBtn;
-        document.querySelector('button[onclick="calculateDateDifference()"]').innerHTML = lang.dateDiffBtn;
+        document.getElementById("analyzeBtnText").innerHTML = lang.analyzeBtn;
+        document.getElementById("analyzeImageBtnText").innerHTML = lang.analyzeImageBtn;
+        document.getElementById("ageBtnText").innerHTML = lang.ageBtn;
+        document.getElementById("dateDiffBtnText").innerHTML = lang.dateDiffBtn;
         document.getElementById("dob").placeholder = lang.dobPlaceholder;
         document.getElementById("nationalID").placeholder = lang.nationalIDPlaceholder;
         document.getElementById("date1").placeholder = lang.date1Placeholder;
         document.getElementById("date2").placeholder = lang.date2Placeholder;
-        document.querySelector(".popup-title").innerHTML = `<i class="fas fa-chart-pie"></i> ${lang.popupTitle}`;
-        document.querySelector('.popup button').innerHTML = `<i class="fas fa-check"></i> ${lang.closeBtn}`;
+        document.getElementById("popupTitle").innerHTML = `<i class="fas fa-chart-pie"></i> ${lang.popupTitle}`;
+        document.getElementById("closeBtnText").innerHTML = `<i class="fas fa-check"></i> ${lang.closeBtn}`;
+        document.getElementById("uploadText").textContent = lang.uploadText;
+        document.getElementById("dobLabel").textContent = lang.labels.dobLabel;
+        document.getElementById("dateDiffLabel").textContent = lang.labels.dateDiffLabel;
+        document.getElementById("date1Label").textContent = lang.labels.date1Label;
+        document.getElementById("date2Label").textContent = lang.labels.date2Label;
     }
-
+    
     function validateNationalID(input) {
         const errorDiv = document.getElementById("idError");
         const lang = languageTexts[currentLanguage];
@@ -408,7 +538,7 @@
             errorDiv.textContent = "";
         }
     }
-
+    
     function analyzeNationalID() {
         const id = document.getElementById("nationalID").value;
         const errorDiv = document.getElementById("idError");
@@ -420,6 +550,19 @@
         }
         
         errorDiv.textContent = "";
+        analyzeID(id);
+    }
+    
+    function analyzeFromExtractedID() {
+        if (extractedNationalID.length === 14) {
+            analyzeID(extractedNationalID);
+        }
+    }
+    
+    function analyzeID(id) {
+        const lang = languageTexts[currentLanguage];
+        document.getElementById("statusMessage").textContent = lang.analyzingText;
+        document.getElementById("statusMessage").style.display = "block";
         
         const century = id.charAt(0);
         const year = parseInt(id.substring(1, 3));
@@ -456,9 +599,10 @@
             { key: lang.resultTitles.daysUntilBirthday, value: `${daysUntilBirthday} ${currentLanguage === "ar" ? "يوم" : "days"}`, icon: "fas fa-gift" }
         ];
         
+        document.getElementById("statusMessage").style.display = "none";
         showPopup(results);
     }
-
+    
     function calculateAge() {
         const dob = document.getElementById("dob").value;
         const errorDiv = document.getElementById("dobError");
@@ -498,7 +642,7 @@
         
         showPopup(results);
     }
-
+    
     function calculateDateDifference() {
         const date1 = document.getElementById("date1").value;
         const date2 = document.getElementById("date2").value;
@@ -549,7 +693,7 @@
         
         showPopup(results);
     }
-
+    
     function isValidDate(dateStr) {
         const regex = /^(\d{2})-(\d{2})-(\d{4})$/;
         if (!regex.test(dateStr)) return false;
@@ -561,7 +705,7 @@
                date.getMonth() + 1 === month && 
                date.getFullYear() === year;
     }
-
+    
     function calculateDaysUntilBirthday(birthDate) {
         const today = new Date();
         const thisYearBirthday = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
@@ -572,11 +716,11 @@
         
         return Math.ceil((thisYearBirthday - today) / (1000 * 60 * 60 * 24));
     }
-
+    
     function getDaysInMonth(year, month) {
         return new Date(year, month + 1, 0).getDate();
     }
-
+    
     function showPopup(results) {
         const popup = document.getElementById("resultsPopup");
         const overlay = document.getElementById("overlay");
@@ -606,7 +750,7 @@
         // التركيز على البوب أب لتمكين التنقل بالكيبورد
         popup.focus();
     }
-
+    
     function closePopup() {
         const popup = document.getElementById("resultsPopup");
         const overlay = document.getElementById("overlay");
@@ -614,7 +758,7 @@
         popup.style.display = "none";
         overlay.style.display = "none";
     }
-
+    
     function validateDateInput(input) {
         const errorDivId = input.id === "dob" ? "dobError" : "dateError";
         const errorDiv = document.getElementById(errorDivId);
@@ -649,7 +793,7 @@
             errorDiv.textContent = "";
         }
     }
-
+    
     function formatDate(date) {
         const options = { 
             weekday: 'long', 
@@ -665,7 +809,138 @@
             return date.toLocaleDateString('en-US', options);
         }
     }
-
+    
+    // وظائف معالجة الصور والتعرف على النصوص
+    function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (file) {
+            processImage(file);
+        }
+    }
+    
+    function processImage(file) {
+        const lang = languageTexts[currentLanguage];
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            const imagePreview = document.getElementById("imagePreview");
+            imagePreview.src = e.target.result;
+            imagePreview.style.display = "block";
+            
+            document.getElementById("progressContainer").style.display = "block";
+            document.getElementById("statusMessage").textContent = lang.processingText;
+            document.getElementById("statusMessage").style.display = "block";
+            
+            // استخدام Tesseract للتعرف على النص في الصورة
+            Tesseract.recognize(
+                e.target.result,
+                currentLanguage === 'ar' ? 'ara' : 'eng',
+                {
+                    logger: m => {
+                        if (m.status === "recognizing text") {
+                            const progress = Math.round(m.progress * 100);
+                            document.getElementById("progressBar").style.width = progress + "%";
+                        }
+                    }
+                }
+            ).then(({ data: { text } }) => {
+                document.getElementById("progressBar").style.width = "100%";
+                document.getElementById("statusMessage").textContent = lang.extractingText;
+                
+                // استخراج الرقم القومي من النص
+                const extractedID = extractNationalID(text);
+                
+                if (extractedID) {
+                    extractedNationalID = extractedID;
+                    document.getElementById("extractedId").textContent = lang.extractedID + " " + extractedID;
+                    document.getElementById("extractedId").style.display = "block";
+                    document.getElementById("analyzeFromImageBtn").style.display = "block";
+                    document.getElementById("statusMessage").style.display = "none";
+                } else {
+                    document.getElementById("statusMessage").textContent = lang.noIDFound;
+                    document.getElementById("statusMessage").style.color = "#ff6b6b";
+                }
+            }).catch(err => {
+                console.error(err);
+                document.getElementById("statusMessage").textContent = "Error processing image: " + err.message;
+                document.getElementById("statusMessage").style.color = "#ff6b6b";
+            });
+        };
+        
+        reader.readAsDataURL(file);
+    }
+    
+    function extractNationalID(text) {
+        // إزالة المسافات والأسطر الجديدة والأحرف غير الرقمية
+        const cleanedText = text.replace(/\s/g, '').replace(/\D/g, '');
+        
+        // البحث عن أي سلسلة من 14 رقم متتالي
+        const idMatch = cleanedText.match(/\d{14}/);
+        
+        if (idMatch) {
+            return idMatch[0];
+        }
+        
+        // إذا لم نجد 14 رقم متتالي، نحاول تجميع الأرقام المتفرقة
+        // هذا مفيد إذا كان الرقم القومي مكتوبًا بشكل منفصل (2 9 0 0 1 2 0 1 2 3 4 5 6 7)
+        const allDigits = cleanedText.match(/\d/g);
+        
+        if (allDigits && allDigits.length >= 14) {
+            // البحث عن أول 14 رقم متتالي
+            for (let i = 0; i <= allDigits.length - 14; i++) {
+                const potentialID = allDigits.slice(i, i + 14).join('');
+                
+                // التحقق من أن الرقم يبدأ بـ 2 أو 3 (الأرقام الصالحة للرقم القومي المصري)
+                if (potentialID[0] === '2' || potentialID[0] === '3') {
+                    return potentialID;
+                }
+            }
+        }
+        
+        return null;
+    }
+    
+    // إعداد السحب والإفلات للصور
+    function setupDragAndDrop() {
+        const imageUpload = document.getElementById("imageUpload");
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            imageUpload.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            imageUpload.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            imageUpload.addEventListener(eventName, unhighlight, false);
+        });
+        
+        function highlight() {
+            imageUpload.classList.add('dragover');
+        }
+        
+        function unhighlight() {
+            imageUpload.classList.remove('dragover');
+        }
+        
+        imageUpload.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length > 0) {
+                processImage(files[0]);
+            }
+        }
+    }
+    
     // تفعيل الإدخال بالكيبورد
     document.addEventListener('keydown', function(event) {
         const popup = document.getElementById("resultsPopup");
@@ -686,9 +961,10 @@
             closePopup();
         }
     });
-
+    
     window.onload = function() {
         updateUI();
+        setupDragAndDrop();
         
         // إضافة tabindex للعناصر القابلة للتركيز
         const focusableElements = document.querySelectorAll('button, input, select, [tabindex]');
