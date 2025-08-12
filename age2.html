@@ -1,132 +1,405 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<title>📋 </title>
-<script src="https://docs.opencv.org/4.8.0/opencv.js"></script>
+<meta charset="utf-8" />
+<title>محلل تلقائي ومحسّن للرقم القومي (OpenCV + Tesseract)</title>
+
+<!-- OpenCV.js -->
+<script async src="https://docs.opencv.org/4.8.0/opencv.js" ></script>
+<!-- Tesseract.js -->
 <script src="https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
+
 <style>
-body { font-family: Arial; background:#f0f0f0; text-align:center; padding:20px; }
-.container { background:#fff; padding:20px; border-radius:10px; max-width:600px; margin:auto; }
-input,button { padding:10px; margin:5px; width:90%; font-size:16px; }
-canvas,img { max-width:100%; margin-top:10px; border:1px solid #ccc; }
-.result { text-align:right; margin-top:15px; background:#fafafa; padding:10px; border-radius:5px; }
+  body{font-family: Arial, "Segoe UI", Roboto; background:#f4f6f8; padding:18px; color:#222}
+  .card{max-width:900px;margin:0 auto;background:#fff;padding:16px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.06)}
+  h1{margin:0 0 12px;font-size:20px;color:#084a8a}
+  .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  input[type=file]{padding:6px}
+  button{padding:10px 12px;border-radius:6px;border:0;background:#0b6bb8;color:#fff;cursor:pointer}
+  button.secondary{background:#666}
+  canvas{max-width:100%;border:1px solid #ddd;margin-top:8px}
+  pre{background:#0f1720;color:#f1f5f9;padding:10px;border-radius:6px;overflow:auto}
+  #status{margin-top:8px;color:#0b6bb8}
+  .result{margin-top:12px;padding:12px;background:#f7fbff;border-left:4px solid #0b6bb8;border-radius:6px}
 </style>
 </head>
 <body>
-<div class="container">
-<h2>📋 </h2>
+<div class="card">
+  <h1>محلل تلقائي ومحسّن للرقم القومي المصري</h1>
 
-<input type="file" id="fileInput" accept="image/*">
-<canvas id="canvas"></canvas>
-<br>
-<button onclick="cropSelection()">📍</button>
+  <div class="row">
+    <label>اختر صورة البطاقة أو التقطها بالكاميرا:</label>
+    <input id="fileInput" type="file" accept="image/*" />
+    <button id="autoBtn">🔎 استخراج تلقائي</button>
+    <button id="manualModeBtn" class="secondary">✋ وضع يدوي (تحديد)</button>
+  </div>
 
-<div id="status"></div>
-<div class="result" id="result"></div>
+  <canvas id="canvas" width=800 height=450></canvas>
+
+  <div class="row" style="margin-top:10px">
+    <button id="processCroppedBtn">📤 معالجة الجزء المقطوع وOCR</button>
+    <button id="tryEnhanceBtn" class="secondary">⚙️ تجربة تحسين أقوى</button>
+  </div>
+
+  <div id="status">جاهز.</div>
+
+  <div class="result" id="resultArea" style="display:none">
+    <strong>النتيجة:</strong>
+    <div id="ocrText" style="margin-top:8px;white-space:pre-wrap;font-family:monospace"></div>
+    <div id="analysis" style="margin-top:10px"></div>
+  </div>
+
+  <details style="margin-top:12px">
+    <summary>ملاحظات تقنية (اضغط للفتح)</summary>
+    <ul>
+      <li>يعمل محليًا في المتصفح بدون رفع للسيرفر.</li>
+      <li>إن لم تنجح القراءة تلقائيًا جرّب التحديد اليدوي ثم اضغط "معالجة الجزء المقطوع".</li>
+      <li>في حالات الانعكاس القوي أو الضبابية الشديدة قد تحتاج إعادة تصوير أو استخدام كاميرا أفضل.</li>
+    </ul>
+  </details>
 </div>
 
 <script>
-let img = new Image();
-let canvas = document.getElementById('canvas');
-let ctx = canvas.getContext('2d');
-let startX, startY, endX, endY, isSelecting = false;
+/* ----- مساعدة عامة ----- */
+const fileInput = document.getElementById('fileInput');
+const canvas = document.getElementById('canvas'); const ctx = canvas.getContext('2d');
+const autoBtn = document.getElementById('autoBtn');
+const manualModeBtn = document.getElementById('manualModeBtn');
+const processCroppedBtn = document.getElementById('processCroppedBtn');
+const tryEnhanceBtn = document.getElementById('tryEnhanceBtn');
+const statusDiv = document.getElementById('status');
+const resultArea = document.getElementById('resultArea');
+const ocrTextDiv = document.getElementById('ocrText');
+const analysisDiv = document.getElementById('analysis');
 
-document.getElementById('fileInput').addEventListener('change', e=>{
-    let file = e.target.files[0];
-    if(!file) return;
-    let reader = new FileReader();
-    reader.onload = ev => {
-        img.onload = () => {
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img,0,0);
-        };
-        img.src = ev.target.result;
+let img = new Image();
+let imgDataURL = null;
+let selection = null; // {x,y,w,h}
+let isManual = false;
+let drag = false, sx, sy, ex, ey;
+
+/* تحميل الصورة في الCanvas */
+fileInput.addEventListener('change', e=>{
+  const f = e.target.files[0];
+  if(!f) return;
+  const reader = new FileReader();
+  reader.onload = ev=>{
+    img.onload = ()=>{
+      // ضبط حجم الكانفاس ليتناسب مع الصورة (الحد الأقصى للحجم للحفاظ على سرعة)
+      const maxW = 1000;
+      const scale = Math.min(1, maxW / img.width);
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      ctx.drawImage(img,0,0,canvas.width,canvas.height);
+      imgDataURL = canvas.toDataURL();
+      status('صورة محمّلة. اضغط "استخراج تلقائي" أو فعّل الوضع اليدوي للتحديد.');
+      selection = null; resultArea.style.display='none';
     };
-    reader.readAsDataURL(file);
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(f);
 });
 
-// رسم مربع التحديد
+/* وضع يدوي للرسم (مربع التحديد) */
+manualModeBtn.addEventListener('click', ()=> {
+  isManual = !isManual;
+  manualModeBtn.textContent = isManual ? '✋ الوضع اليدوي: مفعل (اسحب لتحديد)' : '✋ وضع يدوي (تحديد)';
+  if(isManual) {
+    canvas.style.cursor='crosshair';
+    status('مرر الماوس واسحب لتحديد المنطقة ثم اضغط "معالجة الجزء المقطوع وOCR".');
+  } else {
+    canvas.style.cursor='default';
+  }
+});
+
 canvas.addEventListener('mousedown', e=>{
-    let rect = canvas.getBoundingClientRect();
-    startX = e.clientX - rect.left;
-    startY = e.clientY - rect.top;
-    isSelecting = true;
+  if(!isManual) return;
+  drag = true;
+  const r = canvas.getBoundingClientRect();
+  sx = e.clientX - r.left; sy = e.clientY - r.top;
 });
 canvas.addEventListener('mousemove', e=>{
-    if(!isSelecting) return;
-    let rect = canvas.getBoundingClientRect();
-    endX = e.clientX - rect.left;
-    endY = e.clientY - rect.top;
-    ctx.drawImage(img,0,0);
-    ctx.strokeStyle="red"; ctx.lineWidth=2;
-    ctx.strokeRect(startX,startY,endX-startX,endY-startY);
+  if(!drag) return;
+  const r = canvas.getBoundingClientRect();
+  ex = e.clientX - r.left; ey = e.clientY - r.top;
+  redrawImage();
+  ctx.strokeStyle='red'; ctx.lineWidth=2; ctx.setLineDash([6,4]);
+  ctx.strokeRect(sx, sy, ex-sx, ey-sy);
 });
-canvas.addEventListener('mouseup', ()=> isSelecting = false);
+canvas.addEventListener('mouseup', e=>{
+  if(!drag) return;
+  drag=false;
+  selection = normalizeRect(sx,sy,ex,ey);
+  redrawImage(); drawSelection();
+  status('تم التحديد يدوياً. اضغط "معالجة الجزء المقطوع وOCR".');
+});
 
-// تحويل الأرقام العربية الشرقية
-function convertArabicNums(str) {
-    const map = {'٠':'0','١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9'};
-    return str.replace(/[٠-٩]/g, d => map[d]);
+/* Normalize rectangle coords */
+function normalizeRect(x1,y1,x2,y2){
+  const x = Math.min(x1,x2), y = Math.min(y1,y2);
+  const w = Math.abs(x2-x1), h = Math.abs(y2-y1);
+  return {x:Math.round(x), y:Math.round(y), w:Math.round(w), h:Math.round(h)};
 }
 
-// قص ومعالجة المنطقة المحددة
-function cropSelection(){
-    if(startX===undefined || startY===undefined || endX===undefined || endY===undefined){
-        alert("حدد منطقة الرقم القومي أولاً"); return;
+/* إعادة رسم الصورة الأساسية */
+function redrawImage(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  if(img.src) ctx.drawImage(img,0,0,canvas.width,canvas.height);
+}
+
+/* رسم المربع المحدد */
+function drawSelection(){
+  if(!selection) return;
+  ctx.strokeStyle='lime'; ctx.lineWidth=2; ctx.setLineDash([]);
+  ctx.strokeRect(selection.x, selection.y, selection.w, selection.h);
+}
+
+/* تحديث حالة الرسائل */
+function status(t){ statusDiv.innerText = t; }
+
+/* ----- اكتشاف تلقائي للمنطقة المحتمل أن تحتوي الرقم القومي ----- */
+autoBtn.addEventListener('click', async ()=>{
+  if(!img.src) return alert('حمّل صورة أولاً.');
+  status('🔎 جارٍ اكتشاف المنطقة تلقائياً...');
+  await waitForOpencv();
+  try {
+    const mat = cv.imread(canvas);
+    let gray = new cv.Mat();
+    cv.cvtColor(mat, gray, cv.COLOR_RGBA2GRAY, 0);
+
+    // تصغير للصورة للتسريع إذا كانت كبيرة
+    const MAX_DIM = 1000;
+    let scale = 1;
+    if (gray.cols > MAX_DIM) scale = MAX_DIM / gray.cols;
+    if (scale !== 1) {
+      let tmp = new cv.Mat();
+      cv.resize(gray, tmp, new cv.Size(0,0), scale, scale, cv.INTER_AREA);
+      gray.delete();
+      gray = tmp;
     }
-    let w = endX-startX, h = endY-startY;
-    let cropCanvas = document.createElement('canvas');
-    cropCanvas.width = w; cropCanvas.height = h;
-    let cropCtx = cropCanvas.getContext('2d');
-    cropCtx.drawImage(canvas, startX, startY, w, h, 0, 0, w, h);
 
-    // معالجة بالصورة بـ OpenCV
-    let src = cv.imread(cropCanvas);
-    cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
-    cv.threshold(src, src, 120, 255, cv.THRESH_BINARY);
-    cv.GaussianBlur(src, src, new cv.Size(1,1), 0, 0, cv.BORDER_DEFAULT);
-    cv.imshow(cropCanvas, src);
-    src.delete();
+    // استخدام مرشح سوبل لإبراز الحواف الأفقية (الشرائط / سطور الأرقام غالباً تكون أفقية)
+    let gradX = new cv.Mat();
+    cv.Sobel(gray, gradX, cv.CV_32F, 1, 0, 3, 1, 0, cv.BORDER_DEFAULT);
+    cv.convertScaleAbs(gradX, gradX);
+    
+    // تعزيز المناطق الأفقية: عمل Morphological close ثم open
+    let thresh = new cv.Mat();
+    cv.threshold(gradX, thresh, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU);
+    let kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(30,3));
+    let closed = new cv.Mat();
+    cv.morphologyEx(thresh, closed, cv.MORPH_CLOSE, kernel);
+    let opened = new cv.Mat();
+    let kernel2 = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(3,3));
+    cv.morphologyEx(closed, opened, cv.MORPH_OPEN, kernel2);
 
-    document.getElementById('status').innerText = "⏳ جاري قراءة الرقم...";
-    Tesseract.recognize(cropCanvas.toDataURL(), 'ara+eng', {
-        logger: m => { if(m.status==="recognizing text"){document.getElementById('status').innerText = `⏳ ${Math.round(m.progress*100)}%`;}}
-    }).then(({data:{text}})=>{
-        const clean = convertArabicNums(text).replace(/\D/g,'');
-        const match = clean.match(/[23]\d{13}/);
-        if(match){
-            document.getElementById('status').innerText = "✅ تم استخراج الرقم";
-            analyzeID(match[0]);
-        } else {
-            document.getElementById('status').innerText = "❌ لم يتم العثور على رقم قومي";
-        }
+    // العثور على محتويات (contours)
+    let contours = new cv.MatVector();
+    let hierarchy = new cv.Mat();
+    cv.findContours(opened, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+
+    // اختيار أفضل contour اعتمادًا على المساحة والنسبة (مستطيل أفقي طويل)
+    let best = null;
+    for(let i=0;i<contours.size();i++){
+      const cnt = contours.get(i);
+      const rect = cv.boundingRect(cnt);
+      const area = rect.width * rect.height;
+      const aspect = rect.width / (rect.height + 1);
+      // معايير مبدئية: مساحة لا تقل عن نسبة من الصورة، ونسبة طول/ارتفاع مناسبة
+      if(area < (gray.cols*gray.rows)*0.005) { cnt.delete(); continue; }
+      if(aspect < 3) { cnt.delete(); continue; } // نحتاج مستطيل أفقي عريض
+      if(!best || area > best.area) best = {rect, area};
+      cnt.delete();
+    }
+
+    // تحويل إحداثيات المستطيل إلى مقاس الكانفاس الأصلي (إذا تم تغيير المقياس)
+    if(best){
+      const r = best.rect;
+      const invScale = 1/scale;
+      selection = {
+        x: Math.max(0, Math.round(r.x * invScale)),
+        y: Math.max(0, Math.round(r.y * invScale)),
+        w: Math.round(r.width * invScale),
+        h: Math.round(r.height * invScale)
+      };
+      redrawImage(); drawSelection();
+      status('✅ تم اكتشاف منطقة مرشّحة. اضغط معالجة الجزء المقطوع وOCR.');
+    } else {
+      status('⚠️ لم يتم العثور تلقائياً على منطقة مناسبة. جرّب الوضع اليدوي.');
+    }
+
+    // تنظيف
+    mat.delete(); gray.delete(); gradX.delete(); thresh.delete();
+    kernel.delete(); closed.delete(); opened.delete(); kernel2.delete();
+    contours.delete(); hierarchy.delete();
+  } catch(err){
+    console.error(err); status('خطأ أثناء المعالجة: '+err.message);
+  }
+});
+
+/* ----- معالجة الجزء المقطوع + تحسين + OCR ----- */
+processCroppedBtn.addEventListener('click', async ()=>{
+  if(!img.src) return alert('حمّل صورة أولاً.');
+  if(!selection) return alert('لم يتم تحديد منطقة. استخدم الاكتشاف التلقائي أو حدد يدوياً.');
+  await performCropEnhanceAndOCR(selection);
+});
+
+/* زر تجربة تحسين أقوى */
+tryEnhanceBtn.addEventListener('click', async ()=>{
+  if(!selection) return alert('حدد منطقة أولاً');
+  status('⚙️ تجربة سلسلة تحسين أقوى...');
+  await performCropEnhanceAndOCR(selection, {strongEnhance:true});
+});
+
+/* الدالة الأساسية: تقطيع → تحسين → OCR */
+async function performCropEnhanceAndOCR(sel, opts={strongEnhance:false}){
+  status('⬇️ تقطيع المنطقة...');
+  // رسم المنطقة المقطوعة على كانفاس مؤقت
+  const tmpC = document.createElement('canvas');
+  tmpC.width = sel.w; tmpC.height = sel.h;
+  const tctx = tmpC.getContext('2d');
+  tctx.drawImage(img, 0, 0, canvas.width, canvas.height); 
+  // ملاحظة: الصورة في الـcanvas قد تكون مقیّسة. لذلك نعيد الرسم بالنسبة لنسبة فعليّة:
+  // استخدم صورة المصدر الأصلية أبعُد التفصيل: سنستخدم الصورة المعروضة كما هي.
+  tctx.drawImage(img, (sel.x/canvas.width)*img.width, (sel.y/canvas.height)*img.height, (sel.w/canvas.width)*img.width, (sel.h/canvas.height)*img.height, 0,0, tmpC.width, tmpC.height);
+
+  // الآن نقوم بمرحلة تحسين متقدمة عبر OpenCV
+  await waitForOpencv();
+  let src = cv.imread(tmpC);
+  let gray = new cv.Mat();
+  cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY, 0);
+
+  // تقليل الضوضاء
+  if(opts.strongEnhance) cv.bilateralFilter(gray, gray, 9, 75, 75);
+  else cv.GaussianBlur(gray, gray, new cv.Size(3,3), 0);
+
+  // CLAHE لتحسين التباين (مفيد لصور البطاقات)
+  try{
+    let clahe = new cv.CLAHE(2.0, new cv.Size(8,8));
+    let cl = new cv.Mat();
+    clahe.apply(gray, cl);
+    gray.delete(); gray = cl; clahe.delete();
+  } catch(e){
+    // بعض نسخ OpenCV.js قد لا تدعم CLAHE — حينها نتجاهل
+  }
+
+  // محاولة توحيد الإضاءة: adaptiveThreshold
+  let bin = new cv.Mat();
+  cv.adaptiveThreshold(gray, bin, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY_INV, 21, 10);
+
+  // إجراء إغلاق صغير لإكمال حروف رقمية مفصولة
+  let kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(3,3));
+  cv.morphologyEx(bin, bin, cv.MORPH_CLOSE, kernel);
+
+  // عكس اللون إذا لزم (نستخدم THRESH_BINARY_INV فوق، لذا نص أبيض على خلفية سوداء)
+  // تحويل إلى imageData للـ Tesseract (نحتاج رسم صورة بنمط عادي: أسود/أبيض)
+  // سنحوّل اللون للأبيض على خلفية بيضاء بحيث Tesseract يقرأها أفضل
+  let out = new cv.Mat();
+  cv.bitwise_not(bin, out);
+  // تحسين الحجم للـ OCR (تكبير بسيط)
+  const SCALE_UP = 2;
+  let up = new cv.Mat();
+  cv.resize(out, up, new cv.Size(out.cols * SCALE_UP, out.rows * SCALE_UP), 0, 0, cv.INTER_CUBIC);
+
+  // طباعة صورة للتصوّر (اختياري، يعرض النتيجة النهائية في الكانفاس)
+  cv.imshow(tmpC, up);
+
+  // إعداد الصورة للنقل إلى Tesseract
+  const dataURL = tmpC.toDataURL('image/png');
+
+  // تنظيف مؤقت
+  src.delete(); gray.delete(); bin.delete(); out.delete(); up.delete(); kernel.delete();
+
+  status('⏳ جاري تشغيل OCR (Tesseract)...');
+  // محاولة قراءة باللغتين؛ سنحاول استهداف الأرقام عبر "eng" أيضاً لزيادة فرص قراءة الأرقام اللاتينية
+  try {
+    const worker = Tesseract.createWorker({
+      logger: m => {
+        if(m.status === 'recognizing text') status('⏳ OCR: ' + Math.round(m.progress*100) + '%');
+      }
     });
+    await worker.load();
+    await worker.loadLanguage('eng+ara');
+    await worker.initialize('eng+ara');
+    // Force OEM/LSTM not available control isn't exposed in tesseract.js easily, so just run
+    const { data: { text } } = await worker.recognize(dataURL);
+    await worker.terminate();
+
+    // تنظيف النص: تحويل أرقام عربية شرقية إلى إنجليزية، وإبقاء الأرقام فقط
+    const converted = convertArabicNums(text || '');
+    const digitsOnly = converted.replace(/\D/g,'');
+    // 14-digit match
+    let match = digitsOnly.match(/[23]\d{13}/);
+    // إذا لم يجد، نجرب محاولة أخذ آخر 14 رقم (أحيانًا يظهر بقية النص أولًا)
+    if(!match && digitsOnly.length >= 14){
+      match = [digitsOnly.slice(-14)];
+    }
+
+    if(match){
+      const nid = match[0];
+      status('✅ تم استخراج رقم قومي مرجّح: ' + nid);
+      resultArea.style.display = 'block';
+      ocrTextDiv.textContent = text.trim();
+      analyzeID(nid);
+    } else {
+      status('❌ لم يعثر OCR على رقم مكوّن من 14 رقم. جرب "تجربة تحسين أقوى" أو الوضع اليدوي.');
+      resultArea.style.display = 'block';
+      ocrTextDiv.textContent = text.trim() || '[لم تُستخرج نصوص]';
+      analysisDiv.innerHTML = '<i>لم يتم استخراج رقم قومي صالح.</i>';
+    }
+  } catch(err){
+    console.error(err);
+    status('خطأ في OCR: ' + err.message);
+  }
 }
 
-// تحليل الرقم القومي
+/* ----- تحليل الرقم القومي وإظهار النتائج ----- */
 function analyzeID(id){
-    const century = id[0] === '2' ? '19' : '20';
-    const year = parseInt(id.substr(1,2));
-    const month = parseInt(id.substr(3,2));
-    const day = parseInt(id.substr(5,2));
-    const birthDate = new Date(`${century}${year}-${month}-${day}`);
-    const today = new Date();
-    let ageY = today.getFullYear()-birthDate.getFullYear();
-    let ageM = today.getMonth()-birthDate.getMonth();
-    let ageD = today.getDate()-birthDate.getDate();
-    if(ageD<0){ageM--;ageD+=new Date(today.getFullYear(),today.getMonth(),0).getDate();}
-    if(ageM<0){ageY--;ageM+=12;}
-    const gender = parseInt(id[12])%2===0 ? 'أنثى' : 'ذكر';
-    const govs = {"01":"القاهرة","02":"الإسكندرية","03":"بورسعيد","04":"السويس","11":"دمياط","12":"الدقهلية","13":"الشرقية","14":"القليوبية","15":"كفر الشيخ","16":"الغربية","17":"المنوفية","18":"البحيرة","19":"الإسماعيلية","21":"الجيزة","22":"بني سويف","23":"الفيوم","24":"الأقصر","25":"سوهاج","26":"قنا","27":"أسوان","28":"أسيوط","29":"مطروح","31":"شمال سيناء","32":"جنوب سيناء","33":"البحر الأحمر","88":"خارج الجمهورية"};
-    const gov = govs[id.substr(7,2)] || "غير معروف";
-    document.getElementById('result').innerHTML =
-        `<b>📄 الرقم القومي:</b> ${id}<br>
-         <b>📅 تاريخ الميلاد:</b> ${birthDate.toLocaleDateString('ar-EG')}<br>
-         <b>🎂 العمر:</b> ${ageY} سنة و ${ageM} شهر و ${ageD} يوم<br>
-         <b>🚻 الجنس:</b> ${gender}<br>
-         <b>📍 المحافظة:</b> ${gov}`;
+  const nid = id.toString();
+  const century = nid[0] === '2' ? '19' : '20';
+  const year = parseInt(nid.substr(1,2),10);
+  const month = parseInt(nid.substr(3,2),10);
+  const day = parseInt(nid.substr(5,2),10);
+  const birthY = parseInt(century + (year<10 ? '0'+year : ''+year),10);
+  const birthDate = new Date(birthY, month-1, day);
+  const today = new Date();
+  let ageY = today.getFullYear() - birthDate.getFullYear();
+  let ageM = today.getMonth() - birthDate.getMonth();
+  let ageD = today.getDate() - birthDate.getDate();
+  if(ageD < 0){ ageM--; ageD += new Date(today.getFullYear(), today.getMonth(), 0).getDate(); }
+  if(ageM < 0){ ageY--; ageM += 12; }
+
+  const gender = (parseInt(nid.charAt(12),10) % 2) === 0 ? 'أنثى' : 'ذكر';
+  const govs = {"01":"القاهرة","02":"الإسكندرية","03":"بورسعيد","04":"السويس","11":"دمياط","12":"الدقهلية","13":"الشرقية","14":"القليوبية","15":"كفر الشيخ","16":"الغربية","17":"المنوفية","18":"البحيرة","19":"الإسماعيلية","21":"الالجيزة","21":"الجيزة","22":"بني سويف","23":"الفيوم","24":"الأقصر","25":"سوهاج","26":"قنا","27":"أسوان","28":"أسيوط","29":"مطروح","31":"شمال سيناء","32":"جنوب سيناء","33":"البحر الأحمر","88":"خارج الجمهورية"};
+  const gov = govs[nid.substr(7,2)] || 'غير معروف';
+
+  analysisDiv.innerHTML = `
+    <div><b>الرقم القومي:</b> ${nid}</div>
+    <div><b>تاريخ الميلاد:</b> ${birthDate.toLocaleDateString('ar-EG')}</div>
+    <div><b>العمر:</b> ${ageY} سنة، ${ageM} شهر، ${ageD} يوم</div>
+    <div><b>الجنس:</b> ${gender}</div>
+    <div><b>المحافظة (رمز):</b> ${nid.substr(7,2)} → ${gov}</div>
+  `;
+}
+
+/* ----- مساعدة: انتظار تحميل OpenCV ----- */
+function waitForOpencv(){
+  return new Promise((resolve,reject)=>{
+    if(typeof cv !== 'undefined' && cv && cv.Mat) return resolve();
+    let t=0;
+    const iv = setInterval(()=>{
+      if(typeof cv !== 'undefined' && cv && cv.Mat){ clearInterval(iv); resolve(); }
+      t+=100;
+      if(t>15000){ clearInterval(iv); reject(new Error('OpenCV.js failed to load')); }
+    },100);
+  });
+}
+
+/* تحويل أرقام عربية شرقية إلى إنجليزية */
+function convertArabicNums(str){
+  if(!str) return '';
+  const map = {'٠':'0','١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9'};
+  return str.replace(/[٠-٩]/g, d => map[d]);
 }
 </script>
 </body>
