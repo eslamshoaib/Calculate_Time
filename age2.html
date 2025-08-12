@@ -1,406 +1,1909 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8" />
-<title>محلل تلقائي ومحسّن للرقم القومي (OpenCV + Tesseract)</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌍 محلل الرقم القومي المصري الاحترافي</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;700&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap');
+        
+        :root {
+            --primary: #1e3a8a;
+            --secondary: #3b82f6;
+            --accent: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --light: #f8fafc;
+            --dark: #0f172a;
+            --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --gradient-4: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            --gradient-5: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            --gradient-6: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+            --gradient-7: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            --gradient-8: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            --shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
 
-<!-- OpenCV.js -->
-<script async src="https://docs.opencv.org/4.8.0/opencv.js" ></script>
-<!-- Tesseract.js -->
-<script src="https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<style>
-  body{font-family: Arial, "Segoe UI", Roboto; background:#f4f6f8; padding:18px; color:#222}
-  .card{max-width:900px;margin:0 auto;background:#fff;padding:16px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.06)}
-  h1{margin:0 0 12px;font-size:20px;color:#084a8a}
-  .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-  input[type=file]{padding:6px}
-  button{padding:10px 12px;border-radius:6px;border:0;background:#0b6bb8;color:#fff;cursor:pointer}
-  button.secondary{background:#666}
-  canvas{max-width:100%;border:1px solid #ddd;margin-top:8px}
-  pre{background:#0f1720;color:#f1f5f9;padding:10px;border-radius:6px;overflow:auto}
-  #status{margin-top:8px;color:#0b6bb8}
-  .result{margin-top:12px;padding:12px;background:#f7fbff;border-left:4px solid #0b6bb8;border-radius:6px}
-</style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: var(--gradient-1);
+            min-height: 100vh;
+            direction: rtl;
+            color: var(--dark);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* خلفية متحركة متقدمة */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
+            z-index: -1;
+            animation: backgroundMove 20s ease infinite;
+        }
+
+        @keyframes backgroundMove {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(-20px, -20px) scale(1.1); }
+            66% { transform: translate(20px, -10px) scale(0.9); }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 0;
+            position: relative;
+        }
+
+        h1 {
+            font-family: 'El Messiri', sans-serif;
+            font-size: 4rem;
+            font-weight: 900;
+            background: var(--gradient-2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            text-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 20px rgba(240, 147, 251, 0.5)); }
+            to { filter: drop-shadow(0 0 30px rgba(245, 87, 108, 0.8)); }
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 300;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: var(--shadow-lg);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: var(--gradient-2);
+            animation: gradientShift 3s ease infinite;
+        }
+
+        .card:hover {
+            transform: translateY(-20px) scale(1.02);
+            box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .icon-wrapper {
+            width: 80px;
+            height: 80px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 25px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .icon-wrapper::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transform: rotate(45deg);
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .card-icon {
+            font-size: 2.5rem;
+            color: white;
+            z-index: 1;
+        }
+
+        .card-title {
+            font-family: 'El Messiri', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .input-group i {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            left: 20px;
+            color: var(--primary);
+            font-size: 1.3rem;
+            z-index: 1;
+        }
+
+        input {
+            width: 100%;
+            padding: 20px 20px 20px 60px;
+            border: 2px solid #e2e8f0;
+            border-radius: 20px;
+            font-size: 1.1rem;
+            font-family: 'Cairo', sans-serif;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--secondary);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+            transform: scale(1.02);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 20px;
+            border: none;
+            border-radius: 20px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            font-family: 'Cairo', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: white;
+            font-weight: 900;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.6s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: var(--gradient-1);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn-secondary {
+            background: var(--gradient-2);
+            box-shadow: 0 10px 25px rgba(240, 147, 251, 0.4);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(240, 147, 251, 0.5);
+        }
+
+        .btn-accent {
+            background: var(--gradient-3);
+            box-shadow: 0 10px 25px rgba(79, 172, 254, 0.4);
+        }
+
+        .btn-accent:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(79, 172, 254, 0.5);
+        }
+
+        .error {
+            color: var(--danger);
+            font-size: 1rem;
+            margin-top: 10px;
+            text-align: right;
+            display: flex;
+            align-items: center;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .success {
+            color: var(--success);
+            font-size: 1rem;
+            margin-top: 10px;
+            text-align: right;
+            display: flex;
+            align-items: center;
+            animation: bounceIn 0.6s ease;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .language-switcher {
+            position: fixed;
+            top: 30px;
+            left: 30px;
+            z-index: 1000;
+        }
+
+        .language-switcher select {
+            padding: 15px 25px;
+            border-radius: 20px;
+            border: 2px solid white;
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--dark);
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+            font-size: 1.1rem;
+        }
+
+        .results-container {
+            margin-top: 60px;
+            display: none;
+        }
+
+        .result-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 35px;
+            padding: 50px;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 50px;
+            animation: fadeInUp 0.8s ease;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .result-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23667eea" fill-opacity="0.05" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,133.3C960,128,1056,96,1152,90.7C1248,85,1344,107,1392,117.3L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom center;
+            background-size: cover;
+            z-index: -1;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding-bottom: 25px;
+            border-bottom: 3px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .result-title {
+            font-family: 'El Messiri', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: flex;
+            align-items: center;
+        }
+
+        .result-title i {
+            margin-left: 20px;
+            font-size: 2.5rem;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 20px;
+        }
+
+        .action-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 20px;
+            border: none;
+            background: var(--light);
+            color: var(--primary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .action-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .result-item {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.9));
+            padding: 30px;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .result-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 6px;
+            height: 100%;
+            background: var(--gradient-2);
+            transition: width 0.3s ease;
+        }
+
+        .result-item:hover::before {
+            width: 100%;
+            opacity: 0.05;
+        }
+
+        .result-item:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .result-label {
+            font-size: 1.1rem;
+            color: #64748b;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+        }
+
+        .result-label i {
+            margin-left: 12px;
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+
+        .result-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--dark);
+            font-family: 'El Messiri', sans-serif;
+        }
+
+        .result-value.male {
+            color: #3b82f6;
+            text-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .result-value.female {
+            color: #ec4899;
+            text-shadow: 0 0 20px rgba(236, 72, 153, 0.3);
+        }
+
+        .additional-info {
+            background: linear-gradient(135deg, rgba(248, 250, 252, 0.9), rgba(255, 255, 255, 0.9));
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: inset 0 2px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .additional-info h3 {
+            font-family: 'El Messiri', sans-serif;
+            font-size: 2rem;
+            margin-bottom: 30px;
+            background: var(--gradient-5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: flex;
+            align-items: center;
+        }
+
+        .additional-info h3 i {
+            margin-left: 15px;
+            font-size: 1.8rem;
+            animation: sparkle 2s ease-in-out infinite;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 1; transform: scale(1) rotate(0deg); }
+            50% { opacity: 0.7; transform: scale(1.1) rotate(180deg); }
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .info-item:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .info-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 20px;
+            font-size: 1.6rem;
+            color: white;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .info-icon.zodiac {
+            background: var(--gradient-1);
+            animation: rotate 15s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .info-icon.stone {
+            background: var(--gradient-2);
+            animation: pulse 2s infinite;
+        }
+
+        .info-icon.season {
+            background: var(--gradient-3);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .info-icon.age {
+            background: var(--gradient-4);
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .info-text {
+            flex: 1;
+        }
+
+        .info-label {
+            font-size: 1rem;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .info-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--dark);
+            font-family: 'El Messiri', sans-serif;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--dark);
+            color: white;
+            padding: 25px 50px;
+            border-radius: 50px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .toast i {
+            margin-left: 20px;
+            font-size: 1.8rem;
+        }
+
+        .toast.success i {
+            color: var(--success);
+            animation: checkmark 0.6s ease;
+        }
+
+        .toast.error i {
+            color: var(--danger);
+            animation: iconShake 0.6s ease infinite;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 60px 0;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+        }
+
+        .footer a {
+            color: white;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+            transform: scale(1.05);
+            display: inline-block;
+        }
+
+        .footer i {
+            color: var(--accent);
+            animation: heartbeat 1.5s ease-in-out infinite;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+        }
+
+        /* ميزات جديدة */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.9));
+            padding: 25px;
+            border-radius: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .timeline {
+            position: relative;
+            margin: 40px 0;
+            padding: 20px 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 50%;
+            width: 4px;
+            height: 100%;
+            background: var(--gradient-1);
+            transform: translateX(50%);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin: 30px 0;
+        }
+
+        .timeline-content {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 25px;
+            border-radius: 20px;
+            width: 45%;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .timeline-item:nth-child(odd) .timeline-content {
+            margin-right: auto;
+        }
+
+        .timeline-item:nth-child(even) .timeline-content {
+            margin-left: auto;
+        }
+
+        .timeline-content:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .timeline-dot {
+            position: absolute;
+            top: 30px;
+            right: 50%;
+            width: 20px;
+            height: 20px;
+            background: var(--gradient-2);
+            border-radius: 50%;
+            transform: translateX(50%);
+            box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.5);
+        }
+
+        .progress-container {
+            margin: 30px 0;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .progress-bar {
+            height: 15px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--gradient-1);
+            border-radius: 10px;
+            transition: width 1s ease;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .chart-container {
+            margin: 30px 0;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 3rem;
+            }
+            
+            .main-grid {
+                grid-template-columns: 1fr;
+                gap: 25px;
+            }
+            
+            .result-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .timeline::before {
+                right: 20px;
+            }
+            
+            .timeline-content {
+                width: calc(100% - 60px);
+                margin-right: 60px !important;
+            }
+            
+            .timeline-dot {
+                right: 20px;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="card">
-  <h1>محلل تلقائي ومحسّن للرقم القومي المصري</h1>
+    <div class="language-switcher">
+        <select id="language" onchange="changeLanguage()">
+            <option value="ar">العربية 🇪🇬</option>
+            <option value="en">English 🇬🇧</option>
+        </select>
+    </div>
 
-  <div class="row">
-    <label>اختر صورة البطاقة أو التقطها بالكاميرا:</label>
-    <input id="fileInput" type="file" accept="image/*" />
-    <button id="autoBtn">🔎 استخراج تلقائي</button>
-    <button id="manualModeBtn" class="secondary">✋ وضع يدوي (تحديد)</button>
-  </div>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-id-card"></i> محلل الرقم القومي المصري الاحترافي</h1>
+            <p class="subtitle">اكتشف كل المعلومات المخفية في رقمك القومي بدقة متناهية</p>
+        </header>
 
-  <canvas id="canvas" width=800 height=450></canvas>
+        <main class="main-grid">
+            <div class="card">
+                <div class="card-header">
+                    <div class="icon-wrapper" style="background: var(--gradient-1);">
+                        <i class="fas fa-fingerprint card-icon"></i>
+                    </div>
+                    <h2 class="card-title">تحليل الرقم القومي</h2>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-id-card"></i>
+                    <input type="text" id="nationalID" placeholder="أدخل الرقم القومي (14 رقم)" maxlength="14" oninput="validateNationalID(this)">
+                    <div id="idError" class="error"></div>
+                </div>
+                <button class="btn btn-primary" onclick="analyzeNationalID()">
+                    <i class="fas fa-search"></i> تحليل الرقم القومي
+                </button>
+            </div>
 
-  <div class="row" style="margin-top:10px">
-    <button id="processCroppedBtn">📤 معالجة الجزء المقطوع وOCR</button>
-    <button id="tryEnhanceBtn" class="secondary">⚙️ تجربة تحسين أقوى</button>
-  </div>
+            <div class="card">
+                <div class="card-header">
+                    <div class="icon-wrapper" style="background: var(--gradient-2);">
+                        <i class="fas fa-birthday-cake card-icon"></i>
+                    </div>
+                    <h2 class="card-title">حساب العمر المتقدم</h2>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-calendar-alt"></i>
+                    <input type="text" id="dob" placeholder="يوم-شهر-سنة (مثال: 19-07-1993)" oninput="validateDateInput(this)">
+                    <div id="dobError" class="error"></div>
+                </div>
+                <button class="btn btn-secondary" onclick="calculateAge()">
+                    <i class="fas fa-calculator"></i> احسب العمر
+                </button>
+            </div>
 
-  <div id="status">جاهز.</div>
+            <div class="card">
+                <div class="card-header">
+                    <div class="icon-wrapper" style="background: var(--gradient-3);">
+                        <i class="fas fa-clock card-icon"></i>
+                    </div>
+                    <h2 class="card-title">حساب الفرق بين تاريخين</h2>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-calendar-day"></i>
+                    <input type="text" id="date1" placeholder="التاريخ الأول (يوم-شهر-سنة)" oninput="validateDateInput(this)">
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-calendar-day"></i>
+                    <input type="text" id="date2" placeholder="التاريخ الثاني (يوم-شهر-سنة)" oninput="validateDateInput(this)">
+                    <div id="dateError" class="error"></div>
+                </div>
+                <button class="btn btn-accent" onclick="calculateDateDifference()">
+                    <i class="fas fa-hourglass-half"></i> احسب الفرق
+                </button>
+            </div>
+        </main>
 
-  <div class="result" id="resultArea" style="display:none">
-    <strong>النتيجة:</strong>
-    <div id="ocrText" style="margin-top:8px;white-space:pre-wrap;font-family:monospace"></div>
-    <div id="analysis" style="margin-top:10px"></div>
-  </div>
+        <div class="results-container" id="resultsContainer">
+            <!-- سيتم عرض النتائج هنا -->
+        </div>
+    </div>
 
-  <details style="margin-top:12px">
-    <summary>ملاحظات تقنية (اضغط للفتح)</summary>
-    <ul>
-      <li>يعمل محليًا في المتصفح بدون رفع للسيرفر.</li>
-      <li>إن لم تنجح القراءة تلقائيًا جرّب التحديد اليدوي ثم اضغط "معالجة الجزء المقطوع".</li>
-      <li>في حالات الانعكاس القوي أو الضبابية الشديدة قد تحتاج إعادة تصوير أو استخدام كاميرا أفضل.</li>
-    </ul>
-  </details>
-</div>
+    <footer class="footer">
+        <p>© 2023 محلل الرقم القومي المصري الاحترافي | صمم بـ <i class="fas fa-heart"></i> بواسطة <a href="#">فريق التطوير</a></p>
+    </footer>
 
-<script>
-/* ----- مساعدة عامة ----- */
-const fileInput = document.getElementById('fileInput');
-const canvas = document.getElementById('canvas'); const ctx = canvas.getContext('2d');
-const autoBtn = document.getElementById('autoBtn');
-const manualModeBtn = document.getElementById('manualModeBtn');
-const processCroppedBtn = document.getElementById('processCroppedBtn');
-const tryEnhanceBtn = document.getElementById('tryEnhanceBtn');
-const statusDiv = document.getElementById('status');
-const resultArea = document.getElementById('resultArea');
-const ocrTextDiv = document.getElementById('ocrText');
-const analysisDiv = document.getElementById('analysis');
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">تم بنجاح!</span>
+    </div>
 
-let img = new Image();
-let imgDataURL = null;
-let selection = null; // {x,y,w,h}
-let isManual = false;
-let drag = false, sx, sy, ex, ey;
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const languageTexts = {
+            ar: {
+                nationalIDPlaceholder: "أدخل الرقم القومي (14 رقم)",
+                dobPlaceholder: "يوم-شهر-سنة (مثال: 19-07-1993)",
+                date1Placeholder: "التاريخ الأول (يوم-شهر-سنة)",
+                date2Placeholder: "التاريخ الثاني (يوم-شهر-سنة)",
+                analyzeBtn: "تحليل الرقم القومي",
+                ageBtn: "احسب العمر",
+                dateDiffBtn: "احسب الفرق",
+                idError: "الرقم القومي يجب أن يتكون من 14 رقمًا فقط!",
+                dateError: "تاريخ غير صحيح! يرجى استخدام الصيغة (يوم-شهر-سنة)",
+                resultsTitle: "نتائج التحليل الاحترافية",
+                birthDate: "تاريخ الميلاد",
+                age: "العمر",
+                gender: "الجنس",
+                governorate: "المحافظة",
+                daysUntilBirthday: "الأيام المتبقية لعيد الميلاد",
+                dateDifference: "الفرق بين التاريخين",
+                male: "ذكر",
+                female: "أنثى",
+                zodiacSign: "برجك",
+                birthStone: "حجر الميلاد",
+                birthSeason: "فصل الميلاد",
+                nextBirthday: "عيد ميلادك القادم",
+                copySuccess: "تم نسخ النتائج!",
+                saveSuccess: "تم حفظ النتائج!",
+                printSuccess: "تم الطباعة!",
+                totalDays: "إجمالي الأيام",
+                totalHours: "إجمالي الساعات",
+                totalMinutes: "إجمالي الدقائق",
+                totalSeconds: "إجمالي الثواني",
+                lifeProgress: "مراحل حياتك",
+                nextMilestone: "المعلم القادم",
+                ageInHours: "عمرك بالساعات",
+                ageInMinutes: "عمرك بالدقائق",
+                ageInSeconds: "عمرك بالثواني",
+                governorates: {
+                    "01": "القاهرة", "02": "الإسكندرية", "03": "بورسعيد", "04": "السويس", 
+                    "11": "دمياط", "12": "الدقهلية", "13": "الشرقية", "14": "القليوبية", 
+                    "15": "كفر الشيخ", "16": "الغربية", "17": "المنوفية", "18": "البحيرة", 
+                    "19": "الإسماعيلية", "21": "الجيزة", "22": "بني سويف", "23": "الفيوم", 
+                    "24": "الأقصر", "25": "سوهاج", "26": "قنا", "27": "أسوان",
+                    "28": "أسوط", "29": "مطروح", "31": "شمال سيناء", "32": "جنوب سيناء", 
+                    "33": "البحر الأحمر", "88": "خارج الجمهورية"
+                },
+                zodiacSigns: {
+                    "01": "جدري", "02": "دلو", "03": "حوت", "04": "حمل", "05": "ثور", "06": "جوزاء",
+                    "07": "سرطان", "08": "أسد", "09": "عذراء", "10": "ميزان", "11": "عقرب", "12": "قوس"
+                },
+                birthStones: {
+                    "01": "جانيت", "02": "عقيق", "03": "عقيق الدم", "04": "الماس", "05": "زمرد", "06": "لؤلؤ",
+                    "07": "روبي", "08": "بيريدوت", "09": "ياقوت أزرق", "10": "أوبال", "11": "توباز", "12": "فيروز"
+                },
+                seasons: {
+                    "01": "الشتاء", "02": "الشتاء", "03": "الربيع", "04": "الربيع", "05": "الربيع", "06": "الصيف",
+                    "07": "الصيف", "08": "الصيف", "09": "الخريف", "10": "الخريف", "11": "الخريف", "12": "الشتاء"
+                },
+                weekdays: ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"],
+                milestones: [
+                    { age: 0, title: "الولادة", icon: "fas fa-baby" },
+                    { age: 6, title: "المرحلة الابتدائية", icon: "fas fa-school" },
+                    { age: 12, title: "المرحلة الإعدادية", icon: "fas fa-graduation-cap" },
+                    { age: 18, title: "الجامعة", icon: "fas fa-university" },
+                    { age: 25, title: "بداية الحياة المهنية", icon: "fas fa-briefcase" },
+                    { age: 30, title: "الاستقرار المهني", icon: "fas fa-chart-line" },
+                    { age: 40, title: "ذروة النجاح", icon: "fas fa-trophy" },
+                    { age: 50, title: "الحكمة والخبرة", icon: "fas fa-brain" },
+                    { age: 60, title: "التقاعد", icon: "fas fa-umbrella-beach" },
+                    { age: 70, title: "الجيل الذهبي", icon: "fas fa-crown" }
+                ]
+            },
+            en: {
+                nationalIDPlaceholder: "Enter National ID (14 digits)",
+                dobPlaceholder: "DD-MM-YYYY (e.g. 19-07-1993)",
+                date1Placeholder: "First Date (DD-MM-YYYY)",
+                date2Placeholder: "Second Date (DD-MM-YYYY)",
+                analyzeBtn: "Analyze National ID",
+                ageBtn: "Calculate Age",
+                dateDiffBtn: "Calculate Difference",
+                idError: "National ID must be exactly 14 digits!",
+                dateError: "Invalid date! Please use format (DD-MM-YYYY)",
+                resultsTitle: "Professional Analysis Results",
+                birthDate: "Birth Date",
+                age: "Age",
+                gender: "Gender",
+                governorate: "Governorate",
+                daysUntilBirthday: "Days Until Birthday",
+                dateDifference: "Date Difference",
+                male: "Male",
+                female: "Female",
+                zodiacSign: "Zodiac Sign",
+                birthStone: "Birth Stone",
+                birthSeason: "Birth Season",
+                nextBirthday: "Next Birthday",
+                copySuccess: "Results copied!",
+                saveSuccess: "Results saved!",
+                printSuccess: "Printed!",
+                totalDays: "Total Days",
+                totalHours: "Total Hours",
+                totalMinutes: "Total Minutes",
+                totalSeconds: "Total Seconds",
+                lifeProgress: "Life Progress",
+                nextMilestone: "Next Milestone",
+                ageInHours: "Age in Hours",
+                ageInMinutes: "Age in Minutes",
+                ageInSeconds: "Age in Seconds",
+                governorates: {
+                    "01": "Cairo", "02": "Alexandria", "03": "Port Said", "04": "Suez", 
+                    "11": "Damietta", "12": "Dakahlia", "13": "Sharqia", "14": "Qalyubia", 
+                    "15": "Kafr El Sheikh", "16": "Gharbia", "17": "Monufia", "18": "Beheira", 
+                    "19": "Ismailia", "21": "Giza", "22": "Beni Suef", "23": "Faiyum", 
+                    "24": "Luxor", "25": "Minya", "26": "Qena", "27": "Aswan",
+                    "28": "Asyut", "29": "Matruh", "31": "North Sinai", "32": "South Sinai", 
+                    "33": "Red Sea", "88": "Outside Egypt"
+                },
+                zodiacSigns: {
+                    "01": "Capricorn", "02": "Aquarius", "03": "Pisces", "04": "Aries", "05": "Taurus", "06": "Gemini",
+                    "07": "Cancer", "08": "Leo", "09": "Virgo", "10": "Libra", "11": "Scorpio", "12": "Sagittarius"
+                },
+                birthStones: {
+                    "01": "Garnet", "02": "Amethyst", "03": "Bloodstone", "04": "Diamond", "05": "Emerald", "06": "Pearl",
+                    "07": "Ruby", "08": "Peridot", "09": "Sapphire", "10": "Opal", "11": "Topaz", "12": "Turquoise"
+                },
+                seasons: {
+                    "01": "Winter", "02": "Winter", "03": "Spring", "04": "Spring", "05": "Spring", "06": "Summer",
+                    "07": "Summer", "08": "Summer", "09": "Autumn", "10": "Autumn", "11": "Autumn", "12": "Winter"
+                },
+                weekdays: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+                milestones: [
+                    { age: 0, title: "Birth", icon: "fas fa-baby" },
+                    { age: 6, title: "Primary School", icon: "fas fa-school" },
+                    { age: 12, title: "Middle School", icon: "fas fa-graduation-cap" },
+                    { age: 18, title: "University", icon: "fas fa-university" },
+                    { age: 25, title: "Career Start", icon: "fas fa-briefcase" },
+                    { age: 30, title: "Career Stability", icon: "fas fa-chart-line" },
+                    { age: 40, title: "Peak Success", icon: "fas fa-trophy" },
+                    { age: 50, title: "Wisdom & Experience", icon: "fas fa-brain" },
+                    { age: 60, title: "Retirement", icon: "fas fa-umbrella-beach" },
+                    { age: 70, title: "Golden Years", icon: "fas fa-crown" }
+                ]
+            }
+        };
 
-/* تحميل الصورة في الCanvas */
-fileInput.addEventListener('change', e=>{
-  const f = e.target.files[0];
-  if(!f) return;
-  const reader = new FileReader();
-  reader.onload = ev=>{
-    img.onload = ()=>{
-      // ضبط حجم الكانفاس ليتناسب مع الصورة (الحد الأقصى للحجم للحفاظ على سرعة)
-      const maxW = 1000;
-      const scale = Math.min(1, maxW / img.width);
-      canvas.width = Math.round(img.width * scale);
-      canvas.height = Math.round(img.height * scale);
-      ctx.drawImage(img,0,0,canvas.width,canvas.height);
-      imgDataURL = canvas.toDataURL();
-      status('صورة محمّلة. اضغط "استخراج تلقائي" أو فعّل الوضع اليدوي للتحديد.');
-      selection = null; resultArea.style.display='none';
-    };
-    img.src = ev.target.result;
-  };
-  reader.readAsDataURL(f);
-});
+        let currentLanguage = "ar";
+        let currentResults = null;
+        let chartInstance = null;
 
-/* وضع يدوي للرسم (مربع التحديد) */
-manualModeBtn.addEventListener('click', ()=> {
-  isManual = !isManual;
-  manualModeBtn.textContent = isManual ? '✋ الوضع اليدوي: مفعل (اسحب لتحديد)' : '✋ وضع يدوي (تحديد)';
-  if(isManual) {
-    canvas.style.cursor='crosshair';
-    status('مرر الماوس واسحب لتحديد المنطقة ثم اضغط "معالجة الجزء المقطوع وOCR".');
-  } else {
-    canvas.style.cursor='default';
-  }
-});
+        function changeLanguage() {
+            currentLanguage = document.getElementById("language").value;
+            updateUI();
+        }
 
-canvas.addEventListener('mousedown', e=>{
-  if(!isManual) return;
-  drag = true;
-  const r = canvas.getBoundingClientRect();
-  sx = e.clientX - r.left; sy = e.clientY - r.top;
-});
-canvas.addEventListener('mousemove', e=>{
-  if(!drag) return;
-  const r = canvas.getBoundingClientRect();
-  ex = e.clientX - r.left; ey = e.clientY - r.top;
-  redrawImage();
-  ctx.strokeStyle='red'; ctx.lineWidth=2; ctx.setLineDash([6,4]);
-  ctx.strokeRect(sx, sy, ex-sx, ey-sy);
-});
-canvas.addEventListener('mouseup', e=>{
-  if(!drag) return;
-  drag=false;
-  selection = normalizeRect(sx,sy,ex,ey);
-  redrawImage(); drawSelection();
-  status('تم التحديد يدوياً. اضغط "معالجة الجزء المقطوع وOCR".');
-});
+        function updateUI() {
+            const lang = languageTexts[currentLanguage];
+            
+            document.getElementById("nationalID").placeholder = lang.nationalIDPlaceholder;
+            document.getElementById("dob").placeholder = lang.dobPlaceholder;
+            document.getElementById("date1").placeholder = lang.date1Placeholder;
+            document.getElementById("date2").placeholder = lang.date2Placeholder;
+            
+            // تحديث النصوص داخل الأزرار
+            document.querySelector('.btn-primary').innerHTML = `<i class="fas fa-search"></i> ${lang.analyzeBtn}`;
+            document.querySelector('.btn-secondary').innerHTML = `<i class="fas fa-calculator"></i> ${lang.ageBtn}`;
+            document.querySelector('.btn-accent').innerHTML = `<i class="fas fa-hourglass-half"></i> ${lang.dateDiffBtn}`;
+        }
 
-/* Normalize rectangle coords */
-function normalizeRect(x1,y1,x2,y2){
-  const x = Math.min(x1,x2), y = Math.min(y1,y2);
-  const w = Math.abs(x2-x1), h = Math.abs(y2-y1);
-  return {x:Math.round(x), y:Math.round(y), w:Math.round(w), h:Math.round(h)};
-}
+        function validateNationalID(input) {
+            const errorDiv = document.getElementById("idError");
+            const lang = languageTexts[currentLanguage];
+            
+            input.value = input.value.replace(/\D/g, '');
+            
+            if (input.value.length > 14) {
+                input.value = input.value.substring(0, 14);
+                errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${lang.idError}`;
+            } else {
+                errorDiv.innerHTML = '';
+            }
+        }
 
-/* إعادة رسم الصورة الأساسية */
-function redrawImage(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  if(img.src) ctx.drawImage(img,0,0,canvas.width,canvas.height);
-}
+        function validateDateInput(input) {
+            const errorDivId = input.id === "dob" ? "dobError" : "dateError";
+            const errorDiv = document.getElementById(errorDivId);
+            const lang = languageTexts[currentLanguage];
+            
+            const regex = /^(\d{0,2})-?(\d{0,2})-?(\d{0,4})$/;
+            if (!regex.test(input.value)) {
+                input.style.borderColor = "var(--danger)";
+                errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${lang.dateError}`;
+                return;
+            }
+            
+            let value = input.value.replace(/\D/g, '');
+            if (value.length > 2 && value.length <= 4) {
+                value = value.substring(0, 2) + '-' + value.substring(2);
+            } else if (value.length > 4) {
+                value = value.substring(0, 2) + '-' + value.substring(2, 4) + '-' + value.substring(4, 8);
+            }
+            
+            input.value = value;
+            
+            if (value.length === 10) {
+                if (isValidDate(value)) {
+                    input.style.borderColor = "var(--success)";
+                    errorDiv.innerHTML = `<i class="fas fa-check-circle"></i> ${currentLanguage === 'ar' ? 'تاريخ صحيح' : 'Valid date'}`;
+                } else {
+                    input.style.borderColor = "var(--danger)";
+                    errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${lang.dateError}`;
+                }
+            } else {
+                input.style.borderColor = "#e2e8f0";
+                errorDiv.innerHTML = '';
+            }
+        }
 
-/* رسم المربع المحدد */
-function drawSelection(){
-  if(!selection) return;
-  ctx.strokeStyle='lime'; ctx.lineWidth=2; ctx.setLineDash([]);
-  ctx.strokeRect(selection.x, selection.y, selection.w, selection.h);
-}
+        function isValidDate(dateStr) {
+            const regex = /^(\d{2})-(\d{2})-(\d{4})$/;
+            if (!regex.test(dateStr)) return false;
+            
+            const [_, day, month, year] = dateStr.match(regex).map(Number);
+            const date = new Date(year, month - 1, day);
+            
+            return date.getDate() === day && 
+                   date.getMonth() + 1 === month && 
+                   date.getFullYear() === year;
+        }
 
-/* تحديث حالة الرسائل */
-function status(t){ statusDiv.innerText = t; }
+        function analyzeNationalID() {
+            const id = document.getElementById("nationalID").value;
+            const errorDiv = document.getElementById("idError");
+            const lang = languageTexts[currentLanguage];
+            
+            if (id.length !== 14 || isNaN(id)) {
+                errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${lang.idError}`;
+                return;
+            }
+            
+            errorDiv.innerHTML = '';
+            
+            // تحليل الرقم القومي بشكل صحيح
+            const century = parseInt(id.charAt(0)); // 2 = 1900-1999, 3 = 2000-2099
+            const year = parseInt(id.substring(1, 3));
+            const month = parseInt(id.substring(3, 5));
+            const day = parseInt(id.substring(5, 7));
+            const governorateCode = id.substring(7, 9);
+            const genderCode = parseInt(id.charAt(13)); // آخر رقم يدل على الجنس
+            
+            // حساب السنة الصحيحة
+            const fullYear = (century === 2 ? 1900 : 2000) + year;
+            
+            // إنشاء تاريخ الميلاد الصحيح
+            const birthDate = new Date(fullYear, month - 1, day);
+            
+            // تحديد الجنس (فردي = ذكر، زوجي = أنثى)
+            const gender = genderCode % 2 === 1 ? lang.male : lang.female;
+            
+            const governorate = lang.governorates[governorateCode] || lang.governorate + " غير معروف";
+            
+            // حساب العمر بدقة
+            const today = new Date();
+            let ageYears = today.getFullYear() - birthDate.getFullYear();
+            let ageMonths = today.getMonth() - birthDate.getMonth();
+            let ageDays = today.getDate() - birthDate.getDate();
+            
+            if (ageDays < 0) {
+                ageMonths--;
+                ageDays += getDaysInMonth(today.getFullYear(), today.getMonth());
+            }
+            if (ageMonths < 0) {
+                ageYears--;
+                ageMonths += 12;
+            }
+            
+            const daysUntilBirthday = calculateDaysUntilBirthday(birthDate);
+            
+            // حسابات إضافية
+            const totalDays = Math.floor((today - birthDate) / (1000 * 60 * 60 * 24));
+            const totalHours = totalDays * 24;
+            const totalMinutes = totalHours * 60;
+            const totalSeconds = totalMinutes * 60;
+            
+            // معلومات إضافية
+            const zodiacSign = lang.zodiacSigns[month.toString().padStart(2, '0')];
+            const birthStone = lang.birthStones[month.toString().padStart(2, '0')];
+            const birthSeason = lang.seasons[month.toString().padStart(2, '0')];
+            
+            // الحصول على يوم الأسبوع
+            const weekday = lang.weekdays[birthDate.getDay()];
+            
+            // تحديد المعلم القادم
+            const nextMilestone = getNextMilestone(ageYears, lang.milestones);
+            
+            currentResults = {
+                type: 'nationalID',
+                data: {
+                    birthDate: formatDate(birthDate),
+                    birthDateWithWeekday: `${formatDate(birthDate)} (${weekday})`,
+                    age: `${ageYears} ${currentLanguage === 'ar' ? 'سنة' : 'years'}, ${ageMonths} ${currentLanguage === 'ar' ? 'شهر' : 'months'}, ${ageDays} ${currentLanguage === 'ar' ? 'يوم' : 'days'}`,
+                    gender: gender,
+                    governorate: governorate,
+                    daysUntilBirthday: `${daysUntilBirthday} ${currentLanguage === 'ar' ? 'يوم' : 'days'}`,
+                    zodiacSign: zodiacSign,
+                    birthStone: birthStone,
+                    birthSeason: birthSeason,
+                    nextBirthday: getNextBirthday(birthDate),
+                    totalDays: totalDays,
+                    totalHours: totalHours,
+                    totalMinutes: totalMinutes,
+                    totalSeconds: totalSeconds,
+                    nextMilestone: nextMilestone,
+                    ageYears: ageYears
+                }
+            };
+            
+            displayResults(currentResults);
+            showToast(lang.analyzeBtn + ' ' + (currentLanguage === 'ar' ? 'بنجاح!' : 'successful!'), 'success');
+        }
 
-/* ----- اكتشاف تلقائي للمنطقة المحتمل أن تحتوي الرقم القومي ----- */
-autoBtn.addEventListener('click', async ()=>{
-  if(!img.src) return alert('حمّل صورة أولاً.');
-  status('🔎 جارٍ اكتشاف المنطقة تلقائياً...');
-  await waitForOpencv();
-  try {
-    const mat = cv.imread(canvas);
-    let gray = new cv.Mat();
-    cv.cvtColor(mat, gray, cv.COLOR_RGBA2GRAY, 0);
+        function calculateAge() {
+            const dob = document.getElementById("dob").value;
+            const errorDiv = document.getElementById("dobError");
+            const lang = languageTexts[currentLanguage];
+            
+            if (!isValidDate(dob)) {
+                errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${lang.dateError}`;
+                return;
+            }
+            
+            errorDiv.innerHTML = '';
+            
+            const [day, month, year] = dob.split("-").map(Number);
+            const today = new Date();
+            const birthDate = new Date(year, month - 1, day);
+            
+            let ageYears = today.getFullYear() - birthDate.getFullYear();
+            let ageMonths = today.getMonth() - birthDate.getMonth();
+            let ageDays = today.getDate() - birthDate.getDate();
+            
+            if (ageDays < 0) {
+                ageMonths--;
+                ageDays += getDaysInMonth(today.getFullYear(), today.getMonth());
+            }
+            if (ageMonths < 0) {
+                ageYears--;
+                ageMonths += 12;
+            }
+            
+            const daysUntilBirthday = calculateDaysUntilBirthday(birthDate);
+            
+            // حسابات إضافية
+            const totalDays = Math.floor((today - birthDate) / (1000 * 60 * 60 * 24));
+            const totalHours = totalDays * 24;
+            const totalMinutes = totalHours * 60;
+            const totalSeconds = totalMinutes * 60;
+            
+            // معلومات إضافية
+            const zodiacSign = lang.zodiacSigns[month.toString().padStart(2, '0')];
+            const birthStone = lang.birthStones[month.toString().padStart(2, '0')];
+            const birthSeason = lang.seasons[month.toString().padStart(2, '0')];
+            
+            // الحصول على يوم الأسبوع
+            const weekday = lang.weekdays[birthDate.getDay()];
+            
+            // تحديد المعلم القادم
+            const nextMilestone = getNextMilestone(ageYears, lang.milestones);
+            
+            currentResults = {
+                type: 'age',
+                data: {
+                    birthDate: formatDate(birthDate),
+                    birthDateWithWeekday: `${formatDate(birthDate)} (${weekday})`,
+                    age: `${ageYears} ${currentLanguage === 'ar' ? 'سنة' : 'years'}, ${ageMonths} ${currentLanguage === 'ar' ? 'شهر' : 'months'}, ${ageDays} ${currentLanguage === 'ar' ? 'يوم' : 'days'}`,
+                    daysUntilBirthday: `${daysUntilBirthday} ${currentLanguage === 'ar' ? 'يوم' : 'days'}`,
+                    zodiacSign: zodiacSign,
+                    birthStone: birthStone,
+                    birthSeason: birthSeason,
+                    nextBirthday: getNextBirthday(birthDate),
+                    totalDays: totalDays,
+                    totalHours: totalHours,
+                    totalMinutes: totalMinutes,
+                    totalSeconds: totalSeconds,
+                    nextMilestone: nextMilestone,
+                    ageYears: ageYears
+                }
+            };
+            
+            displayResults(currentResults);
+            showToast(lang.ageBtn + ' ' + (currentLanguage === 'ar' ? 'بنجاح!' : 'successful!'), 'success');
+        }
 
-    // تصغير للصورة للتسريع إذا كانت كبيرة
-    const MAX_DIM = 1000;
-    let scale = 1;
-    if (gray.cols > MAX_DIM) scale = MAX_DIM / gray.cols;
-    if (scale !== 1) {
-      let tmp = new cv.Mat();
-      cv.resize(gray, tmp, new cv.Size(0,0), scale, scale, cv.INTER_AREA);
-      gray.delete();
-      gray = tmp;
-    }
+        function calculateDateDifference() {
+            const date1 = document.getElementById("date1").value;
+            const date2 = document.getElementById("date2").value;
+            const errorDiv = document.getElementById("dateError");
+            const lang = languageTexts[currentLanguage];
+            
+            if (!isValidDate(date1) || !isValidDate(date2)) {
+                errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${lang.dateError}`;
+                return;
+            }
+            
+            errorDiv.innerHTML = '';
+            
+            const [d1, m1, y1] = date1.split("-").map(Number);
+            const [d2, m2, y2] = date2.split("-").map(Number);
+            
+            const firstDate = new Date(y1, m1 - 1, d1);
+            const secondDate = new Date(y2, m2 - 1, d2);
+            
+            let startDate, endDate;
+            if (firstDate < secondDate) {
+                startDate = firstDate;
+                endDate = secondDate;
+            } else {
+                startDate = secondDate;
+                endDate = firstDate;
+            }
+            
+            const diffTime = Math.abs(endDate - startDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const diffHours = diffDays * 24;
+            const diffMinutes = diffHours * 60;
+            const diffSeconds = diffMinutes * 60;
+            
+            const diffYears = Math.floor(diffDays / 365);
+            const remainingDays = diffDays % 365;
+            const diffMonths = Math.floor(remainingDays / 30);
+            const finalDays = remainingDays % 30;
+            
+            let dateDiffText;
+            if (currentLanguage === "ar") {
+                dateDiffText = `${diffYears} سنة و ${diffMonths} شهر و ${finalDays} يوم`;
+            } else {
+                dateDiffText = `${diffYears} years, ${diffMonths} months, and ${finalDays} days`;
+            }
+            
+            // الحصول على أيام الأسبوع
+            const startWeekday = lang.weekdays[startDate.getDay()];
+            const endWeekday = lang.weekdays[endDate.getDay()];
+            
+            currentResults = {
+                type: 'dateDiff',
+                data: {
+                    startDate: formatDate(startDate),
+                    startDateWithWeekday: `${formatDate(startDate)} (${startWeekday})`,
+                    endDate: formatDate(endDate),
+                    endDateWithWeekday: `${formatDate(endDate)} (${endWeekday})`,
+                    difference: dateDiffText,
+                    totalDays: diffDays,
+                    totalHours: diffHours,
+                    totalMinutes: diffMinutes,
+                    totalSeconds: diffSeconds
+                }
+            };
+            
+            displayResults(currentResults);
+            showToast(lang.dateDiffBtn + ' ' + (currentLanguage === 'ar' ? 'بنجاح!' : 'successful!'), 'success');
+        }
 
-    // استخدام مرشح سوبل لإبراز الحواف الأفقية (الشرائط / سطور الأرقام غالباً تكون أفقية)
-    let gradX = new cv.Mat();
-    cv.Sobel(gray, gradX, cv.CV_32F, 1, 0, 3, 1, 0, cv.BORDER_DEFAULT);
-    cv.convertScaleAbs(gradX, gradX);
-    
-    // تعزيز المناطق الأفقية: عمل Morphological close ثم open
-    let thresh = new cv.Mat();
-    cv.threshold(gradX, thresh, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU);
-    let kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(30,3));
-    let closed = new cv.Mat();
-    cv.morphologyEx(thresh, closed, cv.MORPH_CLOSE, kernel);
-    let opened = new cv.Mat();
-    let kernel2 = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(3,3));
-    cv.morphologyEx(closed, opened, cv.MORPH_OPEN, kernel2);
+        function displayResults(results) {
+            const container = document.getElementById("resultsContainer");
+            const lang = languageTexts[currentLanguage];
+            
+            let html = `
+                <div class="result-card">
+                    <div class="result-header">
+                        <h2 class="result-title">
+                            <i class="fas fa-chart-pie"></i>
+                            ${lang.resultsTitle}
+                        </h2>
+                        <div class="result-actions">
+                            <button class="action-btn" onclick="copyResults()" title="${currentLanguage === 'ar' ? 'نسخ' : 'Copy'}">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button class="action-btn" onclick="saveResults()" title="${currentLanguage === 'ar' ? 'حفظ' : 'Save'}">
+                                <i class="fas fa-save"></i>
+                            </button>
+                            <button class="action-btn" onclick="printResults()" title="${currentLanguage === 'ar' ? 'طباعة' : 'Print'}">
+                                <i class="fas fa-print"></i>
+                            </button>
+                        </div>
+                    </div>
+            `;
+            
+            if (results.type === 'nationalID' || results.type === 'age') {
+                html += `
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <div class="result-label">
+                                <i class="fas fa-birthday-cake"></i>
+                                ${lang.birthDate}
+                            </div>
+                            <div class="result-value">${results.data.birthDateWithWeekday}</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-label">
+                                <i class="fas fa-user-clock"></i>
+                                ${lang.age}
+                            </div>
+                            <div class="result-value">${results.data.age}</div>
+                        </div>
+                        ${results.type === 'nationalID' ? `
+                        <div class="result-item">
+                            <div class="result-label">
+                                <i class="fas fa-${results.data.gender === lang.male ? 'mars' : 'venus'}"></i>
+                                ${lang.gender}
+                            </div>
+                            <div class="result-value ${results.data.gender === lang.male ? 'male' : 'female'}">${results.data.gender}</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-label">
+                                <i class="fas fa-map-marker-alt"></i>
+                                ${lang.governorate}
+                            </div>
+                            <div class="result-value">${results.data.governorate}</div>
+                        </div>
+                        ` : ''}
+                        <div class="result-item">
+                            <div class="result-label">
+                                <i class="fas fa-gift"></i>
+                                ${lang.daysUntilBirthday}
+                            </div>
+                            <div class="result-value">${results.data.daysUntilBirthday}</div>
+                        </div>
+                    </div>
+                    
+                    <!-- إحصائيات متقدمة -->
+                    <div class="stats-container">
+                        <div class="stat-card">
+                            <div class="stat-number">${results.data.totalDays.toLocaleString()}</div>
+                            <div class="stat-label">${lang.totalDays}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${results.data.totalHours.toLocaleString()}</div>
+                            <div class="stat-label">${lang.totalHours}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${results.data.totalMinutes.toLocaleString()}</div>
+                            <div class="stat-label">${lang.totalMinutes}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${results.data.totalSeconds.toLocaleString()}</div>
+                            <div class="stat-label">${lang.totalSeconds}</div>
+                        </div>
+                    </div>
+                    
+                    <!-- شريط تقدم الحياة -->
+                    <div class="progress-container">
+                        <div class="progress-label">
+                            <span>${lang.lifeProgress}</span>
+                            <span>${Math.round((results.data.ageYears / 80) * 100)}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${(results.data.ageYears / 80) * 100}%"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- الرسم البياني -->
+                    <div class="chart-container">
+                        <canvas id="ageChart"></canvas>
+                    </div>
+                    
+                    <!-- الجدول الزمني -->
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <h4><i class="${results.data.nextMilestone.icon}"></i> ${lang.nextMilestone}</h4>
+                                <p>${results.data.nextMilestone.title} (${results.data.nextMilestone.age} ${currentLanguage === 'ar' ? 'سنة' : 'years'})</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="additional-info">
+                        <h3>
+                            <i class="fas fa-star"></i>
+                            ${currentLanguage === 'ar' ? 'معلومات إضافية' : 'Additional Information'}
+                        </h3>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <div class="info-icon zodiac">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <div class="info-text">
+                                    <div class="info-label">${lang.zodiacSign}</div>
+                                    <div class="info-value">${results.data.zodiacSign}</div>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-icon stone">
+                                    <i class="fas fa-gem"></i>
+                                </div>
+                                <div class="info-text">
+                                    <div class="info-label">${lang.birthStone}</div>
+                                    <div class="info-value">${results.data.birthStone}</div>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-icon season">
+                                    <i class="fas fa-cloud-sun"></i>
+                                </div>
+                                <div class="info-text">
+                                    <div class="info-label">${lang.birthSeason}</div>
+                                    <div class="info-value">${results.data.birthSeason}</div>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-icon age">
+                                    <i class="fas fa-calendar-check"></i>
+                                </div>
+                                <div class="info-text">
+                                    <div class="info-label">${lang.nextBirthday}</div>
+                                    <div class="info-value">${results.data.nextBirthday}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (results.type === 'dateDiff') {
+                html += `
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <div class="result-label">
+                                <i class="fas fa-calendar-day"></i>
+                                ${currentLanguage === 'ar' ? 'التاريخ الأول' : 'First Date'}
+                            </div>
+                            <div class="result-value">${results.data.startDateWithWeekday}</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-label">
+                                <i class="fas fa-calendar-day"></i>
+                                ${currentLanguage === 'ar' ? 'التاريخ الثاني' : 'Second Date'}
+                            </div>
+                            <div class="result-value">${results.data.endDateWithWeekday}</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-label">
+                                <i class="fas fa-hourglass-half"></i>
+                                ${lang.dateDifference}
+                            </div>
+                            <div class="result-value">${results.data.difference}</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-label">
+                                <i class="fas fa-calendar-alt"></i>
+                                ${currentLanguage === 'ar' ? 'إجمالي الأيام' : 'Total Days'}
+                            </div>
+                            <div class="result-value">${results.data.totalDays} ${currentLanguage === 'ar' ? 'يوم' : 'days'}</div>
+                        </div>
+                    </div>
+                    
+                    <!-- إحصائيات الفرق -->
+                    <div class="stats-container">
+                        <div class="stat-card">
+                            <div class="stat-number">${results.data.totalDays.toLocaleString()}</div>
+                            <div class="stat-label">${lang.totalDays}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${results.data.totalHours.toLocaleString()}</div>
+                            <div class="stat-label">${lang.totalHours}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${results.data.totalMinutes.toLocaleString()}</div>
+                            <div class="stat-label">${lang.totalMinutes}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${results.data.totalSeconds.toLocaleString()}</div>
+                            <div class="stat-label">${lang.totalSeconds}</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+            container.innerHTML = html;
+            container.style.display = 'block';
+            
+            // إنشاء الرسم البياني
+            if (results.type === 'nationalID' || results.type === 'age') {
+                createAgeChart(results.data);
+            }
+            
+            // التمرير إلى النتائج
+            container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
 
-    // العثور على محتويات (contours)
-    let contours = new cv.MatVector();
-    let hierarchy = new cv.Mat();
-    cv.findContours(opened, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+        function createAgeChart(data) {
+            const ctx = document.getElementById('ageChart').getContext('2d');
+            
+            // تدمج الرسم البياني القديم إذا كان موجودًا
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+            
+            const lang = languageTexts[currentLanguage];
+            
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [
+                        lang.totalDays,
+                        lang.totalHours,
+                        lang.totalMinutes,
+                        lang.totalSeconds
+                    ],
+                    datasets: [{
+                        label: lang.age,
+                        data: [
+                            data.totalDays,
+                            data.totalHours / 24,
+                            data.totalMinutes / 60,
+                            data.totalSeconds / 60
+                        ],
+                        backgroundColor: [
+                            'rgba(102, 126, 234, 0.8)',
+                            'rgba(240, 147, 251, 0.8)',
+                            'rgba(79, 172, 254, 0.8)',
+                            'rgba(67, 233, 123, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(102, 126, 234, 1)',
+                            'rgba(240, 147, 251, 1)',
+                            'rgba(79, 172, 254, 1)',
+                            'rgba(67, 233, 123, 1)'
+                        ],
+                        borderWidth: 2,
+                        borderRadius: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: currentLanguage === 'ar' ? 'إحصائيات العمر' : 'Age Statistics',
+                            font: {
+                                size: 18,
+                                family: 'Cairo',
+                                weight: 'bold'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                font: {
+                                    family: 'Cairo'
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: {
+                                    family: 'Cairo'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
 
-    // اختيار أفضل contour اعتمادًا على المساحة والنسبة (مستطيل أفقي طويل)
-    let best = null;
-    for(let i=0;i<contours.size();i++){
-      const cnt = contours.get(i);
-      const rect = cv.boundingRect(cnt);
-      const area = rect.width * rect.height;
-      const aspect = rect.width / (rect.height + 1);
-      // معايير مبدئية: مساحة لا تقل عن نسبة من الصورة، ونسبة طول/ارتفاع مناسبة
-      if(area < (gray.cols*gray.rows)*0.005) { cnt.delete(); continue; }
-      if(aspect < 3) { cnt.delete(); continue; } // نحتاج مستطيل أفقي عريض
-      if(!best || area > best.area) best = {rect, area};
-      cnt.delete();
-    }
+        function getNextMilestone(age, milestones) {
+            for (let milestone of milestones) {
+                if (milestone.age > age) {
+                    return milestone;
+                }
+            }
+            return milestones[milestones.length - 1];
+        }
 
-    // تحويل إحداثيات المستطيل إلى مقاس الكانفاس الأصلي (إذا تم تغيير المقياس)
-    if(best){
-      const r = best.rect;
-      const invScale = 1/scale;
-      selection = {
-        x: Math.max(0, Math.round(r.x * invScale)),
-        y: Math.max(0, Math.round(r.y * invScale)),
-        w: Math.round(r.width * invScale),
-        h: Math.round(r.height * invScale)
-      };
-      redrawImage(); drawSelection();
-      status('✅ تم اكتشاف منطقة مرشّحة. اضغط معالجة الجزء المقطوع وOCR.');
-    } else {
-      status('⚠️ لم يتم العثور تلقائياً على منطقة مناسبة. جرّب الوضع اليدوي.');
-    }
+        function calculateDaysUntilBirthday(birthDate) {
+            const today = new Date();
+            const thisYearBirthday = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+            
+            if (thisYearBirthday < today) {
+                thisYearBirthday.setFullYear(today.getFullYear() + 1);
+            }
+            
+            return Math.ceil((thisYearBirthday - today) / (1000 * 60 * 60 * 24));
+        }
 
-    // تنظيف
-    mat.delete(); gray.delete(); gradX.delete(); thresh.delete();
-    kernel.delete(); closed.delete(); opened.delete(); kernel2.delete();
-    contours.delete(); hierarchy.delete();
-  } catch(err){
-    console.error(err); status('خطأ أثناء المعالجة: '+err.message);
-  }
-});
+        function getDaysInMonth(year, month) {
+            return new Date(year, month + 1, 0).getDate();
+        }
 
-/* ----- معالجة الجزء المقطوع + تحسين + OCR ----- */
-processCroppedBtn.addEventListener('click', async ()=>{
-  if(!img.src) return alert('حمّل صورة أولاً.');
-  if(!selection) return alert('لم يتم تحديد منطقة. استخدم الاكتشاف التلقائي أو حدد يدوياً.');
-  await performCropEnhanceAndOCR(selection);
-});
+        function formatDate(date) {
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                timeZone: 'UTC'
+            };
+            
+            if (currentLanguage === "ar") {
+                return date.toLocaleDateString('ar-EG', options);
+            } else {
+                return date.toLocaleDateString('en-US', options);
+            }
+        }
 
-/* زر تجربة تحسين أقوى */
-tryEnhanceBtn.addEventListener('click', async ()=>{
-  if(!selection) return alert('حدد منطقة أولاً');
-  status('⚙️ تجربة سلسلة تحسين أقوى...');
-  await performCropEnhanceAndOCR(selection, {strongEnhance:true});
-});
+        function getNextBirthday(birthDate) {
+            const today = new Date();
+            const thisYearBirthday = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+            
+            if (thisYearBirthday < today) {
+                thisYearBirthday.setFullYear(today.getFullYear() + 1);
+            }
+            
+            return formatDate(thisYearBirthday);
+        }
 
-/* الدالة الأساسية: تقطيع → تحسين → OCR */
-async function performCropEnhanceAndOCR(sel, opts={strongEnhance:false}){
-  status('⬇️ تقطيع المنطقة...');
-  // رسم المنطقة المقطوعة على كانفاس مؤقت
-  const tmpC = document.createElement('canvas');
-  tmpC.width = sel.w; tmpC.height = sel.h;
-  const tctx = tmpC.getContext('2d');
-  tctx.drawImage(img, 0, 0, canvas.width, canvas.height); 
-  // ملاحظة: الصورة في الـcanvas قد تكون مقیّسة. لذلك نعيد الرسم بالنسبة لنسبة فعليّة:
-  // استخدم صورة المصدر الأصلية أبعُد التفصيل: سنستخدم الصورة المعروضة كما هي.
-  tctx.drawImage(img, (sel.x/canvas.width)*img.width, (sel.y/canvas.height)*img.height, (sel.w/canvas.width)*img.width, (sel.h/canvas.height)*img.height, 0,0, tmpC.width, tmpC.height);
+        function copyResults() {
+            const lang = languageTexts[currentLanguage];
+            let text = '';
+            
+            if (currentResults.type === 'nationalID') {
+                text = `${lang.resultsTitle}:\n`;
+                text += `${lang.birthDate}: ${currentResults.data.birthDate}\n`;
+                text += `${lang.age}: ${currentResults.data.age}\n`;
+                text += `${lang.gender}: ${currentResults.data.gender}\n`;
+                text += `${lang.governorate}: ${currentResults.data.governorate}\n`;
+                text += `${lang.daysUntilBirthday}: ${currentResults.data.daysUntilBirthday}\n`;
+                text += `${lang.zodiacSign}: ${currentResults.data.zodiacSign}\n`;
+                text += `${lang.birthStone}: ${currentResults.data.birthStone}\n`;
+                text += `${lang.birthSeason}: ${currentResults.data.birthSeason}\n`;
+                text += `${lang.nextBirthday}: ${currentResults.data.nextBirthday}\n`;
+                text += `${lang.totalDays}: ${currentResults.data.totalDays}\n`;
+                text += `${lang.totalHours}: ${currentResults.data.totalHours}\n`;
+                text += `${lang.totalMinutes}: ${currentResults.data.totalMinutes}\n`;
+                text += `${lang.totalSeconds}: ${currentResults.data.totalSeconds}`;
+            } else if (currentResults.type === 'age') {
+                text = `${lang.resultsTitle}:\n`;
+                text += `${lang.birthDate}: ${currentResults.data.birthDate}\n`;
+                text += `${lang.age}: ${currentResults.data.age}\n`;
+                text += `${lang.daysUntilBirthday}: ${currentResults.data.daysUntilBirthday}\n`;
+                text += `${lang.zodiacSign}: ${currentResults.data.zodiacSign}\n`;
+                text += `${lang.birthStone}: ${currentResults.data.birthStone}\n`;
+                text += `${lang.birthSeason}: ${currentResults.data.birthSeason}\n`;
+                text += `${lang.nextBirthday}: ${currentResults.data.nextBirthday}\n`;
+                text += `${lang.totalDays}: ${currentResults.data.totalDays}\n`;
+                text += `${lang.totalHours}: ${currentResults.data.totalHours}\n`;
+                text += `${lang.totalMinutes}: ${currentResults.data.totalMinutes}\n`;
+                text += `${lang.totalSeconds}: ${currentResults.data.totalSeconds}`;
+            } else if (currentResults.type === 'dateDiff') {
+                text = `${lang.resultsTitle}:\n`;
+                text += `${currentLanguage === 'ar' ? 'التاريخ الأول' : 'First Date'}: ${currentResults.data.startDate}\n`;
+                text += `${currentLanguage === 'ar' ? 'التاريخ الثاني' : 'Second Date'}: ${currentResults.data.endDate}\n`;
+                text += `${lang.dateDifference}: ${currentResults.data.difference}\n`;
+                text += `${lang.totalDays}: ${currentResults.data.totalDays} ${currentLanguage === 'ar' ? 'يوم' : 'days'}\n`;
+                text += `${lang.totalHours}: ${currentResults.data.totalHours}\n`;
+                text += `${lang.totalMinutes}: ${currentResults.data.totalMinutes}\n`;
+                text += `${lang.totalSeconds}: ${currentResults.data.totalSeconds}`;
+            }
+            
+            navigator.clipboard.writeText(text).then(() => {
+                showToast(lang.copySuccess, 'success');
+            });
+        }
 
-  // الآن نقوم بمرحلة تحسين متقدمة عبر OpenCV
-  await waitForOpencv();
-  let src = cv.imread(tmpC);
-  let gray = new cv.Mat();
-  cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY, 0);
+        function saveResults() {
+            const lang = languageTexts[currentLanguage];
+            const results = JSON.stringify(currentResults);
+            localStorage.setItem('nationalIDResults', results);
+            showToast(lang.saveSuccess, 'success');
+        }
 
-  // تقليل الضوضاء
-  if(opts.strongEnhance) cv.bilateralFilter(gray, gray, 9, 75, 75);
-  else cv.GaussianBlur(gray, gray, new cv.Size(3,3), 0);
+        function printResults() {
+            const lang = languageTexts[currentLanguage];
+            window.print();
+            showToast(lang.printSuccess, 'success');
+        }
 
-  // CLAHE لتحسين التباين (مفيد لصور البطاقات)
-  try{
-    let clahe = new cv.CLAHE(2.0, new cv.Size(8,8));
-    let cl = new cv.Mat();
-    clahe.apply(gray, cl);
-    gray.delete(); gray = cl; clahe.delete();
-  } catch(e){
-    // بعض نسخ OpenCV.js قد لا تدعم CLAHE — حينها نتجاهل
-  }
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toastMessage.textContent = message;
+            toast.className = 'toast show ' + type;
+            
+            setTimeout(() => {
+                toast.className = 'toast';
+            }, 3000);
+        }
 
-  // محاولة توحيد الإضاءة: adaptiveThreshold
-  let bin = new cv.Mat();
-  cv.adaptiveThreshold(gray, bin, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY_INV, 21, 10);
-
-  // إجراء إغلاق صغير لإكمال حروف رقمية مفصولة
-  let kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(3,3));
-  cv.morphologyEx(bin, bin, cv.MORPH_CLOSE, kernel);
-
-  // عكس اللون إذا لزم (نستخدم THRESH_BINARY_INV فوق، لذا نص أبيض على خلفية سوداء)
-  // تحويل إلى imageData للـ Tesseract (نحتاج رسم صورة بنمط عادي: أسود/أبيض)
-  // سنحوّل اللون للأبيض على خلفية بيضاء بحيث Tesseract يقرأها أفضل
-  let out = new cv.Mat();
-  cv.bitwise_not(bin, out);
-  // تحسين الحجم للـ OCR (تكبير بسيط)
-  const SCALE_UP = 2;
-  let up = new cv.Mat();
-  cv.resize(out, up, new cv.Size(out.cols * SCALE_UP, out.rows * SCALE_UP), 0, 0, cv.INTER_CUBIC);
-
-  // طباعة صورة للتصوّر (اختياري، يعرض النتيجة النهائية في الكانفاس)
-  cv.imshow(tmpC, up);
-
-  // إعداد الصورة للنقل إلى Tesseract
-  const dataURL = tmpC.toDataURL('image/png');
-
-  // تنظيف مؤقت
-  src.delete(); gray.delete(); bin.delete(); out.delete(); up.delete(); kernel.delete();
-
-  status('⏳ جاري تشغيل OCR (Tesseract)...');
-  // محاولة قراءة باللغتين؛ سنحاول استهداف الأرقام عبر "eng" أيضاً لزيادة فرص قراءة الأرقام اللاتينية
-  try {
-    const worker = Tesseract.createWorker({
-      logger: m => {
-        if(m.status === 'recognizing text') status('⏳ OCR: ' + Math.round(m.progress*100) + '%');
-      }
-    });
-    await worker.load();
-    await worker.loadLanguage('eng+ara');
-    await worker.initialize('eng+ara');
-    // Force OEM/LSTM not available control isn't exposed in tesseract.js easily, so just run
-    const { data: { text } } = await worker.recognize(dataURL);
-    await worker.terminate();
-
-    // تنظيف النص: تحويل أرقام عربية شرقية إلى إنجليزية، وإبقاء الأرقام فقط
-    const converted = convertArabicNums(text || '');
-    const digitsOnly = converted.replace(/\D/g,'');
-    // 14-digit match
-    let match = digitsOnly.match(/[23]\d{13}/);
-    // إذا لم يجد، نجرب محاولة أخذ آخر 14 رقم (أحيانًا يظهر بقية النص أولًا)
-    if(!match && digitsOnly.length >= 14){
-      match = [digitsOnly.slice(-14)];
-    }
-
-    if(match){
-      const nid = match[0];
-      status('✅ تم استخراج رقم قومي مرجّح: ' + nid);
-      resultArea.style.display = 'block';
-      ocrTextDiv.textContent = text.trim();
-      analyzeID(nid);
-    } else {
-      status('❌ لم يعثر OCR على رقم مكوّن من 14 رقم. جرب "تجربة تحسين أقوى" أو الوضع اليدوي.');
-      resultArea.style.display = 'block';
-      ocrTextDiv.textContent = text.trim() || '[لم تُستخرج نصوص]';
-      analysisDiv.innerHTML = '<i>لم يتم استخراج رقم قومي صالح.</i>';
-    }
-  } catch(err){
-    console.error(err);
-    status('خطأ في OCR: ' + err.message);
-  }
-}
-
-/* ----- تحليل الرقم القومي وإظهار النتائج ----- */
-function analyzeID(id){
-  const nid = id.toString();
-  const century = nid[0] === '2' ? '19' : '20';
-  const year = parseInt(nid.substr(1,2),10);
-  const month = parseInt(nid.substr(3,2),10);
-  const day = parseInt(nid.substr(5,2),10);
-  const birthY = parseInt(century + (year<10 ? '0'+year : ''+year),10);
-  const birthDate = new Date(birthY, month-1, day);
-  const today = new Date();
-  let ageY = today.getFullYear() - birthDate.getFullYear();
-  let ageM = today.getMonth() - birthDate.getMonth();
-  let ageD = today.getDate() - birthDate.getDate();
-  if(ageD < 0){ ageM--; ageD += new Date(today.getFullYear(), today.getMonth(), 0).getDate(); }
-  if(ageM < 0){ ageY--; ageM += 12; }
-
-  const gender = (parseInt(nid.charAt(12),10) % 2) === 0 ? 'أنثى' : 'ذكر';
-  const govs = {"01":"القاهرة","02":"الإسكندرية","03":"بورسعيد","04":"السويس","11":"دمياط","12":"الدقهلية","13":"الشرقية","14":"القليوبية","15":"كفر الشيخ","16":"الغربية","17":"المنوفية","18":"البحيرة","19":"الإسماعيلية","21":"الالجيزة","21":"الجيزة","22":"بني سويف","23":"الفيوم","24":"الأقصر","25":"سوهاج","26":"قنا","27":"أسوان","28":"أسيوط","29":"مطروح","31":"شمال سيناء","32":"جنوب سيناء","33":"البحر الأحمر","88":"خارج الجمهورية"};
-  const gov = govs[nid.substr(7,2)] || 'غير معروف';
-
-  analysisDiv.innerHTML = `
-    <div><b>الرقم القومي:</b> ${nid}</div>
-    <div><b>تاريخ الميلاد:</b> ${birthDate.toLocaleDateString('ar-EG')}</div>
-    <div><b>العمر:</b> ${ageY} سنة، ${ageM} شهر، ${ageD} يوم</div>
-    <div><b>الجنس:</b> ${gender}</div>
-    <div><b>المحافظة (رمز):</b> ${nid.substr(7,2)} → ${gov}</div>
-  `;
-}
-
-/* ----- مساعدة: انتظار تحميل OpenCV ----- */
-function waitForOpencv(){
-  return new Promise((resolve,reject)=>{
-    if(typeof cv !== 'undefined' && cv && cv.Mat) return resolve();
-    let t=0;
-    const iv = setInterval(()=>{
-      if(typeof cv !== 'undefined' && cv && cv.Mat){ clearInterval(iv); resolve(); }
-      t+=100;
-      if(t>15000){ clearInterval(iv); reject(new Error('OpenCV.js failed to load')); }
-    },100);
-  });
-}
-
-/* تحويل أرقام عربية شرقية إلى إنجليزية */
-function convertArabicNums(str){
-  if(!str) return '';
-  const map = {'٠':'0','١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9'};
-  return str.replace(/[٠-٩]/g, d => map[d]);
-}
-</script>
+        // تحديث الواجهة عند التحميل
+        window.onload = function() {
+            updateUI();
+            
+            // إضافة مستمعي الأحداث للإدخال
+            document.getElementById('nationalID').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    analyzeNationalID();
+                }
+            });
+            
+            document.getElementById('dob').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    calculateAge();
+                }
+            });
+            
+            document.getElementById('date2').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    calculateDateDifference();
+                }
+            });
+        };
+    </script>
 </body>
 </html>
