@@ -2,13 +2,14 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>محلل الرقم القومي المصري</title>
+<title>📋 محلل الرقم القومي المصري</title>
+<script src="https://docs.opencv.org/4.8.0/opencv.js"></script>
 <script src="https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
 <style>
 body { font-family: Arial; background:#f0f0f0; text-align:center; padding:20px; }
-.container { background:#fff; padding:20px; border-radius:10px; max-width:500px; margin:auto; }
+.container { background:#fff; padding:20px; border-radius:10px; max-width:600px; margin:auto; }
 input,button { padding:10px; margin:5px; width:90%; font-size:16px; }
-img { max-width:100%; margin-top:10px; border:1px solid #ccc; }
+canvas,img { max-width:100%; margin-top:10px; border:1px solid #ccc; }
 .result { text-align:right; margin-top:15px; background:#fafafa; padding:10px; border-radius:5px; }
 </style>
 </head>
@@ -17,30 +18,95 @@ img { max-width:100%; margin-top:10px; border:1px solid #ccc; }
 <h2>📋 محلل الرقم القومي المصري</h2>
 
 <input type="file" id="fileInput" accept="image/*">
-<button onclick="processImage()">📷 قراءة من صورة</button>
+<canvas id="canvas"></canvas>
 <br>
-<input type="text" id="nationalID" placeholder="أدخل الرقم القومي (14 رقم)">
-<button onclick="analyzeID()">تحليل الرقم القومي</button>
+<button onclick="cropSelection()">📍 معالجة واستخراج الرقم القومي</button>
 
-<img id="preview" style="display:none;">
 <div id="status"></div>
 <div class="result" id="result"></div>
 </div>
 
 <script>
-// تحويل الأرقام العربية الشرقية إلى إنجليزية
+let img = new Image();
+let canvas = document.getElementById('canvas');
+let ctx = canvas.getContext('2d');
+let startX, startY, endX, endY, isSelecting = false;
+
+document.getElementById('fileInput').addEventListener('change', e=>{
+    let file = e.target.files[0];
+    if(!file) return;
+    let reader = new FileReader();
+    reader.onload = ev => {
+        img.onload = () => {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img,0,0);
+        };
+        img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+});
+
+// رسم مربع التحديد
+canvas.addEventListener('mousedown', e=>{
+    let rect = canvas.getBoundingClientRect();
+    startX = e.clientX - rect.left;
+    startY = e.clientY - rect.top;
+    isSelecting = true;
+});
+canvas.addEventListener('mousemove', e=>{
+    if(!isSelecting) return;
+    let rect = canvas.getBoundingClientRect();
+    endX = e.clientX - rect.left;
+    endY = e.clientY - rect.top;
+    ctx.drawImage(img,0,0);
+    ctx.strokeStyle="red"; ctx.lineWidth=2;
+    ctx.strokeRect(startX,startY,endX-startX,endY-startY);
+});
+canvas.addEventListener('mouseup', ()=> isSelecting = false);
+
+// تحويل الأرقام العربية الشرقية
 function convertArabicNums(str) {
     const map = {'٠':'0','١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9'};
     return str.replace(/[٠-٩]/g, d => map[d]);
 }
 
-// تحليل الرقم القومي
-function analyzeID() {
-    let id = convertArabicNums(document.getElementById('nationalID').value.trim());
-    if (!/^[23]\d{13}$/.test(id)) {
-        document.getElementById('result').innerHTML = "❌ رقم قومي غير صالح";
-        return;
+// قص ومعالجة المنطقة المحددة
+function cropSelection(){
+    if(startX===undefined || startY===undefined || endX===undefined || endY===undefined){
+        alert("حدد منطقة الرقم القومي أولاً"); return;
     }
+    let w = endX-startX, h = endY-startY;
+    let cropCanvas = document.createElement('canvas');
+    cropCanvas.width = w; cropCanvas.height = h;
+    let cropCtx = cropCanvas.getContext('2d');
+    cropCtx.drawImage(canvas, startX, startY, w, h, 0, 0, w, h);
+
+    // معالجة بالصورة بـ OpenCV
+    let src = cv.imread(cropCanvas);
+    cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
+    cv.threshold(src, src, 120, 255, cv.THRESH_BINARY);
+    cv.GaussianBlur(src, src, new cv.Size(1,1), 0, 0, cv.BORDER_DEFAULT);
+    cv.imshow(cropCanvas, src);
+    src.delete();
+
+    document.getElementById('status').innerText = "⏳ جاري قراءة الرقم...";
+    Tesseract.recognize(cropCanvas.toDataURL(), 'ara+eng', {
+        logger: m => { if(m.status==="recognizing text"){document.getElementById('status').innerText = `⏳ ${Math.round(m.progress*100)}%`;}}
+    }).then(({data:{text}})=>{
+        const clean = convertArabicNums(text).replace(/\D/g,'');
+        const match = clean.match(/[23]\d{13}/);
+        if(match){
+            document.getElementById('status').innerText = "✅ تم استخراج الرقم";
+            analyzeID(match[0]);
+        } else {
+            document.getElementById('status').innerText = "❌ لم يتم العثور على رقم قومي";
+        }
+    });
+}
+
+// تحليل الرقم القومي
+function analyzeID(id){
     const century = id[0] === '2' ? '19' : '20';
     const year = parseInt(id.substr(1,2));
     const month = parseInt(id.substr(3,2));
@@ -56,36 +122,11 @@ function analyzeID() {
     const govs = {"01":"القاهرة","02":"الإسكندرية","03":"بورسعيد","04":"السويس","11":"دمياط","12":"الدقهلية","13":"الشرقية","14":"القليوبية","15":"كفر الشيخ","16":"الغربية","17":"المنوفية","18":"البحيرة","19":"الإسماعيلية","21":"الجيزة","22":"بني سويف","23":"الفيوم","24":"الأقصر","25":"سوهاج","26":"قنا","27":"أسوان","28":"أسيوط","29":"مطروح","31":"شمال سيناء","32":"جنوب سيناء","33":"البحر الأحمر","88":"خارج الجمهورية"};
     const gov = govs[id.substr(7,2)] || "غير معروف";
     document.getElementById('result').innerHTML =
-        `<b>📅 تاريخ الميلاد:</b> ${birthDate.toLocaleDateString('ar-EG')}<br>
+        `<b>📄 الرقم القومي:</b> ${id}<br>
+         <b>📅 تاريخ الميلاد:</b> ${birthDate.toLocaleDateString('ar-EG')}<br>
          <b>🎂 العمر:</b> ${ageY} سنة و ${ageM} شهر و ${ageD} يوم<br>
          <b>🚻 الجنس:</b> ${gender}<br>
          <b>📍 المحافظة:</b> ${gov}`;
-}
-
-// قراءة الرقم القومي من صورة
-function processImage() {
-    const file = document.getElementById('fileInput').files[0];
-    if (!file) return alert("اختر صورة أولاً");
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        document.getElementById('preview').src = e.target.result;
-        document.getElementById('preview').style.display = 'block';
-        document.getElementById('status').innerText = "⏳ جاري التعرف على النص...";
-        Tesseract.recognize(e.target.result, 'ara+eng', {
-            logger: m => { if(m.status==="recognizing text"){document.getElementById('status').innerText = `⏳ ${Math.round(m.progress*100)}%`;}}
-        }).then(({data:{text}})=>{
-            const clean = convertArabicNums(text).replace(/\D/g,'');
-            const match = clean.match(/[23]\d{13}/);
-            if(match){
-                document.getElementById('nationalID').value = match[0];
-                document.getElementById('status').innerText = "✅ تم الاستخراج";
-                analyzeID();
-            } else {
-                document.getElementById('status').innerText = "❌ لم يتم العثور على رقم قومي";
-            }
-        });
-    };
-    reader.readAsDataURL(file);
 }
 </script>
 </body>
