@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌍 </title>
+    <title>🌍 محلل الرقم القومي المصري</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src='https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js'></script>
     <style>
@@ -338,6 +338,48 @@
         .selection-controls button {
             width: 48%;
         }
+        
+        /* إضافة خيارات OCR */
+        .ocr-options {
+            margin: 15px 0;
+            text-align: right;
+            background: rgba(74, 111, 165, 0.05);
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        .ocr-options label {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+            cursor: pointer;
+        }
+        
+        .ocr-options select {
+            width: auto;
+            margin-right: 10px;
+        }
+        
+        /* إضافة منطقة النتائج الخام */
+        .raw-results {
+            margin: 15px 0;
+            text-align: right;
+            background: rgba(74, 111, 165, 0.05);
+            padding: 10px;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .raw-results textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            resize: vertical;
+        }
     </style>
 </head>
 <body>
@@ -364,6 +406,16 @@
             <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
             <img id="imagePreview" alt="معاينة الصورة">
             
+            <div class="ocr-options">
+                <label>
+                    <span id="ocrEngineLabel">محرك التعرف:</span>
+                    <select id="ocrEngine">
+                        <option value="tesseract">Tesseract (افتراضي)</option>
+                        <option value="hybrid">هجين (موصى به للعربية)</option>
+                    </select>
+                </label>
+            </div>
+            
             <div class="preprocessing-options">
                 <label>
                     <input type="checkbox" id="grayscale" checked>
@@ -378,8 +430,16 @@
                     <span id="binarizeLabel">تطبيق العتبة الثنائية</span>
                 </label>
                 <label>
+                    <input type="checkbox" id="sharpen">
+                    <span id="sharpenLabel">حادة الحواف</span>
+                </label>
+                <label>
                     <input type="checkbox" id="manualSelect">
                     <span id="manualSelectLabel">تحديد منطقة الرقم يدويًا</span>
+                </label>
+                <label>
+                    <input type="checkbox" id="showRawResults">
+                    <span id="showRawResultsLabel">إظهار النتائج الخام</span>
                 </label>
             </div>
             
@@ -389,6 +449,11 @@
                     <button onclick="resetSelection()" id="resetSelectionBtn">إعادة التحديد</button>
                     <button onclick="processSelectedArea()" id="processSelectedBtn">معالجة المنطقة المحددة</button>
                 </div>
+            </div>
+            
+            <div class="raw-results" id="rawResults">
+                <label for="rawText"><span id="rawTextLabel">النص المستخرج:</span></label>
+                <textarea id="rawText" readonly></textarea>
             </div>
             
             <div class="progress-container" id="progressContainer">
@@ -495,9 +560,13 @@
             grayscaleLabel: "تحويل إلى تدرج الرمادي",
             contrastLabel: "زيادة التباين",
             binarizeLabel: "تطبيق العتبة الثنائية",
+            sharpenLabel: "حادة الحواف",
             manualSelectLabel: "تحديد منطقة الرقم يدويًا",
             resetSelectionBtn: "إعادة التحديد",
             processSelectedBtn: "معالجة المنطقة المحددة",
+            ocrEngineLabel: "محرك التعرف:",
+            showRawResultsLabel: "إظهار النتائج الخام",
+            rawTextLabel: "النص المستخرج:",
             governorates: {
                 "01": "القاهرة", "02": "الإسكندرية", "03": "بورسعيد", "04": "السويس", 
                 "11": "دمياط", "12": "الدقهلية", "13": "الشرقية", "14": "القليوبية", 
@@ -548,9 +617,13 @@
             grayscaleLabel: "Convert to grayscale",
             contrastLabel: "Increase contrast",
             binarizeLabel: "Apply binary threshold",
+            sharpenLabel: "Sharpen edges",
             manualSelectLabel: "Manually select ID area",
             resetSelectionBtn: "Reset Selection",
             processSelectedBtn: "Process Selected Area",
+            ocrEngineLabel: "OCR Engine:",
+            showRawResultsLabel: "Show Raw Results",
+            rawTextLabel: "Extracted Text:",
             governorates: {
                 "01": "Cairo", "02": "Alexandria", "03": "Port Said", "04": "Suez", 
                 "11": "Damietta", "12": "Dakahlia", "13": "Sharqia", "14": "Qalyubia", 
@@ -614,9 +687,13 @@
         document.getElementById("grayscaleLabel").textContent = lang.grayscaleLabel;
         document.getElementById("contrastLabel").textContent = lang.contrastLabel;
         document.getElementById("binarizeLabel").textContent = lang.binarizeLabel;
+        document.getElementById("sharpenLabel").textContent = lang.sharpenLabel;
         document.getElementById("manualSelectLabel").textContent = lang.manualSelectLabel;
         document.getElementById("resetSelectionBtn").textContent = lang.resetSelectionBtn;
         document.getElementById("processSelectedBtn").textContent = lang.processSelectedBtn;
+        document.getElementById("ocrEngineLabel").textContent = lang.ocrEngineLabel;
+        document.getElementById("showRawResultsLabel").textContent = lang.showRawResultsLabel;
+        document.getElementById("rawTextLabel").textContent = lang.rawTextLabel;
     }
     
     function validateNationalID(input) {
@@ -931,44 +1008,156 @@
             
             // معالجة الصورة مسبقًا
             preprocessImage(e.target.result).then(processedImageSrc => {
-                // استخدام Tesseract للتعرف على النص في الصورة المعالجة
-                Tesseract.recognize(
-                    processedImageSrc,
-                    currentLanguage === 'ar' ? 'ara' : 'eng',
-                    {
-                        logger: m => {
-                            if (m.status === "recognizing text") {
-                                const progress = Math.round(m.progress * 100);
-                                document.getElementById("progressBar").style.width = progress + "%";
+                const ocrEngine = document.getElementById('ocrEngine').value;
+                
+                if (ocrEngine === 'tesseract') {
+                    // استخدام Tesseract للتعرف على النص في الصورة المعالجة
+                    Tesseract.recognize(
+                        processedImageSrc,
+                        currentLanguage === 'ar' ? 'ara' : 'eng',
+                        {
+                            logger: m => {
+                                if (m.status === "recognizing text") {
+                                    const progress = Math.round(m.progress * 100);
+                                    document.getElementById("progressBar").style.width = progress + "%";
+                                }
                             }
                         }
-                    }
-                ).then(({ data: { text } }) => {
-                    document.getElementById("progressBar").style.width = "100%";
-                    document.getElementById("statusMessage").textContent = lang.extractingText;
-                    
-                    // استخراج الرقم القومي من النص
-                    const extractedID = extractNationalID(text);
-                    
-                    if (extractedID) {
-                        extractedNationalID = extractedID;
-                        document.getElementById("extractedId").textContent = lang.extractedID + " " + extractedID;
-                        document.getElementById("extractedId").style.display = "block";
-                        document.getElementById("analyzeFromImageBtn").style.display = "block";
-                        document.getElementById("statusMessage").style.display = "none";
-                    } else {
-                        document.getElementById("statusMessage").textContent = lang.noIDFound;
+                    ).then(({ data: { text } }) => {
+                        document.getElementById("progressBar").style.width = "100%";
+                        document.getElementById("statusMessage").textContent = lang.extractingText;
+                        
+                        // عرض النتائج الخام إذا تم تحديده
+                        if (document.getElementById('showRawResults').checked) {
+                            document.getElementById('rawText').value = text;
+                            document.getElementById('rawResults').style.display = 'block';
+                        }
+                        
+                        // استخراج الرقم القومي من النص
+                        const extractedID = extractNationalID(text);
+                        
+                        if (extractedID) {
+                            extractedNationalID = extractedID;
+                            document.getElementById("extractedId").textContent = lang.extractedID + " " + extractedID;
+                            document.getElementById("extractedId").style.display = "block";
+                            document.getElementById("analyzeFromImageBtn").style.display = "block";
+                            document.getElementById("statusMessage").style.display = "none";
+                        } else {
+                            document.getElementById("statusMessage").textContent = lang.noIDFound;
+                            document.getElementById("statusMessage").style.color = "#ff6b6b";
+                        }
+                    }).catch(err => {
+                        console.error(err);
+                        document.getElementById("statusMessage").textContent = "Error processing image: " + err.message;
                         document.getElementById("statusMessage").style.color = "#ff6b6b";
-                    }
-                }).catch(err => {
-                    console.error(err);
-                    document.getElementById("statusMessage").textContent = "Error processing image: " + err.message;
-                    document.getElementById("statusMessage").style.color = "#ff6b6b";
-                });
+                    });
+                } else if (ocrEngine === 'hybrid') {
+                    // استخدام المحرك الهجين للغة العربية
+                    hybridOCR(processedImageSrc).then(text => {
+                        document.getElementById("progressBar").style.width = "100%";
+                        document.getElementById("statusMessage").textContent = lang.extractingText;
+                        
+                        // عرض النتائج الخام إذا تم تحديده
+                        if (document.getElementById('showRawResults').checked) {
+                            document.getElementById('rawText').value = text;
+                            document.getElementById('rawResults').style.display = 'block';
+                        }
+                        
+                        // استخراج الرقم القومي من النص
+                        const extractedID = extractNationalID(text);
+                        
+                        if (extractedID) {
+                            extractedNationalID = extractedID;
+                            document.getElementById("extractedId").textContent = lang.extractedID + " " + extractedID;
+                            document.getElementById("extractedId").style.display = "block";
+                            document.getElementById("analyzeFromImageBtn").style.display = "block";
+                            document.getElementById("statusMessage").style.display = "none";
+                        } else {
+                            document.getElementById("statusMessage").textContent = lang.noIDFound;
+                            document.getElementById("statusMessage").style.color = "#ff6b6b";
+                        }
+                    }).catch(err => {
+                        console.error(err);
+                        document.getElementById("statusMessage").textContent = "Error processing image: " + err.message;
+                        document.getElementById("statusMessage").style.color = "#ff6b6b";
+                    });
+                }
             });
         };
         
         reader.readAsDataURL(file);
+    }
+    
+    // محرك OCR هجين للغة العربية
+    async function hybridOCR(imageSrc) {
+        try {
+            // أولاً، حاول استخدام Tesseract مع اللغة العربية
+            const tesseractResult = await Tesseract.recognize(
+                imageSrc,
+                'ara',
+                {
+                    logger: m => {
+                        if (m.status === "recognizing text") {
+                            const progress = Math.round(m.progress * 50); // 50% للتقدم
+                            document.getElementById("progressBar").style.width = progress + "%";
+                        }
+                    }
+                }
+            );
+            
+            let text = tesseractResult.data.text;
+            
+            // ثانيًا، حاول استخدام Tesseract مع اللغة الإنجليزية (للأرقام)
+            const tesseractEngResult = await Tesseract.recognize(
+                imageSrc,
+                'eng',
+                {
+                    logger: m => {
+                        if (m.status === "recognizing text") {
+                            const progress = 50 + Math.round(m.progress * 50); // 50-100% للتقدم
+                            document.getElementById("progressBar").style.width = progress + "%";
+                        }
+                    }
+                }
+            );
+            
+            const engText = tesseractEngResult.data.text;
+            
+            // دمج النتائج مع إعطاء الأولوية للأرقام من النسخة الإنجليزية
+            const engNumbers = engText.match(/\d+/g) || [];
+            const araNumbers = text.match(/\d+/g) || [];
+            
+            // إذا وجدنا أرقامًا في النسخة الإنجليزية، استخدمها
+            if (engNumbers.length > 0) {
+                // استبدل الأرقام في النص العربي بالأرقام الإنجليزية
+                engNumbers.forEach(num => {
+                    const regex = new RegExp(num.replace(/0/g, '٠').replace(/1/g, '١').replace(/2/g, '٢').replace(/3/g, '٣').replace(/4/g, '٤').replace(/5/g, '٥').replace(/6/g, '٦').replace(/7/g, '٧').replace(/8/g, '٨').replace(/9/g, '٩'), 'g');
+                    text = text.replace(regex, num);
+                });
+            }
+            
+            // تحويل الأرقام العربية إلى أرقام إنجليزية
+            text = convertArabicNumbersToEnglish(text);
+            
+            return text;
+        } catch (error) {
+            console.error("Hybrid OCR error:", error);
+            throw error;
+        }
+    }
+    
+    // تحويل الأرقام العربية إلى أرقام إنجليزية
+    function convertArabicNumbersToEnglish(text) {
+        const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+        const englishNumbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+        
+        let convertedText = text;
+        for (let i = 0; i < arabicNumbers.length; i++) {
+            const regex = new RegExp(arabicNumbers[i], 'g');
+            convertedText = convertedText.replace(regex, englishNumbers[i]);
+        }
+        
+        return convertedText;
     }
     
     function preprocessImage(imageSrc) {
@@ -992,6 +1181,7 @@
                 const grayscale = document.getElementById('grayscale').checked;
                 const contrast = document.getElementById('contrast').checked;
                 const binarize = document.getElementById('binarize').checked;
+                const sharpen = document.getElementById('sharpen').checked;
                 
                 // تحويل إلى تدرج الرمادي
                 if (grayscale) {
@@ -1024,8 +1214,58 @@
                     }
                 }
                 
-                // وضع البيانات المعالجة مرة أخرى
-                ctx.putImageData(imageData, 0, 0);
+                // حادة الحواف
+                if (sharpen) {
+                    const weights = [
+                        0, -1, 0,
+                        -1, 5, -1,
+                        0, -1, 0
+                    ];
+                    const side = Math.round(Math.sqrt(weights.length));
+                    const halfSide = Math.floor(side / 2);
+                    
+                    const src = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const sw = src.width;
+                    const sh = src.height;
+                    const w = sw;
+                    const h = sh;
+                    const output = ctx.createImageData(w, h);
+                    const dst = output.data;
+                    
+                    for (let y = 0; y < h; y++) {
+                        for (let x = 0; x < w; x++) {
+                            const sy = y;
+                            const sx = x;
+                            const dstOff = (y * w + x) * 4;
+                            let r = 0, g = 0, b = 0;
+                            
+                            for (let cy = 0; cy < side; cy++) {
+                                for (let cx = 0; cx < side; cx++) {
+                                    const scy = sy + cy - halfSide;
+                                    const scx = sx + cx - halfSide;
+                                    
+                                    if (scy >= 0 && scy < sh && scx >= 0 && scx < sw) {
+                                        const srcOff = (scy * sw + scx) * 4;
+                                        const wt = weights[cy * side + cx];
+                                        r += src.data[srcOff] * wt;
+                                        g += src.data[srcOff + 1] * wt;
+                                        b += src.data[srcOff + 2] * wt;
+                                    }
+                                }
+                            }
+                            
+                            dst[dstOff] = Math.min(255, Math.max(0, r));
+                            dst[dstOff + 1] = Math.min(255, Math.max(0, g));
+                            dst[dstOff + 2] = Math.min(255, Math.max(0, b));
+                            dst[dstOff + 3] = 255;
+                        }
+                    }
+                    
+                    ctx.putImageData(output, 0, 0);
+                } else {
+                    // وضع البيانات المعالجة مرة أخرى
+                    ctx.putImageData(imageData, 0, 0);
+                }
                 
                 // تحويل canvas إلى data URL
                 resolve(canvas.toDataURL());
@@ -1035,6 +1275,9 @@
     }
     
     function extractNationalID(text) {
+        // تحويل الأرقام العربية إلى أرقام إنجليزية
+        text = convertArabicNumbersToEnglish(text);
+        
         // إزالة المسافات والأسطر الجديدة والأحرف غير الرقمية
         const cleanedText = text.replace(/\s/g, '').replace(/\D/g, '');
         
@@ -1069,6 +1312,16 @@
                         return potentialID;
                     }
                 }
+            }
+        }
+        
+        // محاولة أخرى: البحث عن أنماط شائعة للرقم القومي
+        // مثل: 290 0101 12345 67 (مجموعات من الأرقام)
+        const patternMatch = text.match(/(\d{3})\s*(\d{4})\s*(\d{5})\s*(\d{2})/);
+        if (patternMatch) {
+            const potentialID = patternMatch[1] + patternMatch[2] + patternMatch[3] + patternMatch[4];
+            if (potentialID.length === 14 && (potentialID[0] === '2' || potentialID[0] === '3')) {
+                return potentialID;
             }
         }
         
@@ -1241,40 +1494,80 @@
             document.getElementById("statusMessage").style.display = "block";
             
             preprocessImage(canvas.toDataURL()).then(processedImageSrc => {
-                // استخدام Tesseract للتعرف على النص في الصورة المعالجة
-                Tesseract.recognize(
-                    processedImageSrc,
-                    currentLanguage === 'ar' ? 'ara' : 'eng',
-                    {
-                        logger: m => {
-                            if (m.status === "recognizing text") {
-                                const progress = Math.round(m.progress * 100);
-                                document.getElementById("progressBar").style.width = progress + "%";
+                const ocrEngine = document.getElementById('ocrEngine').value;
+                
+                if (ocrEngine === 'tesseract') {
+                    // استخدام Tesseract للتعرف على النص في الصورة المعالجة
+                    Tesseract.recognize(
+                        processedImageSrc,
+                        currentLanguage === 'ar' ? 'ara' : 'eng',
+                        {
+                            logger: m => {
+                                if (m.status === "recognizing text") {
+                                    const progress = Math.round(m.progress * 100);
+                                    document.getElementById("progressBar").style.width = progress + "%";
+                                }
                             }
                         }
-                    }
-                ).then(({ data: { text } }) => {
-                    document.getElementById("progressBar").style.width = "100%";
-                    document.getElementById("statusMessage").textContent = lang.extractingText;
-                    
-                    // استخراج الرقم القومي من النص
-                    const extractedID = extractNationalID(text);
-                    
-                    if (extractedID) {
-                        extractedNationalID = extractedID;
-                        document.getElementById("extractedId").textContent = lang.extractedID + " " + extractedID;
-                        document.getElementById("extractedId").style.display = "block";
-                        document.getElementById("analyzeFromImageBtn").style.display = "block";
-                        document.getElementById("statusMessage").style.display = "none";
-                    } else {
-                        document.getElementById("statusMessage").textContent = lang.noIDFound;
+                    ).then(({ data: { text } }) => {
+                        document.getElementById("progressBar").style.width = "100%";
+                        document.getElementById("statusMessage").textContent = lang.extractingText;
+                        
+                        // عرض النتائج الخام إذا تم تحديده
+                        if (document.getElementById('showRawResults').checked) {
+                            document.getElementById('rawText').value = text;
+                            document.getElementById('rawResults').style.display = 'block';
+                        }
+                        
+                        // استخراج الرقم القومي من النص
+                        const extractedID = extractNationalID(text);
+                        
+                        if (extractedID) {
+                            extractedNationalID = extractedID;
+                            document.getElementById("extractedId").textContent = lang.extractedID + " " + extractedID;
+                            document.getElementById("extractedId").style.display = "block";
+                            document.getElementById("analyzeFromImageBtn").style.display = "block";
+                            document.getElementById("statusMessage").style.display = "none";
+                        } else {
+                            document.getElementById("statusMessage").textContent = lang.noIDFound;
+                            document.getElementById("statusMessage").style.color = "#ff6b6b";
+                        }
+                    }).catch(err => {
+                        console.error(err);
+                        document.getElementById("statusMessage").textContent = "Error processing image: " + err.message;
                         document.getElementById("statusMessage").style.color = "#ff6b6b";
-                    }
-                }).catch(err => {
-                    console.error(err);
-                    document.getElementById("statusMessage").textContent = "Error processing image: " + err.message;
-                    document.getElementById("statusMessage").style.color = "#ff6b6b";
-                });
+                    });
+                } else if (ocrEngine === 'hybrid') {
+                    // استخدام المحرك الهجين للغة العربية
+                    hybridOCR(processedImageSrc).then(text => {
+                        document.getElementById("progressBar").style.width = "100%";
+                        document.getElementById("statusMessage").textContent = lang.extractingText;
+                        
+                        // عرض النتائج الخام إذا تم تحديده
+                        if (document.getElementById('showRawResults').checked) {
+                            document.getElementById('rawText').value = text;
+                            document.getElementById('rawResults').style.display = 'block';
+                        }
+                        
+                        // استخراج الرقم القومي من النص
+                        const extractedID = extractNationalID(text);
+                        
+                        if (extractedID) {
+                            extractedNationalID = extractedID;
+                            document.getElementById("extractedId").textContent = lang.extractedID + " " + extractedID;
+                            document.getElementById("extractedId").style.display = "block";
+                            document.getElementById("analyzeFromImageBtn").style.display = "block";
+                            document.getElementById("statusMessage").style.display = "none";
+                        } else {
+                            document.getElementById("statusMessage").textContent = lang.noIDFound;
+                            document.getElementById("statusMessage").style.color = "#ff6b6b";
+                        }
+                    }).catch(err => {
+                        console.error(err);
+                        document.getElementById("statusMessage").textContent = "Error processing image: " + err.message;
+                        document.getElementById("statusMessage").style.color = "#ff6b6b";
+                    });
+                }
             });
         };
         img.src = originalImageSrc;
