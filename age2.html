@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌍 محلل الرقم القومي</title>
+    <title>🌍 محلل الرقم القومي  </title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;700&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
@@ -16,6 +16,8 @@
             --success: #10b981;
             --warning: #f59e0b;
             --danger: #ef4444;
+            --islamic-green: #00a651;
+            --islamic-gold: #d4af37;
             --light: #f8fafc;
             --dark: #0f172a;
             --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -26,6 +28,7 @@
             --gradient-6: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
             --gradient-7: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
             --gradient-8: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            --gradient-islamic: linear-gradient(135deg, #00a651 0%, #d4af37 100%);
             --shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
             --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         }
@@ -46,7 +49,7 @@
             position: relative;
         }
 
-        /* خلفية متحركة متقدمة */
+        /* خلفية إسلامية متحركة */
         body::before {
             content: '';
             position: fixed;
@@ -55,9 +58,9 @@
             width: 100%;
             height: 100%;
             background: 
-                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
+                radial-gradient(circle at 20% 80%, rgba(0, 166, 81, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(212, 175, 55, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.1) 0%, transparent 50%);
             z-index: -1;
             animation: backgroundMove 20s ease infinite;
         }
@@ -84,7 +87,7 @@
             font-family: 'El Messiri', sans-serif;
             font-size: 4rem;
             font-weight: 900;
-            background: var(--gradient-2);
+            background: var(--gradient-islamic);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -94,8 +97,8 @@
         }
 
         @keyframes glow {
-            from { filter: drop-shadow(0 0 20px rgba(240, 147, 251, 0.5)); }
-            to { filter: drop-shadow(0 0 30px rgba(245, 87, 108, 0.8)); }
+            from { filter: drop-shadow(0 0 20px rgba(0, 166, 81, 0.5)); }
+            to { filter: drop-shadow(0 0 30px rgba(212, 175, 55, 0.8)); }
         }
 
         .subtitle {
@@ -131,7 +134,7 @@
             left: 0;
             right: 0;
             height: 8px;
-            background: var(--gradient-2);
+            background: var(--gradient-islamic);
             animation: gradientShift 3s ease infinite;
         }
 
@@ -373,7 +376,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23667eea" fill-opacity="0.05" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,133.3C960,128,1056,96,1152,90.7C1248,85,1344,107,1392,117.3L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom center;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%2300a651" fill-opacity="0.05" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,133.3C960,128,1056,96,1152,90.7C1248,85,1344,107,1392,117.3L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom center;
             background-size: cover;
             z-index: -1;
         }
@@ -384,14 +387,14 @@
             align-items: center;
             margin-bottom: 40px;
             padding-bottom: 25px;
-            border-bottom: 3px solid rgba(102, 126, 234, 0.1);
+            border-bottom: 3px solid rgba(0, 166, 81, 0.1);
         }
 
         .result-title {
             font-family: 'El Messiri', sans-serif;
             font-size: 2.5rem;
             font-weight: 700;
-            background: var(--gradient-1);
+            background: var(--gradient-islamic);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -432,10 +435,10 @@
         }
 
         .action-btn:hover {
-            background: var(--primary);
+            background: var(--islamic-green);
             color: white;
             transform: scale(1.1) rotate(5deg);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 10px 25px rgba(0, 166, 81, 0.4);
         }
 
         .result-grid {
@@ -453,7 +456,7 @@
             position: relative;
             overflow: hidden;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-            border: 1px solid rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(0, 166, 81, 0.1);
         }
 
         .result-item::before {
@@ -463,7 +466,7 @@
             right: 0;
             width: 6px;
             height: 100%;
-            background: var(--gradient-2);
+            background: var(--gradient-islamic);
             transition: width 0.3s ease;
         }
 
@@ -489,7 +492,7 @@
         .result-label i {
             margin-left: 12px;
             font-size: 1.2rem;
-            color: var(--primary);
+            color: var(--islamic-green);
         }
 
         .result-value {
@@ -509,12 +512,229 @@
             text-shadow: 0 0 20px rgba(236, 72, 153, 0.3);
         }
 
+        .islamic-section {
+            background: linear-gradient(135deg, rgba(0, 166, 81, 0.05), rgba(212, 175, 55, 0.05));
+            border-radius: 30px;
+            padding: 40px;
+            margin: 30px 0;
+            border: 2px solid rgba(0, 166, 81, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .islamic-section::before {
+            content: '﷽';
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            font-size: 3rem;
+            color: rgba(0, 166, 81, 0.1);
+            font-family: 'El Messiri', sans-serif;
+        }
+
+        .islamic-section h3 {
+            font-family: 'El Messiri', sans-serif;
+            font-size: 2rem;
+            margin-bottom: 30px;
+            background: var(--gradient-islamic);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .islamic-section h3 i {
+            margin-left: 15px;
+            font-size: 1.8rem;
+            animation: sparkle 2s ease-in-out infinite;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 1; transform: scale(1) rotate(0deg); }
+            50% { opacity: 0.7; transform: scale(1.1) rotate(180deg); }
+        }
+
+        .islamic-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .islamic-item {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(0, 166, 81, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .islamic-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-islamic);
+        }
+
+        .islamic-item:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .islamic-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--gradient-islamic);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 1.8rem;
+            color: white;
+            box-shadow: 0 10px 25px rgba(0, 166, 81, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .islamic-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--islamic-green);
+            margin-bottom: 10px;
+            font-family: 'El Messiri', sans-serif;
+        }
+
+        .islamic-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark);
+            font-family: 'El Messiri', sans-serif;
+            line-height: 1.4;
+        }
+
+        .quran-verse {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(0, 166, 81, 0.1));
+            border-radius: 20px;
+            padding: 30px;
+            margin: 20px 0;
+            text-align: center;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            position: relative;
+        }
+
+        .quran-verse::before {
+            content: '﴿';
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 2rem;
+            color: rgba(212, 175, 55, 0.3);
+        }
+
+        .quran-verse::after {
+            content: '﴾';
+            position: absolute;
+            bottom: 10px;
+            left: 20px;
+            font-size: 2rem;
+            color: rgba(212, 175, 55, 0.3);
+        }
+
+        .verse-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--islamic-gold);
+            font-family: 'El Messiri', sans-serif;
+            line-height: 1.8;
+            margin-bottom: 10px;
+        }
+
+        .verse-reference {
+            font-size: 1rem;
+            color: var(--islamic-green);
+            font-weight: 600;
+        }
+
+        .hadith {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 25px;
+            margin: 20px 0;
+            border-right: 4px solid var(--islamic-green);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        .hadith-text {
+            font-size: 1.1rem;
+            color: var(--dark);
+            font-weight: 600;
+            line-height: 1.6;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+
+        .hadith-reference {
+            font-size: 0.9rem;
+            color: var(--islamic-green);
+            font-weight: 700;
+            text-align: left;
+        }
+
+        .prayer-times {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .prayer-time {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .prayer-time:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .prayer-name {
+            font-size: 1rem;
+            color: var(--islamic-green);
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .prayer-hour {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
         .additional-info {
             background: linear-gradient(135deg, rgba(248, 250, 252, 0.9), rgba(255, 255, 255, 0.9));
             border-radius: 30px;
             padding: 40px;
             box-shadow: inset 0 2px 15px rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(0, 166, 81, 0.1);
         }
 
         .additional-info h3 {
@@ -535,11 +755,6 @@
             animation: sparkle 2s ease-in-out infinite;
         }
 
-        @keyframes sparkle {
-            0%, 100% { opacity: 1; transform: scale(1) rotate(0deg); }
-            50% { opacity: 0.7; transform: scale(1.1) rotate(180deg); }
-        }
-
         .info-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -554,7 +769,7 @@
             border-radius: 20px;
             transition: all 0.3s ease;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-            border: 1px solid rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(0, 166, 81, 0.1);
         }
 
         .info-item:hover {
@@ -622,6 +837,44 @@
             font-family: 'El Messiri', sans-serif;
         }
 
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.9));
+            padding: 25px;
+            border-radius: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(0, 166, 81, 0.1);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: var(--gradient-islamic);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: #64748b;
+            font-weight: 600;
+        }
+
         .toast {
             position: fixed;
             bottom: 50px;
@@ -683,160 +936,13 @@
         }
 
         .footer i {
-            color: var(--accent);
+            color: var(--islamic-gold);
             animation: heartbeat 1.5s ease-in-out infinite;
         }
 
         @keyframes heartbeat {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.3); }
-        }
-
-        /* ميزات جديدة */
-        .stats-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
-        }
-
-        .stat-card {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.9));
-            padding: 25px;
-            border-radius: 20px;
-            text-align: center;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-            border: 1px solid rgba(102, 126, 234, 0.1);
-        }
-
-        .stat-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-        }
-
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: 900;
-            background: var(--gradient-1);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 10px;
-        }
-
-        .stat-label {
-            font-size: 1rem;
-            color: #64748b;
-            font-weight: 600;
-        }
-
-        .timeline {
-            position: relative;
-            margin: 40px 0;
-            padding: 20px 0;
-        }
-
-        .timeline::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 50%;
-            width: 4px;
-            height: 100%;
-            background: var(--gradient-1);
-            transform: translateX(50%);
-        }
-
-        .timeline-item {
-            position: relative;
-            margin: 30px 0;
-        }
-
-        .timeline-content {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 25px;
-            border-radius: 20px;
-            width: 45%;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-            transition: all 0.3s ease;
-        }
-
-        .timeline-item:nth-child(odd) .timeline-content {
-            margin-right: auto;
-        }
-
-        .timeline-item:nth-child(even) .timeline-content {
-            margin-left: auto;
-        }
-
-        .timeline-content:hover {
-            transform: scale(1.05);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
-        }
-
-        .timeline-dot {
-            position: absolute;
-            top: 30px;
-            right: 50%;
-            width: 20px;
-            height: 20px;
-            background: var(--gradient-2);
-            border-radius: 50%;
-            transform: translateX(50%);
-            box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.5);
-        }
-
-        .progress-container {
-            margin: 30px 0;
-        }
-
-        .progress-label {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            font-weight: 600;
-        }
-
-        .progress-bar {
-            height: 15px;
-            background: #e2e8f0;
-            border-radius: 10px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: var(--gradient-1);
-            border-radius: 10px;
-            transition: width 1s ease;
-            position: relative;
-        }
-
-        .progress-fill::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            animation: shimmer 2s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-
-        .chart-container {
-            margin: 30px 0;
-            height: 300px;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
         }
 
         @keyframes fadeIn {
@@ -888,17 +994,12 @@
                 grid-template-columns: 1fr;
             }
             
-            .timeline::before {
-                right: 20px;
+            .islamic-grid {
+                grid-template-columns: 1fr;
             }
             
-            .timeline-content {
-                width: calc(100% - 60px);
-                margin-right: 60px !important;
-            }
-            
-            .timeline-dot {
-                right: 20px;
+            .prayer-times {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
     </style>
@@ -914,7 +1015,7 @@
     <div class="container">
         <header>
             <h1><i class="fas fa-id-card"></i> محلل الرقم القومي  </h1>
-            <p class="subtitle">     </p>
+          
         </header>
 
         <main class="main-grid">
@@ -980,7 +1081,7 @@
     </div>
 
     <footer class="footer">
-        <p>© 2025 محلل الرقم القومي المصري  <i class="fas fa-heart"></i>  <a href="#"> </a></p>
+        <p>© 2025 محلل الرقم القومي   | صمم في  <i class="fas fa-heart"></i> بواسطة <a href="#"> </a></p>
     </footer>
 
     <div class="toast" id="toast">
@@ -988,7 +1089,6 @@
         <span id="toastMessage">تم بنجاح!</span>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         const languageTexts = {
             ar: {
@@ -1001,7 +1101,7 @@
                 dateDiffBtn: "احسب الفرق",
                 idError: "الرقم القومي يجب أن يتكون من 14 رقمًا فقط!",
                 dateError: "تاريخ غير صحيح! يرجى استخدام الصيغة (يوم-شهر-سنة)",
-                resultsTitle: "نتائج التحليل الاحترافية",
+                resultsTitle: "نتائج التحليل الإسلامية",
                 birthDate: "تاريخ الميلاد",
                 age: "العمر",
                 gender: "الجنس",
@@ -1021,11 +1121,14 @@
                 totalHours: "إجمالي الساعات",
                 totalMinutes: "إجمالي الدقائق",
                 totalSeconds: "إجمالي الثواني",
-                lifeProgress: "مراحل حياتك",
-                nextMilestone: "المعلم القادم",
-                ageInHours: "عمرك بالساعات",
-                ageInMinutes: "عمرك بالدقائق",
-                ageInSeconds: "عمرك بالثواني",
+                hijriDate: "التاريخ الهجري",
+                hijriAge: "العمر الهجري",
+                islamicName: "الاسم الإسلامي",
+                prayerTimes: "مواقيت الصلاة اليوم",
+                quranVerse: "آية قرآنية",
+                hadith: "حديث شريف",
+                zakat: "الزكاة",
+                fasting: "الصيام",
                 governorates: {
                     "01": "القاهرة", "02": "الإسكندرية", "03": "بورسعيد", "04": "السويس", 
                     "11": "دمياط", "12": "الدقهلية", "13": "الشرقية", "14": "القليوبية", 
@@ -1048,17 +1151,23 @@
                     "07": "الصيف", "08": "الصيف", "09": "الخريف", "10": "الخريف", "11": "الخريف", "12": "الشتاء"
                 },
                 weekdays: ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"],
-                milestones: [
-                    { age: 0, title: "الولادة", icon: "fas fa-baby" },
-                    { age: 6, title: "المرحلة الابتدائية", icon: "fas fa-school" },
-                    { age: 12, title: "المرحلة الإعدادية", icon: "fas fa-graduation-cap" },
-                    { age: 18, title: "الجامعة", icon: "fas fa-university" },
-                    { age: 25, title: "بداية الحياة المهنية", icon: "fas fa-briefcase" },
-                    { age: 30, title: "الاستقرار المهني", icon: "fas fa-chart-line" },
-                    { age: 40, title: "ذروة النجاح", icon: "fas fa-trophy" },
-                    { age: 50, title: "الحكمة والخبرة", icon: "fas fa-brain" },
-                    { age: 60, title: "التقاعد", icon: "fas fa-umbrella-beach" },
-                    { age: 70, title: "الجيل الذهبي", icon: "fas fa-crown" }
+                islamicNames: {
+                    male: ["أحمد", "محمد", "عبدالله", "إبراهيم", "إسماعيل", "يوسف", "عمر", "علي", "حسن", "حسين", "محمود", "عبدالرحمن", "عبدالرحيم", "عبدالكريم", "عبدالملك", "عبدالعزيز", "خالد", "سعد", "طارق", "فهد", "نايف", "فيصل", "سلطان", "تميم", "مشاري"],
+                    female: ["فاطمة", "عائشة", "خديجة", "مريم", "سارة", "هاجر", "صفية", "زينب", "رقيّة", "نورا", "ليلى", "سمر", "هند", "أميرة", "ناديا", "مي", "سارة", "إيمان", "نورهان", "دعاء", "رحمة", "شيماء", "أمل", "إسراء", "يسراء", "عائشة"]
+                },
+                quranVerses: [
+                    { text: "وَمَا خَلَقْتُ الْجِنَّ وَالْإِنسَ إِلَّا لِيَعْبُدُونِ", reference: "سورة الذاريات: 56" },
+                    { text: "يَا أَيُّهَا النَّاسُ إِنَّا خَلَقْنَاكُمْ مِنْ ذَكَرٍ وَأُنْثَىٰ", reference: "سورة الحجرات: 13" },
+                    { text: "وَلَقَدْ كَرَّمْنَا بَنِي آدَمَ", reference: "سورة الإسراء: 70" },
+                    { text: "وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُمْ مِنْ أَنْفُسِكُمْ أَزْوَاجًا", reference: "سورة الروم: 21" },
+                    { text: "كُلُّ نَفْسٍ ذَائِقَةُ الْمَوْتِ", reference: "سورة آل عمران: 185" }
+                ],
+                hadiths: [
+                    { text: "إنما الأعمال بالنيات، وإنما لكل امرئ ما نوى", reference: "متفق عليه" },
+                    { text: "خيركم من تعلم القرآن وعلمه", reference: "البخاري" },
+                    { text: "لا يؤمن أحدكم حتى أكون أحب إليه من والده وولده والناس أجمعين", reference: "البخاري" },
+                    { text: "الراحمون يرحمهم الرحمن، ارحموا من في الأرض يرحمكم من في السماء", reference: "أبو داود والترمذي" },
+                    { text: "إن الله جميل يحب الجمال", reference: "مسلم" }
                 ]
             },
             en: {
@@ -1071,7 +1180,7 @@
                 dateDiffBtn: "Calculate Difference",
                 idError: "National ID must be exactly 14 digits!",
                 dateError: "Invalid date! Please use format (DD-MM-YYYY)",
-                resultsTitle: "Professional Analysis Results",
+                resultsTitle: "Islamic Analysis Results",
                 birthDate: "Birth Date",
                 age: "Age",
                 gender: "Gender",
@@ -1091,11 +1200,14 @@
                 totalHours: "Total Hours",
                 totalMinutes: "Total Minutes",
                 totalSeconds: "Total Seconds",
-                lifeProgress: "Life Progress",
-                nextMilestone: "Next Milestone",
-                ageInHours: "Age in Hours",
-                ageInMinutes: "Age in Minutes",
-                ageInSeconds: "Age in Seconds",
+                hijriDate: "Hijri Date",
+                hijriAge: "Hijri Age",
+                islamicName: "Islamic Name",
+                prayerTimes: "Today's Prayer Times",
+                quranVerse: "Quran Verse",
+                hadith: "Hadith",
+                zakat: "Zakat",
+                fasting: "Fasting",
                 governorates: {
                     "01": "Cairo", "02": "Alexandria", "03": "Port Said", "04": "Suez", 
                     "11": "Damietta", "12": "Dakahlia", "13": "Sharqia", "14": "Qalyubia", 
@@ -1118,24 +1230,29 @@
                     "07": "Summer", "08": "Summer", "09": "Autumn", "10": "Autumn", "11": "Autumn", "12": "Winter"
                 },
                 weekdays: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-                milestones: [
-                    { age: 0, title: "Birth", icon: "fas fa-baby" },
-                    { age: 6, title: "Primary School", icon: "fas fa-school" },
-                    { age: 12, title: "Middle School", icon: "fas fa-graduation-cap" },
-                    { age: 18, title: "University", icon: "fas fa-university" },
-                    { age: 25, title: "Career Start", icon: "fas fa-briefcase" },
-                    { age: 30, title: "Career Stability", icon: "fas fa-chart-line" },
-                    { age: 40, title: "Peak Success", icon: "fas fa-trophy" },
-                    { age: 50, title: "Wisdom & Experience", icon: "fas fa-brain" },
-                    { age: 60, title: "Retirement", icon: "fas fa-umbrella-beach" },
-                    { age: 70, title: "Golden Years", icon: "fas fa-crown" }
+                islamicNames: {
+                    male: ["Ahmad", "Muhammad", "Abdullah", "Ibrahim", "Ismail", "Yusuf", "Umar", "Ali", "Hasan", "Hussein", "Mahmoud", "Abdulrahman", "Abdulrahim", "Abdulkarim", "Abdulmalik", "Abdulaziz", "Khalid", "Saad", "Tariq", "Fahd", "Nayef", "Faisal", "Sultan", "Tamim", "Mashari"],
+                    female: ["Fatima", "Aisha", "Khadija", "Maryam", "Sarah", "Hajar", "Safiya", "Zainab", "Ruqayyah", "Nora", "Layla", "Samar", "Hind", "Amira", "Nadia", "Mai", "Sarah", "Iman", "Nourhan", "Dua", "Rahma", "Shaimaa", "Amal", "Israa", "Yasraa", "Aisha"]
+                },
+                quranVerses: [
+                    { text: "And I did not create the jinn and mankind except to worship Me", reference: "Surah Adh-Dhariyat: 56" },
+                    { text: "O mankind, indeed We have created you from male and female", reference: "Surah Al-Hujurat: 13" },
+                    { text: "And We have certainly honored the children of Adam", reference: "Surah Al-Isra: 70" },
+                    { text: "And of His signs is that He created for you from yourselves mates", reference: "Surah Ar-Rum: 21" },
+                    { text: "Every soul will taste death", reference: "Surah Ali 'Imran: 185" }
+                ],
+                hadiths: [
+                    { text: "Actions are judged by intentions, and every person will have what they intended", reference: "Agreed upon" },
+                    { text: "The best among you is he who learns the Quran and teaches it", reference: "Bukhari" },
+                    { text: "None of you truly believes until I am more beloved to him than his father, his children, and all people", reference: "Bukhari" },
+                    { text: "The merciful will be shown mercy by the Most Merciful. Be merciful to those on earth, and He who is in heaven will have mercy upon you", reference: "Abu Dawud and Tirmidhi" },
+                    { text: "Indeed, Allah is beautiful and loves beauty", reference: "Muslim" }
                 ]
             }
         };
 
         let currentLanguage = "ar";
         let currentResults = null;
-        let chartInstance = null;
 
         function changeLanguage() {
             currentLanguage = document.getElementById("language").value;
@@ -1279,8 +1396,19 @@
             // الحصول على يوم الأسبوع
             const weekday = lang.weekdays[birthDate.getDay()];
             
-            // تحديد المعلم القادم
-            const nextMilestone = getNextMilestone(ageYears, lang.milestones);
+            // حساب التاريخ الهجري
+            const hijriDate = convertToHijri(birthDate);
+            const hijriAge = calculateHijriAge(birthDate, today);
+            
+            // اختيار اسم إسلامي عشوائي
+            const islamicName = getRandomIslamicName(gender, lang.islamicNames);
+            
+            // اختيار آية قرآنية وحديث عشوائي
+            const quranVerse = lang.quranVerses[Math.floor(Math.random() * lang.quranVerses.length)];
+            const hadith = lang.hadiths[Math.floor(Math.random() * lang.hadiths.length)];
+            
+            // حساب مواقيت الصلاة التقريبية
+            const prayerTimes = calculatePrayerTimes(today);
             
             currentResults = {
                 type: 'nationalID',
@@ -1299,8 +1427,12 @@
                     totalHours: totalHours,
                     totalMinutes: totalMinutes,
                     totalSeconds: totalSeconds,
-                    nextMilestone: nextMilestone,
-                    ageYears: ageYears
+                    hijriDate: hijriDate,
+                    hijriAge: hijriAge,
+                    islamicName: islamicName,
+                    quranVerse: quranVerse,
+                    hadith: hadith,
+                    prayerTimes: prayerTimes
                 }
             };
             
@@ -1353,8 +1485,19 @@
             // الحصول على يوم الأسبوع
             const weekday = lang.weekdays[birthDate.getDay()];
             
-            // تحديد المعلم القادم
-            const nextMilestone = getNextMilestone(ageYears, lang.milestones);
+            // حساب التاريخ الهجري
+            const hijriDate = convertToHijri(birthDate);
+            const hijriAge = calculateHijriAge(birthDate, today);
+            
+            // اختيار اسم إسلامي عشوائي
+            const islamicName = getRandomIslamicName(null, lang.islamicNames);
+            
+            // اختيار آية قرآنية وحديث عشوائي
+            const quranVerse = lang.quranVerses[Math.floor(Math.random() * lang.quranVerses.length)];
+            const hadith = lang.hadiths[Math.floor(Math.random() * lang.hadiths.length)];
+            
+            // حساب مواقيت الصلاة التقريبية
+            const prayerTimes = calculatePrayerTimes(today);
             
             currentResults = {
                 type: 'age',
@@ -1371,8 +1514,12 @@
                     totalHours: totalHours,
                     totalMinutes: totalMinutes,
                     totalSeconds: totalSeconds,
-                    nextMilestone: nextMilestone,
-                    ageYears: ageYears
+                    hijriDate: hijriDate,
+                    hijriAge: hijriAge,
+                    islamicName: islamicName,
+                    quranVerse: quranVerse,
+                    hadith: hadith,
+                    prayerTimes: prayerTimes
                 }
             };
             
@@ -1430,6 +1577,10 @@
             const startWeekday = lang.weekdays[startDate.getDay()];
             const endWeekday = lang.weekdays[endDate.getDay()];
             
+            // حساب التاريخ الهجري للتاريخين
+            const hijriStart = convertToHijri(startDate);
+            const hijriEnd = convertToHijri(endDate);
+            
             currentResults = {
                 type: 'dateDiff',
                 data: {
@@ -1441,7 +1592,9 @@
                     totalDays: diffDays,
                     totalHours: diffHours,
                     totalMinutes: diffMinutes,
-                    totalSeconds: diffSeconds
+                    totalSeconds: diffSeconds,
+                    hijriStart: hijriStart,
+                    hijriEnd: hijriEnd
                 }
             };
             
@@ -1536,31 +1689,77 @@
                         </div>
                     </div>
                     
-                    <!-- شريط تقدم الحياة -->
-                    <div class="progress-container">
-                        <div class="progress-label">
-                            <span>${lang.lifeProgress}</span>
-                            <span>${Math.round((results.data.ageYears / 80) * 100)}%</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: ${(results.data.ageYears / 80) * 100}%"></div>
-                        </div>
-                    </div>
-                    
-                    <!-- الرسم البياني -->
-                    <div class="chart-container">
-                        <canvas id="ageChart"></canvas>
-                    </div>
-                    
-                    <!-- الجدول الزمني -->
-                    <div class="timeline">
-                        <div class="timeline-item">
-                            <div class="timeline-dot"></div>
-                            <div class="timeline-content">
-                                <h4><i class="${results.data.nextMilestone.icon}"></i> ${lang.nextMilestone}</h4>
-                                <p>${results.data.nextMilestone.title} (${results.data.nextMilestone.age} ${currentLanguage === 'ar' ? 'سنة' : 'years'})</p>
+                    <!-- القسم الإسلامي -->
+                    <div class="islamic-section">
+                        <h3>
+                            <i class="fas fa-moon"></i>
+                            ${currentLanguage === 'ar' ? 'معلومات إسلامية' : 'Islamic Information'}
+                        </h3>
+                        <div class="islamic-grid">
+                            <div class="islamic-item">
+                                <div class="islamic-icon">
+                                    <i class="fas fa-calendar-alt"></i>
+                                </div>
+                                <div class="islamic-title">${lang.hijriDate}</div>
+                                <div class="islamic-value">${results.data.hijriDate}</div>
+                            </div>
+                            <div class="islamic-item">
+                                <div class="islamic-icon">
+                                    <i class="fas fa-hourglass-half"></i>
+                                </div>
+                                <div class="islamic-title">${lang.hijriAge}</div>
+                                <div class="islamic-value">${results.data.hijriAge}</div>
+                            </div>
+                            <div class="islamic-item">
+                                <div class="islamic-icon">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="islamic-title">${lang.islamicName}</div>
+                                <div class="islamic-value">${results.data.islamicName}</div>
+                            </div>
+                            <div class="islamic-item">
+                                <div class="islamic-icon">
+                                    <i class="fas fa-pray"></i>
+                                </div>
+                                <div class="islamic-title">${lang.prayerTimes}</div>
+                                <div class="islamic-value">
+                                    <div class="prayer-times">
+                                        <div class="prayer-time">
+                                            <div class="prayer-name">الفجر</div>
+                                            <div class="prayer-hour">${results.data.prayerTimes.fajr}</div>
+                                        </div>
+                                        <div class="prayer-time">
+                                            <div class="prayer-name">الظهر</div>
+                                            <div class="prayer-hour">${results.data.prayerTimes.dhuhr}</div>
+                                        </div>
+                                        <div class="prayer-time">
+                                            <div class="prayer-name">العصر</div>
+                                            <div class="prayer-hour">${results.data.prayerTimes.asr}</div>
+                                        </div>
+                                        <div class="prayer-time">
+                                            <div class="prayer-name">المغرب</div>
+                                            <div class="prayer-hour">${results.data.prayerTimes.maghrib}</div>
+                                        </div>
+                                        <div class="prayer-time">
+                                            <div class="prayer-name">العشاء</div>
+                                            <div class="prayer-hour">${results.data.prayerTimes.isha}</div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+                    </div>
+                    
+                    <!-- آية قرآنية -->
+                    <div class="quran-verse">
+                        <div class="verse-text">${results.data.quranVerse.text}</div>
+                        <div class="verse-reference">${results.data.quranVerse.reference}</div>
+                    </div>
+                    
+                    <!-- حديث شريف -->
+                    <div class="hadith">
+                        <div class="hadith-text">"${results.data.hadith.text}"</div>
+                        <div class="hadith-reference">${results.data.hadith.reference}</div>
                     </div>
                     
                     <div class="additional-info">
@@ -1641,6 +1840,30 @@
                         </div>
                     </div>
                     
+                    <!-- التواريخ الهجرية -->
+                    <div class="islamic-section">
+                        <h3>
+                            <i class="fas fa-calendar-alt"></i>
+                            ${currentLanguage === 'ar' ? 'التواريخ الهجرية' : 'Hijri Dates'}
+                        </h3>
+                        <div class="islamic-grid">
+                            <div class="islamic-item">
+                                <div class="islamic-icon">
+                                    <i class="fas fa-calendar-day"></i>
+                                </div>
+                                <div class="islamic-title">${currentLanguage === 'ar' ? 'التاريخ الأول الهجري' : 'First Hijri Date'}</div>
+                                <div class="islamic-value">${results.data.hijriStart}</div>
+                            </div>
+                            <div class="islamic-item">
+                                <div class="islamic-icon">
+                                    <i class="fas fa-calendar-day"></i>
+                                </div>
+                                <div class="islamic-title">${currentLanguage === 'ar' ? 'التاريخ الثاني الهجري' : 'Second Hijri Date'}</div>
+                                <div class="islamic-value">${results.data.hijriEnd}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- إحصائيات الفرق -->
                     <div class="stats-container">
                         <div class="stat-card">
@@ -1667,103 +1890,68 @@
             container.innerHTML = html;
             container.style.display = 'block';
             
-            // إنشاء الرسم البياني
-            if (results.type === 'nationalID' || results.type === 'age') {
-                createAgeChart(results.data);
-            }
-            
             // التمرير إلى النتائج
             container.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        function createAgeChart(data) {
-            const ctx = document.getElementById('ageChart').getContext('2d');
+        function convertToHijri(date) {
+            // تقدير للتاريخ الهجري (هذا تقدير وليس تحويل دقيق)
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
             
-            // تدمج الرسم البياني القديم إذا كان موجودًا
-            if (chartInstance) {
-                chartInstance.destroy();
-            }
+            // حساب تقريبي للسنة الهجرية
+            const hijriYear = Math.floor((year - 622) * 1.0307) + 1;
             
-            const lang = languageTexts[currentLanguage];
+            // أشهر هجرية تقريبية
+            const hijriMonths = [
+                "محرم", "صفر", "ربيع الأول", "ربيع الآخر", "جمادى الأولى", "جمادى الآخرة",
+                "رجب", "شعبان", "رمضان", "شوال", "ذو القعدة", "ذو الحجة"
+            ];
             
-            chartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: [
-                        lang.totalDays,
-                        lang.totalHours,
-                        lang.totalMinutes,
-                        lang.totalSeconds
-                    ],
-                    datasets: [{
-                        label: lang.age,
-                        data: [
-                            data.totalDays,
-                            data.totalHours / 24,
-                            data.totalMinutes / 60,
-                            data.totalSeconds / 60
-                        ],
-                        backgroundColor: [
-                            'rgba(102, 126, 234, 0.8)',
-                            'rgba(240, 147, 251, 0.8)',
-                            'rgba(79, 172, 254, 0.8)',
-                            'rgba(67, 233, 123, 0.8)'
-                        ],
-                        borderColor: [
-                            'rgba(102, 126, 234, 1)',
-                            'rgba(240, 147, 251, 1)',
-                            'rgba(79, 172, 254, 1)',
-                            'rgba(67, 233, 123, 1)'
-                        ],
-                        borderWidth: 2,
-                        borderRadius: 10
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        title: {
-                            display: true,
-                            text: currentLanguage === 'ar' ? 'إحصائيات العمر' : 'Age Statistics',
-                            font: {
-                                size: 18,
-                                family: 'Cairo',
-                                weight: 'bold'
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                font: {
-                                    family: 'Cairo'
-                                }
-                            }
-                        },
-                        x: {
-                            ticks: {
-                                font: {
-                                    family: 'Cairo'
-                                }
-                            }
-                        }
-                    }
-                }
-            });
+            const hijriMonth = hijriMonths[month - 1] || hijriMonths[0];
+            
+            return `${day} ${hijriMonth} ${hijriYear} هـ`;
         }
 
-        function getNextMilestone(age, milestones) {
-            for (let milestone of milestones) {
-                if (milestone.age > age) {
-                    return milestone;
-                }
-            }
-            return milestones[milestones.length - 1];
+        function calculateHijriAge(birthDate, currentDate) {
+            const diffTime = Math.abs(currentDate - birthDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const hijriYears = Math.floor(diffDays / 354.37); // متوسط أيام السنة الهجرية
+            const remainingDays = Math.floor(diffDays % 354.37);
+            const hijriMonths = Math.floor(remainingDays / 29.5); // متوسط أيام الشهر الهجري
+            
+            return `${hijriYears} ${currentLanguage === 'ar' ? 'سنة هجرية' : 'Hijri years'}, ${hijriMonths} ${currentLanguage === 'ar' ? 'شهر هجري' : 'Hijri months'}`;
+        }
+
+        function getRandomIslamicName(gender, names) {
+            const nameList = gender ? names[gender === 'male' ? 'male' : 'female'] : [...names.male, ...names.female];
+            return nameList[Math.floor(Math.random() * nameList.length)];
+        }
+
+        function calculatePrayerTimes(date) {
+            // حساب تقريبي لمواقيت الصلاة
+            const prayerTimes = {
+                fajr: "5:30",
+                dhuhr: "12:15",
+                asr: "15:45",
+                maghrib: "18:30",
+                isha: "20:00"
+            };
+            
+            // إضافة بعض التباين بناءً على اليوم
+            const dayOfYear = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
+            const variation = Math.sin(dayOfYear / 30) * 30; // تباين يصل إلى 30 دقيقة
+            
+            Object.keys(prayerTimes).forEach(prayer => {
+                const [hours, minutes] = prayerTimes[prayer].split(':').map(Number);
+                const totalMinutes = hours * 60 + minutes + variation;
+                const newHours = Math.floor(totalMinutes / 60) % 24;
+                const newMinutes = Math.floor(totalMinutes % 60);
+                prayerTimes[prayer] = `${newHours}:${newMinutes.toString().padStart(2, '0')}`;
+            });
+            
+            return prayerTimes;
         }
 
         function calculateDaysUntilBirthday(birthDate) {
@@ -1819,10 +2007,11 @@
                 text += `${lang.gender}: ${currentResults.data.gender}\n`;
                 text += `${lang.governorate}: ${currentResults.data.governorate}\n`;
                 text += `${lang.daysUntilBirthday}: ${currentResults.data.daysUntilBirthday}\n`;
-                text += `${lang.zodiacSign}: ${currentResults.data.zodiacSign}\n`;
-                text += `${lang.birthStone}: ${currentResults.data.birthStone}\n`;
-                text += `${lang.birthSeason}: ${currentResults.data.birthSeason}\n`;
-                text += `${lang.nextBirthday}: ${currentResults.data.nextBirthday}\n`;
+                text += `${lang.hijriDate}: ${currentResults.data.hijriDate}\n`;
+                text += `${lang.hijriAge}: ${currentResults.data.hijriAge}\n`;
+                text += `${lang.islamicName}: ${currentResults.data.islamicName}\n`;
+                text += `${lang.quranVerse}: ${currentResults.data.quranVerse.text}\n`;
+                text += `${lang.hadith}: ${currentResults.data.hadith.text}\n`;
                 text += `${lang.totalDays}: ${currentResults.data.totalDays}\n`;
                 text += `${lang.totalHours}: ${currentResults.data.totalHours}\n`;
                 text += `${lang.totalMinutes}: ${currentResults.data.totalMinutes}\n`;
@@ -1832,10 +2021,11 @@
                 text += `${lang.birthDate}: ${currentResults.data.birthDate}\n`;
                 text += `${lang.age}: ${currentResults.data.age}\n`;
                 text += `${lang.daysUntilBirthday}: ${currentResults.data.daysUntilBirthday}\n`;
-                text += `${lang.zodiacSign}: ${currentResults.data.zodiacSign}\n`;
-                text += `${lang.birthStone}: ${currentResults.data.birthStone}\n`;
-                text += `${lang.birthSeason}: ${currentResults.data.birthSeason}\n`;
-                text += `${lang.nextBirthday}: ${currentResults.data.nextBirthday}\n`;
+                text += `${lang.hijriDate}: ${currentResults.data.hijriDate}\n`;
+                text += `${lang.hijriAge}: ${currentResults.data.hijriAge}\n`;
+                text += `${lang.islamicName}: ${currentResults.data.islamicName}\n`;
+                text += `${lang.quranVerse}: ${currentResults.data.quranVerse.text}\n`;
+                text += `${lang.hadith}: ${currentResults.data.hadith.text}\n`;
                 text += `${lang.totalDays}: ${currentResults.data.totalDays}\n`;
                 text += `${lang.totalHours}: ${currentResults.data.totalHours}\n`;
                 text += `${lang.totalMinutes}: ${currentResults.data.totalMinutes}\n`;
@@ -1845,6 +2035,8 @@
                 text += `${currentLanguage === 'ar' ? 'التاريخ الأول' : 'First Date'}: ${currentResults.data.startDate}\n`;
                 text += `${currentLanguage === 'ar' ? 'التاريخ الثاني' : 'Second Date'}: ${currentResults.data.endDate}\n`;
                 text += `${lang.dateDifference}: ${currentResults.data.difference}\n`;
+                text += `${currentLanguage === 'ar' ? 'التاريخ الأول الهجري' : 'First Hijri Date'}: ${currentResults.data.hijriStart}\n`;
+                text += `${currentLanguage === 'ar' ? 'التاريخ الثاني الهجري' : 'Second Hijri Date'}: ${currentResults.data.hijriEnd}\n`;
                 text += `${lang.totalDays}: ${currentResults.data.totalDays} ${currentLanguage === 'ar' ? 'يوم' : 'days'}\n`;
                 text += `${lang.totalHours}: ${currentResults.data.totalHours}\n`;
                 text += `${lang.totalMinutes}: ${currentResults.data.totalMinutes}\n`;
