@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>آية السيد - لايف كوتش ومدربة كمال أجسام</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-orange: #FF6B35;
+            --secondary-orange: #FF8C5A;
+            --accent-purple: #9D4EDD;
+            --dark-bg: #1a1a1a;
+            --light-gray: #f5f5f5;
+            --white: #ffffff;
+            --text-dark: #2c2c2c;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+            transition: direction 0.3s ease;
+        }
+
+        /* Navigation */
+        nav {
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #2c2c2c 100%);
+            padding: 1.5rem 5%;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(255, 107, 53, 0.3);
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--accent-purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--white);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary-orange);
+            transition: width 0.3s;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-orange);
+        }
+
+        .lang-switch {
+            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--accent-purple) 100%);
+            color: var(--white);
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 3px 15px rgba(255, 107, 53, 0.3);
+        }
+
+        .lang-switch:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(255, 107, 53, 0.5);
+        }
+
+        .mobile-menu {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+        }
+
+        .mobile-menu span {
+            width: 25px;
+            height: 3px;
+            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--accent-purple) 100%);
+            transition: 0.3s;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 50%, #3a3a3a 100%);
+            color: var(--white);
+            padding: 150px 5% 100px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(255, 107, 53, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(157, 78, 221, 0.1) 0%, transparent 50%);
+        }
+
+        .hero-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-image {
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            border: 6px solid var(--primary-orange);
+            margin: 0 auto 2rem;
+            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--accent-purple) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            animation: float 3s ease-in-out infinite;
+            box-shadow: 0 10px 40px rgba(255, 107, 53, 0.4);
+            overflow: hidden;
+        }
+
+        .hero-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            animation: fadeInUp 1s ease;
+            background: linear-gradient(135deg, var(--white) 0%, var(--primary-orange) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.6rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--accent-purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: fadeInUp 1s ease 0.2s backwards;
+            font-weight: 600;
+        }
+
+        .hero-description {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto 3rem;
+            opacity: 0.9;
+            animation: fadeInUp 1s ease 0.4s backwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .cta-button {
+            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--accent-purple) 100%);
+            color: var(--white);
+            padding: 1.2rem 3rem;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            animation: fadeInUp 1s ease 0.6s backwards;
+            box-shadow: 0 8px 30px rgba(255, 107, 53, 0.4);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(255, 107, 53, 0.6);
+        }
+
+        /* Section Styles */
+        section {
+            padding: 80px 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            font-size: 2.8rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--dark-bg) 0%, var(--primary-orange) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            font-weight: bold;
+        }
+
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 5px;
+            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--accent-purple) 100%);
+            margin: 10px auto;
+            border-radius: 10px;
+        }
+
+        /* About Section */
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            margin-top: 3rem;
+            background: var(--white);
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .about-image {
+            width: 100%;
+            height: 450px;
+            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--accent-purple) 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 6rem;
+            color: var(--white);
+            box-shadow: 0 15px 50px rgba(255, 107, 53, 0.3);
+            overflow: hidden;
+        }
+
+        .about-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 20px;
+        }
+
+        .about-text h3 {
+            font-size: 2rem;
+            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--accent-purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .about-text p {
+            font-size: 1.1rem;
+            line-height: 1.9;
+            margin-bottom: 1rem;
+            color: #555;
+        }
+
+        /* Services Section */
+        #services {
+            background: linear-gradient(135deg, #f8f8f8 0%, #e8e8e8 100%);
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .service-card {
+            background: var(--white);
+            padding: 2.5rem;
+            border-radius: 20px;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 3px solid transparent;
+            background-clip: padding-box;
+            position: relative;
+        }
+
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--accent-purple) 100%);
+            border-radius: 20px;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .service-card:hover::before {
+            opacity: 1;
+        }
+
+        .service-card:hover {
+            transform: translateY(-15px);
+            box-shadow: 0 20px 50px rgba(255, 107, 53, 0.3);
+        }
+
+        .service-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            filter: drop-shadow(0 5px 10px rgba(255, 107, 53, 0.3));
+        }
+
+        .service-card h3 {
+            font-size: 1.6rem;
+            margin-bottom: 1rem;
+            color: var(--dark-bg);
+        }
+
+        .service-card p {
+            color: #666;
+            line-height: 1.7;
+        }
+
+        /* Blog Section */
+        #blog {
+            background: var(--white);
+        }
+
+        .blog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2.5rem;
+            margin-top: 3rem;
+        }
+
+        .blog-card {
+            background: linear-gradient(135deg, #f8f8f8 0%, #ffffff 100%);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .blog-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 50px rgba(255, 107, 53, 0.3);
+            border-color: var(--primary-orange);
+        }
+
+        .blog-image {
+            width: 100%;
+            height: 220px;
+            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--accent-purple) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            color: var(--white);
+        }
+
+        .blog-content {
+            padding: 2rem;
+        }
+
+        .blog-content h3 {
+            font-size: 1.4rem;
+            margin-bottom: 0.8rem;
+            color: var(--dark-bg);
+            font-weight: 600;
+        }
+
+        .blog-date {
+            color: var(--primary-orange);
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .blog-content p {
+            color: #555;
+            line-height: 1.8;
+            font-size: 1.05rem;
+        }
+
+        /* Contact Section */
+        #contact {
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #2c2c2c 100%);
+            color: var(--white);
+        }
+
+        #contact .section-title {
+            background: linear-gradient(135deg, var(--white) 0%, var(--primary-orange) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .contact-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            margin-top: 3rem;
+        }
+
+        .contact-info h3 {
+            font-size: 2rem;
+            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--accent-purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1.5rem;
+        }
+
+        .contact-info p {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .contact-details {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .contact-item:hover {
+            background: rgba(255, 107, 53, 0.1);
+            border-color: var(--primary-orange);
+            transform: translateX(10px);
+        }
+
+        html[dir="ltr"] .contact-item:hover {
+            transform: translateX(-10px);
+        }
+
+        .contact-icon {
+            font-size: 2rem;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .contact-item-content h4 {
+            font-size: 1.1rem;
+            color: var(--primary-orange);
+            margin-bottom: 0.3rem;
+        }
+
+        .contact-item-content p,
+        .contact-item-content a {
+            color: var(--white);
+            text-decoration: none;
+            font-size: 1.05rem;
+        }
+
+        .contact-item-content a:hover {
+            color: var(--primary-orange);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .social-link {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 1.2rem 1.8rem;
+            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--accent-purple) 100%);
+            border-radius: 15px;
+            text-decoration: none;
+            color: var(--white);
+            box-shadow: 0 5px 20px rgba(255, 107, 53, 0.3);
+            transition: all 0.3s;
+            font-weight: 600;
+            font-size: 1.05rem;
+        }
+
+        .social-link:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(255, 107, 53, 0.5);
+        }
+
+        .social-icon {
+            font-size: 1.8rem;
+        }
+
+        .map-container {
+            width: 100%;
+            height: 400px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(255, 107, 53, 0.3);
+            border: 3px solid var(--primary-orange);
+        }
+
+        .map-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Footer */
+        footer {
+            background: linear-gradient(135deg, #0a0a0a 0%, var(--dark-bg) 100%);
+            color: var(--white);
+            text-align: center;
+            padding: 2.5rem 5%;
+            border-top: 3px solid var(--primary-orange);
+        }
+
+        footer p {
+            opacity: 0.8;
+            font-size: 1.05rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .mobile-menu {
+                display: flex;
+            }
+
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: var(--dark-bg);
+                flex-direction: column;
+                padding: 2rem;
+                gap: 1rem;
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1.3rem;
+            }
+
+            .about-content,
+            .contact-container {
+                grid-template-columns: 1fr;
+            }
+
+            .section-title {
+                font-size: 2.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <a href="#" class="logo" data-ar="آية السيد" data-en="AYA ELSYED">آية السيد</a>
+            <div class="mobile-menu" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#home" data-ar="الرئيسية" data-en="Home">الرئيسية</a></li>
+                <li><a href="#about" data-ar="عنّي" data-en="About">عنّي</a></li>
+                <li><a href="#services" data-ar="الخدمات" data-en="Services">الخدمات</a></li>
+                <li><a href="#blog" data-ar="مقالات ونصائح" data-en="Blog & Tips">مقالات ونصائح</a></li>
+                <li><a href="#contact" data-ar="تواصل معي" data-en="Contact">تواصل معي</a></li>
+                <li><button class="lang-switch" onclick="toggleLanguage()">EN</button></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="hero-content">
+            <div class="hero-image">
+                <img src="aya2.jpeg" alt="Aya Elsyed">
+            </div>
+            <h1 data-ar="آية السيد" data-en="Aya Elsyed">آية السيد</h1>
+            <p class="hero-subtitle" data-ar="لايف كوتش | مدربة كمال أجسام" data-en="Life Coach | Bodybuilding Trainer">لايف كوتش | مدربة كمال أجسام</p>
+            <p class="hero-description" data-ar="ساعدي نفسك لتصبحي النسخة الأفضل منكِ – تدريب جسدي، ذهني، وحياتي متكامل لتحقيق التوازن والنجاح" data-en="Transform yourself into your best version - Complete physical, mental, and life coaching for balance and success">ساعدي نفسك لتصبحي النسخة الأفضل منكِ – تدريب جسدي، ذهني، وحياتي متكامل لتحقيق التوازن والنجاح</p>
+            <a href="#contact" class="cta-button" data-ar="ابدئي رحلتك الآن" data-en="Start Your Journey Now">ابدئي رحلتك الآن</a>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about">
+        <h2 class="section-title" data-ar="عنّي" data-en="About Me">عنّي</h2>
+        <div class="about-content">
+            <div class="about-image">
+                <img src="aya1.png" alt="About Aya">
+            </div>
+            <div class="about-text">
+                <h3 data-ar="مرحباً، أنا آية السيد" data-en="Hello, I'm Aya Elsyed">مرحباً، أنا آية السيد</h3>
+                <p data-ar="مدربة كمال أجسام محترفة ولايف كوتش معتمدة، مهمتي هي مساعدتك على اكتشاف قوتك الحقيقية - جسدياً وذهنياً وعاطفياً." data-en="Professional bodybuilding trainer and certified life coach, my mission is to help you discover your true strength - physically, mentally, and emotionally.">مدربة كمال أجسام محترفة ولايف كوتش معتمدة، مهمتي هي مساعدتك على اكتشاف قوتك الحقيقية - جسدياً وذهنياً وعاطفياً.</p>
+                <p data-ar="مع سنوات من الخبرة في مجال اللياقة البدنية والتطوير الذاتي، ساعدت المئات من الأشخاص على تحويل أجسامهم وحياتهم بالكامل. أتخصص في إنشاء برامج شخصية تناسب أهدافك وأسلوب حياتك الفريد." data-en="With years of experience in fitness and personal development, I've helped hundreds of people transform their bodies and lives completely. I specialize in creating personalized programs that fit your unique goals and lifestyle.">مع سنوات من الخبرة في مجال اللياقة البدنية والتطوير الذاتي، ساعدت المئات من الأشخاص على تحويل أجسامهم وحياتهم بالكامل. أتخصص في إنشاء برامج شخصية تناسب أهدافك وأسلوب حياتك الفريد.</p>
+                <p data-ar="أؤمن بأن النجاح الحقيقي يأتي من التوازن بين القوة الجسدية والنفسية. منهجي الشامل يجمع بين التدريب البدني المكثف والتدريب الذهني لمساعدتك على أن تصبحي أفضل نسخة من نفسك." data-en="I believe true success comes from the balance between physical and mental strength. My holistic approach combines intense physical training with mindset coaching to help you become the best version of yourself.">أؤمن بأن النجاح الحقيقي يأتي من التوازن بين القوة الجسدية والنفسية. منهجي الشامل يجمع بين التدريب البدني المكثف والتدريب الذهني لمساعدتك على أن تصبحي أفضل نسخة من نفسك.</p>
+                <p data-ar="سواء كنتِ تريدين بناء العضلات، أو فقدان الوزن، أو اكتساب الثقة، أو إيجاد هدف حياتك - أنا هنا لإرشادك في كل خطوة على الطريق." data-en="Whether you want to build muscle, lose weight, gain confidence, or find your life's purpose - I'm here to guide you every step of the way.">سواء كنتِ تريدين بناء العضلات، أو فقدان الوزن، أو اكتساب الثقة، أو إيجاد هدف حياتك - أنا هنا لإرشادك في كل خطوة على الطريق.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services">
+        <h2 class="section-title" data-ar="خدماتي" data-en="My Services">خدماتي</h2>
+        <div class="services-grid">
+            <div class="service-card">
+                <div class="service-icon">🏋️</div>
+                <h3 data-ar="تدريب شخصي" data-en="Personal Training">تدريب شخصي</h3>
+                <p data-ar="برامج تدريب مخصصة أونلاين أو في الجيم، مصممة خصيصاً لأهدافك ومستواك الحالي. احصلي على النتائج مع إرشاد الخبراء." data-en="Custom training programs online or in-gym, designed specifically for your goals and current fitness level. Get results with expert guidance.">برامج تدريب مخصصة أونلاين أو في الجيم، مصممة خصيصاً لأهدافك ومستواك الحالي. احصلي على النتائج مع إرشاد الخبراء.</p>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">🧠</div>
+                <h3 data-ar="جلسات لايف كوتش" data-en="Life Coaching Sessions">جلسات لايف كوتش</h3>
+                <p data-ar="جلسات فردية للتطوير الشخصي، بناء الثقة، تحديد الأهداف، وتحقيق التوازن في حياتك." data-en="One-on-one sessions for personal development, confidence building, goal setting, and achieving balance in your life.">جلسات فردية للتطوير الشخصي، بناء الثقة، تحديد الأهداف، وتحقيق التوازن في حياتك.</p>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">🥗</div>
+                <h3 data-ar="خطط تغذية" data-en="Nutrition Plans">خطط تغذية</h3>
+                <p data-ar="خطط غذائية متكاملة ومتوازنة مصممة خصيصاً لأهدافك وتفضيلاتك وأسلوب حياتك. تغذية مستدامة لنتائج دائمة." data-en="Complete and balanced nutrition plans tailored to your goals, preferences, and lifestyle. Sustainable eating for lasting results.">خطط غذائية متكاملة ومتوازنة مصممة خصيصاً لأهدافك وتفضيلاتك وأسلوب حياتك. تغذية مستدامة لنتائج دائمة.</p>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">📦</div>
+                <h3 data-ar="باقات شهرية" data-en="Monthly Packages">باقات شهرية</h3>
+                <p data-ar="برامج تحفيزية وتدريبية شاملة تجمع بين التمارين والتغذية والدعم النفسي للتحول الكامل." data-en="Comprehensive motivational and training programs combining exercise, nutrition, and mental support for complete transformation.">برامج تحفيزية وتدريبية شاملة تجمع بين التمارين والتغذية والدعم النفسي للتحول الكامل.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Blog Section -->
+    <section id="blog">
+        <h2 class="section-title" data-ar="مقالات ونصائح" data-en="Articles & Tips">مقالات ونصائح</h2>
+        <div class="blog-grid">
+            <div class="blog-card">
+                <div class="blog-image">📝</div>
+                <div class="blog-content">
+                    <h3 data-ar="كيف تبنين عادات صحية تدوم مدى الحياة" data-en="How to Build Lifelong Healthy Habits">كيف تبنين عادات صحية تدوم مدى الحياة</h3>
+                    <p class="blog-date" data-ar="15 أكتوبر 2025" data-en="October 15, 2025">15 أكتوبر 2025</p>
+                    <p data-ar="العادات الصحية ليست مجرد قرارات مؤقتة، بل أسلوب حياة. المفتاح للتغيير الدائم هو الاستمرارية والصبر. ابدئي بعادة واحدة صغيرة في كل مرة - سواء كان شرب المزيد من الماء، أو المشي 10 دقائق يومياً، أو تناول وجبة صحية واحدة في اليوم. ركزي على التقدم وليس الكمال. تتبعي عاداتك واحتفلي بالانتصارات الصغيرة. تذكري، يستغرق الأمر 21 يوماً لتكوين عادة، لكنه يستغرق مدى الحياة للحفاظ عليها. السر هو جعل اختياراتك الصحية روتينية لدرجة أنها تصبح تلقائية." data-en="Healthy habits aren't just temporary decisions, they're a lifestyle. The key to lasting change is consistency and patience. Start small with one habit at a time - whether it's drinking more water, walking 10 minutes daily, or eating one healthy meal per day. Focus on progress, not perfection. Track your habits and celebrate small wins. Remember, it takes 21 days to form a habit, but a lifetime to maintain it. The secret is making your healthy choices so routine that they become automatic.">العادات الصحية ليست مجرد قرارات مؤقتة، بل أسلوب حياة. المفتاح للتغيير الدائم هو الاستمرارية والصبر. ابدئي بعادة واحدة صغيرة في كل مرة - سواء كان شرب المزيد من الماء، أو المشي 10 دقائق يومياً، أو تناول وجبة صحية واحدة في اليوم. ركزي على التقدم وليس الكمال. تتبعي عاداتك واحتفلي بالانتصارات الصغيرة. تذكري، يستغرق الأمر 21 يوماً لتكوين عادة، لكنه يستغرق مدى الحياة للحفاظ عليها. السر هو جعل اختياراتك الصحية روتينية لدرجة أنها تصبح تلقائية.</p>
+                </div>
+            </div>
+            <div class="blog-card">
+                <div class="blog-image">🍎</div>
+                <div class="blog-content">
+                    <h3 data-ar="5 خرافات عن التغذية يجب أن تتوقفي عن تصديقها" data-en="5 Nutrition Myths You Need to Stop Believing">5 خرافات عن التغذية يجب أن تتوقفي عن تصديقها</h3>
+                    <p class="blog-date" data-ar="10 أكتوبر 2025" data-en="October 10, 2025">10 أكتوبر 2025</p>
+                    <p data-ar="لنكشف أكبر خرافات التغذية: 1) الكربوهيدرات لا تجعلك تكتسبين وزناً - السعرات الحرارية الزائدة هي التي تفعل ذلك. 2) الأكل في وقت متأخر من الليل لن يدمر تقدمك. 3) لست بحاجة إلى تناول الطعام كل ساعتين لتعزيز التمثيل الغذائي. 4) المكملات الغذائية لا يمكن أن تحل محل الطعام الحقيقي. 5) لا يوجد نظام غذائي واحد 'مثالي' - ما يصلح يختلف من شخص لآخر. ركزي على الأطعمة الكاملة والماكروز المتوازنة والاستمرارية. جسمك بحاجة إلى وقود مناسب للأداء. توقفي عن تقييد نفسك بناءً على الخرافات وابدئي بالأكل الذكي للحصول على نتائج مستدامة." data-en="Let's debunk the biggest nutrition myths: 1) Carbs don't make you fat - excess calories do. 2) Eating late at night won't ruin your progress. 3) You don't need to eat every 2 hours to boost metabolism. 4) Supplements can't replace real food. 5) There's no single 'perfect diet' - what works varies per person. Focus on whole foods, balanced macros, and consistency. Your body needs proper fuel to perform. Stop restricting yourself based on myths and start eating smart for sustainable results.">لنكشف أكبر خرافات التغذية: 1) الكربوهيدرات لا تجعلك تكتسبين وزناً - السعرات الحرارية الزائدة هي التي تفعل ذلك. 2) الأكل في وقت متأخر من الليل لن يدمر تقدمك. 3) لست بحاجة إلى تناول الطعام كل ساعتين لتعزيز التمثيل الغذائي. 4) المكملات الغذائية لا يمكن أن تحل محل الطعام الحقيقي. 5) لا يوجد نظام غذائي واحد 'مثالي' - ما يصلح يختلف من شخص لآخر. ركزي على الأطعمة الكاملة والماكروز المتوازنة والاستمرارية. جسمك بحاجة إلى وقود مناسب للأداء. توقفي عن تقييد نفسك بناءً على الخرافات وابدئي بالأكل الذكي للحصول على نتائج مستدامة.</p>
+                </div>
+            </div>
+            <div class="blog-card">
+                <div class="blog-image">🎯</div>
+                <div class="blog-content">
+                    <h3 data-ar="العلاقة بين العقل والعضلات: دربي عقلك" data-en="The Mind-Muscle Connection: Train Your Brain">العلاقة بين العقل والعضلات: دربي عقلك</h3>
+                    <p class="blog-date" data-ar="5 أكتوبر 2025" data-en="October 5, 2025">5 أكتوبر 2025</p>
+                    <p data-ar="عقلك هو أقوى عضلة لديك. الاتصال بين العقل والعضلات يتعلق بالحضور الكامل أثناء التمرين، والتركيز على العضلة التي تدربينها. بدلاً من مجرد تحريك الوزن، اشعري بكل انقباضة وضغطة. تخيلي عضلاتك تعمل وتنمو. يمكن لهذا التركيز الذهني أن يزيد من تنشيط العضلات بنسبة تصل إلى 60٪. قبل كل مجموعة، خذي نفساً عميقاً، وصفي ذهنك، وركزي. قوتك العقلية تحدد نتائجك الجسدية. دربي عقلك، وسيتبع جسمك." data-en="Your mind is your most powerful muscle. The mind-muscle connection is about being fully present during your workout, focusing on the muscle you're training. Instead of just moving weight, feel every contraction and squeeze. Visualize your muscles working and growing. This mental focus can increase muscle activation by up to 60%. Before each set, take a deep breath, clear your mind, and concentrate. Your mental strength determines your physical results. Train your mind, and your body will follow.">عقلك هو أقوى عضلة لديك. الاتصال بين العقل والعضلات يتعلق بالحضور الكامل أثناء التمرين، والتركيز على العضلة التي تدربينها. بدلاً من مجرد تحريك الوزن، اشعري بكل انقباضة وضغطة. تخيلي عضلاتك تعمل وتنمو. يمكن لهذا التركيز الذهني أن يزيد من تنشيط العضلات بنسبة تصل إلى 60٪. قبل كل مجموعة، خذي نفساً عميقاً، وصفي ذهنك، وركزي. قوتك العقلية تحدد نتائجك الجسدية. دربي عقلك، وسيتبع جسمك.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact">
+        <h2 class="section-title" data-ar="تواصلي معي" data-en="Get In Touch">تواصلي معي</h2>
+        <div class="contact-container">
+            <div class="contact-info">
+                <h3 data-ar="لنتواصل" data-en="Let's Connect">لنتواصل</h3>
+                <p data-ar="هل أنتِ مستعدة لبدء رحلة التحول؟ تواصلي معي مباشرة:" data-en="Ready to start your transformation journey? Reach out to me directly:">هل أنتِ مستعدة لبدء رحلة التحول؟ تواصلي معي مباشرة:</p>
+                
+                <div class="contact-details">
+                    <div class="contact-item">
+                        <div class="contact-icon">📱</div>
+                        <div class="contact-item-content">
+                            <h4 data-ar="الهاتف" data-en="Phone">الهاتف</h4>
+                            <a href="tel:⁦+96877609325⁩">⁦+96877609325⁩</a>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-item">
+                        <div class="contact-icon">💬</div>
+                        <div class="contact-item-content">
+                            <h4 data-ar="واتساب" data-en="WhatsApp">واتساب</h4>
+                            <a href="https://wa.me/96877609325" target="_blank">+96877609325</a>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-item">
+                        <div class="contact-icon">📍</div>
+                        <div class="contact-item-content">
+                            <h4 data-ar="موقع التدريب" data-en="Training Location">موقع التدريب</h4>
+                            <p data-ar="مسقط، عمان" data-en="Muscat, Oman">مسقط، عمان</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="margin-top: 2rem;" data-ar="تابعيني" data-en="Follow Me">تابعيني</h3>
+                <div class="social-links">
+                    <a href="https://wa.me/96877609325" target="_blank" class="social-link">
+                        <span class="social-icon">📱</span>
+                        <span data-ar="واتساب" data-en="WhatsApp">واتساب</span>
+                    </a>
+                    <a href="https://www.instagram.com/ayaelsayed5046/" target="_blank" class="social-link">
+                        <span class="social-icon">📷</span>
+                        <span data-ar="إنستجرام" data-en="Instagram">إنستجرام</span>
+                    </a>
+                    <a href="https://www.facebook.com/aya.elsayed.333531" target="_blank" class="social-link">
+                        <span class="social-icon">👤</span>
+                        <span data-ar="فيسبوك" data-en="Facebook">فيسبوك</span>
+                    </a>
+   
+                </div>
+            </div>
+
+            <div class="map-container">
+                <iframe src="https://www.google.com/maps?q=19.62677764892578,57.633827209472656&z=17&hl=ar&output=embed" allowfullscreen="" loading="lazy"></iframe>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p data-ar="© 2025 آية السيد - لايف كوتش ومدربة كمال أجسام. جميع الحقوق محفوظة." data-en="© 2025 Aya Elsyed - Life Coach & Bodybuilding Trainer. All rights reserved.">© 2025 آية السيد - لايف كوتش ومدربة كمال أجسام. جميع الحقوق محفوظة.</p>
+        <p style="margin-top: 0.5rem;" data-ar="حولي جسمك. حولي عقلك. حولي حياتك." data-en="Transform Your Body. Transform Your Mind. Transform Your Life.">حولي جسمك. حولي عقلك. حولي حياتك.</p>
+    </footer>
+
+    <script>
+        let currentLang = 'ar';
+
+        function toggleMenu() {
+            const navLinks = document.getElementById('navLinks');
+            navLinks.classList.toggle('active');
+        }
+
+        function toggleLanguage() {
+            const html = document.querySelector('html');
+            const langBtn = document.querySelector('.lang-switch');
+            
+            if (currentLang === 'ar') {
+                currentLang = 'en';
+                html.setAttribute('lang', 'en');
+                html.setAttribute('dir', 'ltr');
+                langBtn.textContent = 'AR';
+                updateContent('en');
+            } else {
+                currentLang = 'ar';
+                html.setAttribute('lang', 'ar');
+                html.setAttribute('dir', 'rtl');
+                langBtn.textContent = 'EN';
+                updateContent('ar');
+            }
+        }
+
+        function updateContent(lang) {
+            const elements = document.querySelectorAll('[data-ar][data-en]');
+            elements.forEach(el => {
+                if (lang === 'ar') {
+                    el.textContent = el.getAttribute('data-ar');
+                } else {
+                    el.textContent = el.getAttribute('data-en');
+                }
+            });
+        }
+
+        // Smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                    document.getElementById('navLinks').classList.remove('active');
+                }
+            });
+        });
+
+        // Navbar background on scroll
+        window.addEventListener('scroll', function() {
+            const nav = document.querySelector('nav');
+            if (window.scrollY > 100) {
+                nav.style.background = 'linear-gradient(135deg, rgba(26, 26, 26, 0.98) 0%, rgba(44, 44, 44, 0.98) 100%)';
+            } else {
+                nav.style.background = 'linear-gradient(135deg, var(--dark-bg) 0%, #2c2c2c 100%)';
+            }
+        });
+    </script>
+</body>
+</html>
