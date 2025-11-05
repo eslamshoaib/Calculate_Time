@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>محلل الرقم القومي المصري المتقدم</title>
+    <title>محلل الرقم القومي  </title>
     <style>
         * {
             margin: 0;
@@ -480,6 +480,7 @@
             display: flex;
             gap: 10px;
             margin-top: 10px;
+            flex-wrap: wrap;
         }
 
         .quick-fill-btn {
@@ -613,13 +614,14 @@
             background: rgba(46, 204, 113, 0.1);
             border: 1px solid #2ecc71;
             color: #2ecc71;
-            padding: 8px 15px;
+            padding: 12px 15px;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 0.85em;
+            font-size: 0.9em;
             transition: all 0.3s ease;
             margin-top: 20px;
             width: 100%;
+            font-weight: 600;
         }
 
         .copy-btn:hover {
@@ -629,7 +631,7 @@
 
         .zodiac-sign {
             display: inline-block;
-            margin-right: 5px;
+            margin-left: 5px;
             font-size: 1.2em;
         }
     </style>
@@ -652,7 +654,7 @@
 
     <div class="main-container">
         <div class="header">
-            <h1>✨ محلل الرقم القومي المصري المتقدم ✨</h1>
+            <h1>✨ محلل الرقم القومي   ✨</h1>
             <p>أداة شاملة ومتطورة لتحليل الرقم القومي وحساب الأعمار والتواريخ بدقة عالية</p>
         </div>
 
@@ -688,7 +690,7 @@
                 </div>
                 <div class="quick-fill">
                     <button class="quick-fill-btn" onclick="fillSampleID('2')">مثال مواليد 1990</button>
-                    <button class="quick-fill-btn" onclick="fillSampleID('3')">مثال مواليد 2000</button>
+                    <button class="quick-fill-btn" onclick="fillSampleID('3')">مثال مواليد 2005</button>
                 </div>
                 <button onclick="analyzeNationalID()">🔍 تحليل الرقم القومي</button>
             </div>
@@ -702,7 +704,7 @@
                 <div class="input-group">
                     <label for="dobPicker">تاريخ الميلاد</label>
                     <input type="date" id="dobPicker" onchange="updateDobInput(this.value)">
-                    <input type="text" id="dob" placeholder="DD-MM-YYYY" style="margin-top: 10px;" oninput="validateDateField(this)">
+                    <input type="text" id="dob" placeholder="DD-MM-YYYY" style="margin-top: 10px;" oninput="validateDateField(this, 'ageProgress')">
                     <div class="validation-message" id="dobValidation"></div>
                     <div id="dobError" class="error"></div>
                     <div id="dobSuccess" class="success"></div>
@@ -723,12 +725,12 @@
                 <div class="input-group">
                     <label for="date1Picker">التاريخ الأول</label>
                     <input type="date" id="date1Picker" onchange="updateDate1Input(this.value)">
-                    <input type="text" id="date1" placeholder="DD-MM-YYYY" style="margin-top: 10px;" oninput="validateDateField(this)">
+                    <input type="text" id="date1" placeholder="DD-MM-YYYY" style="margin-top: 10px;" oninput="validateDateField(this, 'dateProgress')">
                 </div>
                 <div class="input-group">
                     <label for="date2Picker">التاريخ الثاني</label>
                     <input type="date" id="date2Picker" onchange="updateDate2Input(this.value)">
-                    <input type="text" id="date2" placeholder="DD-MM-YYYY" style="margin-top: 10px;" oninput="validateDateField(this)">
+                    <input type="text" id="date2" placeholder="DD-MM-YYYY" style="margin-top: 10px;" oninput="validateDateField(this, 'dateProgress')">
                     <div id="dateError" class="error"></div>
                     <div id="dateSuccess" class="success"></div>
                 </div>
@@ -757,6 +759,14 @@
     <script>
         let language = "ar";
         let stats = { analyses: 0, ages: 0, dates: 0 };
+        let currentResults = [];
+
+        // تحميل الإحصائيات المحفوظة
+        if (typeof Storage !== "undefined") {
+            const saved = JSON.parse(localStorage.getItem('idAnalyzerStats') || '{"analyses":0,"ages":0,"dates":0}');
+            stats = saved;
+            updateStatsDisplay();
+        }
 
         // Scroll to top functionality
         window.onscroll = function() {
@@ -780,17 +790,26 @@
         function updateLabels() {
             const labels = {
                 ar: {
-                    title: "✨ محلل الرقم القومي المصري المتقدم ✨",
+                    title: "✨ محلل الرقم القومي  المتقدم ✨",
                     subtitle: "أداة شاملة ومتطورة لتحليل الرقم القومي وحساب الأعمار والتواريخ بدقة عالية"
                 },
                 en: {
-                    title: "✨ Advanced Egyptian National ID Analyzer ✨",
+                    title: "✨ Advanced  National ID Analyzer ✨",
                     subtitle: "Comprehensive tool for analyzing national IDs and calculating ages with high precision"
                 }
             };
 
             document.querySelector('.header h1').textContent = labels[language].title;
             document.querySelector('.header p').textContent = labels[language].subtitle;
+        }
+
+        function updateStatsDisplay() {
+            document.getElementById('totalAnalyses').textContent = stats.analyses;
+            document.getElementById('ageCalculations').textContent = stats.ages;
+            document.getElementById('dateComparisons').textContent = stats.dates;
+            if (typeof Storage !== "undefined") {
+                localStorage.setItem('idAnalyzerStats', JSON.stringify(stats));
+            }
         }
 
         function validateIDInput(input) {
@@ -830,9 +849,15 @@
             validation.textContent = '✅ رقم قومي صحيح';
         }
 
-        function validateDateField(input) {
+        function validateDateField(input, progressId) {
             const value = input.value;
             const regex = /^(\d{2})-(\d{2})-(\d{4})$/;
+            const progress = document.getElementById(progressId);
+
+            if (progress) {
+                const progressPercent = Math.min((value.length / 10) * 100, 100);
+                progress.style.width = progressPercent + '%';
+            }
 
             if (value.length === 0) {
                 input.className = '';
@@ -854,7 +879,457 @@
 
         function getZodiacSign(day, month) {
             const signs = [
-                {name: "الجدي ♑", emoji: "🐐", start: [12, 22], end: [1, 19]},
-                {name: "الدلو ♒", emoji: "🏺", start: [1, 20], end: [2, 18]},
-                {name: "الحوت ♓", emoji: "🐟", start: [2, 19], end: [3, 20]},
-                {name: "الحمل ♈", emoji: "🐏", start: [3, 21], end: [4,
+                {name: "الجدي", emoji: "♑", start: [12, 22], end: [1, 19]},
+                {name: "الدلو", emoji: "♒", start: [1, 20], end: [2, 18]},
+                {name: "الحوت", emoji: "♓", start: [2, 19], end: [3, 20]},
+                {name: "الحمل", emoji: "♈", start: [3, 21], end: [4, 19]},
+                {name: "الثور", emoji: "♉", start: [4, 20], end: [5, 20]},
+                {name: "الجوزاء", emoji: "♊", start: [5, 21], end: [6, 20]},
+                {name: "السرطان", emoji: "♋", start: [6, 21], end: [7, 22]},
+                {name: "الأسد", emoji: "♌", start: [7, 23], end: [8, 22]},
+                {name: "العذراء", emoji: "♍", start: [8, 23], end: [9, 22]},
+                {name: "الميزان", emoji: "♎", start: [9, 23], end: [10, 22]},
+                {name: "العقرب", emoji: "♏", start: [10, 23], end: [11, 21]},
+                {name: "القوس", emoji: "♐", start: [11, 22], end: [12, 21]}
+            ];
+
+            for (let sign of signs) {
+                const [startMonth, startDay] = sign.start;
+                const [endMonth, endDay] = sign.end;
+                
+                if ((month === startMonth && day >= startDay) || (month === endMonth && day <= endDay)) {
+                    return `${sign.emoji} ${sign.name}`;
+                }
+            }
+            return "♑ الجدي";
+        }
+
+        function getDayOfWeek(date) {
+            const days = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+            return days[date.getDay()];
+        }
+
+        function analyzeNationalID() {
+            const id = document.getElementById("nationalID").value.trim();
+            const errorDiv = document.getElementById("idError");
+            const successDiv = document.getElementById("idSuccess");
+            
+            hideError(errorDiv);
+            hideError(successDiv);
+
+            if (id.length !== 14 || isNaN(id)) {
+                showError(errorDiv, language === "ar" ? "❌ الرقم القومي يجب أن يكون 14 رقماً!" : "❌ National ID must be 14 digits!");
+                return;
+            }
+
+            const centuryDigit = id.charAt(0);
+            let century;
+            
+            if (centuryDigit === "2") {
+                century = "19";
+            } else if (centuryDigit === "3") {
+                century = "20";
+            } else {
+                showError(errorDiv, language === "ar" ? "❌ الرقم القومي غير صحيح! يجب أن يبدأ بـ 2 أو 3" : "❌ Invalid ID! Must start with 2 or 3");
+                return;
+            }
+
+            const year = id.substring(1, 3);
+            const month = parseInt(id.substring(3, 5));
+            const day = parseInt(id.substring(5, 7));
+            const fullYear = parseInt(century + year);
+
+            if (month < 1 || month > 12 || day < 1 || day > 31) {
+                showError(errorDiv, language === "ar" ? "❌ تاريخ الميلاد غير صحيح!" : "❌ Invalid birth date!");
+                return;
+            }
+
+            const birthDate = new Date(fullYear, month - 1, day);
+            if (birthDate.getDate() !== day) {
+                showError(errorDiv, language === "ar" ? "❌ تاريخ الميلاد غير صحيح!" : "❌ Invalid birth date!");
+                return;
+            }
+
+            const genderCode = parseInt(id.charAt(12));
+            const governorateCode = id.substring(7, 9);
+
+            const governorates = {
+                "01": "القاهرة / Cairo",
+                "02": "الإسكندرية / Alexandria",
+                "03": "بورسعيد / Port Said",
+                "04": "السويس / Suez",
+                "11": "دمياط / Damietta",
+                "12": "الدقهلية / Dakahlia",
+                "13": "الشرقية / Sharqia",
+                "14": "القليوبية / Qalyubia",
+                "15": "كفر الشيخ / Kafr El Sheikh",
+                "16": "الغربية / Gharbia",
+                "17": "المنوفية / Monufia",
+                "18": "البحيرة / Beheira",
+                "19": "الإسماعيلية / Ismailia",
+                "21": "الجيزة / Giza",
+                "22": "بني سويف / Beni Suef",
+                "23": "الفيوم / Fayoum",
+                "24": "الأقصر / Luxor",
+                "25": "سوهاج / Sohag",
+                "26": "قنا / Qena",
+                "27": "أسوان / Aswan",
+                "28": "أسيوط / Asyut",
+                "29": "مطروح / Matrouh",
+                "31": "شمال سيناء / North Sinai",
+                "32": "جنوب سيناء / South Sinai",
+                "33": "البحر الأحمر / Red Sea",
+                "88": "خارج الجمهورية / Outside Egypt"
+            };
+
+            const gender = genderCode % 2 === 1 ? (language === "ar" ? "ذكر 👨" : "Male 👨") : (language === "ar" ? "أنثى 👩" : "Female 👩");
+            const governorate = governorates[governorateCode] || (language === "ar" ? "غير معروف" : "Unknown");
+            const zodiac = getZodiacSign(day, month);
+            const dayOfWeek = getDayOfWeek(birthDate);
+
+            const today = new Date();
+            const age = calculateDetailedAge(birthDate, today);
+            const daysUntilBirthday = calculateDaysUntilBirthday(birthDate);
+            const totalDays = Math.floor((today - birthDate) / (1000 * 60 * 60 * 24));
+            const totalWeeks = Math.floor(totalDays / 7);
+            const totalMonths = age.years * 12 + age.months;
+            const totalHours = totalDays * 24;
+
+            stats.analyses++;
+            updateStatsDisplay();
+
+            const results = [
+                { key: language === "ar" ? "📅 تاريخ الميلاد" : "📅 Birth Date", value: `${day}/${month}/${fullYear}`, highlight: true },
+                { key: language === "ar" ? "🎂 العمر الكامل" : "🎂 Full Age", value: `${age.years} ${language === "ar" ? "سنة" : "years"}, ${age.months} ${language === "ar" ? "شهر" : "months"}, ${age.days} ${language === "ar" ? "يوم" : "days"}`, highlight: true },
+                { key: language === "ar" ? "👤 الجنس" : "👤 Gender", value: gender },
+                { key: language === "ar" ? "📍 المحافظة" : "📍 Governorate", value: governorate },
+                { key: language === "ar" ? "⭐ البرج الفلكي" : "⭐ Zodiac Sign", value: zodiac },
+                { key: language === "ar" ? "📆 يوم الميلاد" : "📆 Day of Birth", value: dayOfWeek },
+                { key: language === "ar" ? "⏳ العمر بالأيام" : "⏳ Age in Days", value: `${totalDays.toLocaleString()} ${language === "ar" ? "يوم" : "days"}` },
+                { key: language === "ar" ? "📊 العمر بالأسابيع" : "📊 Age in Weeks", value: `${totalWeeks.toLocaleString()} ${language === "ar" ? "أسبوع" : "weeks"}` },
+                { key: language === "ar" ? "📈 العمر بالشهور" : "📈 Age in Months", value: `${totalMonths} ${language === "ar" ? "شهر" : "months"}` },
+                { key: language === "ar" ? "⏰ العمر بالساعات" : "⏰ Age in Hours", value: `${totalHours.toLocaleString()} ${language === "ar" ? "ساعة" : "hours"}` },
+                { key: language === "ar" ? "🎉 الأيام حتى عيد الميلاد القادم" : "🎉 Days Until Next Birthday", value: `${daysUntilBirthday} ${language === "ar" ? "يوم" : "days"}` },
+                { key: language === "ar" ? "🔢 رقم المحافظة" : "🔢 Governorate Code", value: governorateCode }
+            ];
+
+            showSuccess(successDiv, language === "ar" ? "✅ تم التحليل بنجاح!" : "✅ Analysis completed!");
+            showPopup(results);
+        }
+
+        function calculateAge() {
+            const dob = document.getElementById("dob").value.trim();
+            const errorDiv = document.getElementById("dobError");
+            const successDiv = document.getElementById("dobSuccess");
+            
+            hideError(errorDiv);
+            hideError(successDiv);
+
+            if (!isValidDate(dob)) {
+                showError(errorDiv, language === "ar" ? "❌ تاريخ غير صحيح! استخدم التنسيق DD-MM-YYYY" : "❌ Invalid date! Use DD-MM-YYYY format");
+                return;
+            }
+
+            const [day, month, year] = dob.split("-").map(Number);
+            const birthDate = new Date(year, month - 1, day);
+            const today = new Date();
+            
+            if (birthDate > today) {
+                showError(errorDiv, language === "ar" ? "❌ التاريخ في المستقبل!" : "❌ Date is in the future!");
+                return;
+            }
+
+            const age = calculateDetailedAge(birthDate, today);
+            const daysUntilBirthday = calculateDaysUntilBirthday(birthDate);
+            const totalDays = Math.floor((today - birthDate) / (1000 * 60 * 60 * 24));
+            const totalWeeks = Math.floor(totalDays / 7);
+            const totalMonths = age.years * 12 + age.months;
+            const totalHours = totalDays * 24;
+            const zodiac = getZodiacSign(day, month);
+            const dayOfWeek = getDayOfWeek(birthDate);
+
+            stats.ages++;
+            updateStatsDisplay();
+
+            const results = [
+                { key: language === "ar" ? "📅 تاريخ الميلاد" : "📅 Birth Date", value: `${day}/${month}/${year}`, highlight: true },
+                { key: language === "ar" ? "🎂 العمر الكامل" : "🎂 Full Age", value: `${age.years} ${language === "ar" ? "سنة" : "years"}, ${age.months} ${language === "ar" ? "شهر" : "months"}, ${age.days} ${language === "ar" ? "يوم" : "days"}`, highlight: true },
+                { key: language === "ar" ? "⭐ البرج الفلكي" : "⭐ Zodiac Sign", value: zodiac },
+                { key: language === "ar" ? "📆 يوم الميلاد" : "📆 Day of Birth", value: dayOfWeek },
+                { key: language === "ar" ? "⏳ العمر بالأيام" : "⏳ Age in Days", value: `${totalDays.toLocaleString()} ${language === "ar" ? "يوم" : "days"}` },
+                { key: language === "ar" ? "📊 العمر بالأسابيع" : "📊 Age in Weeks", value: `${totalWeeks.toLocaleString()} ${language === "ar" ? "أسبوع" : "weeks"}` },
+                { key: language === "ar" ? "📈 العمر بالشهور" : "📈 Age in Months", value: `${totalMonths} ${language === "ar" ? "شهر" : "months"}` },
+                { key: language === "ar" ? "⏰ العمر بالساعات" : "⏰ Age in Hours", value: `${totalHours.toLocaleString()} ${language === "ar" ? "ساعة" : "hours"}` },
+                { key: language === "ar" ? "🎉 الأيام حتى عيد الميلاد" : "🎉 Days Until Birthday", value: `${daysUntilBirthday} ${language === "ar" ? "يوم" : "days"}` }
+            ];
+
+            showSuccess(successDiv, language === "ar" ? "✅ تم الحساب بنجاح!" : "✅ Calculation completed!");
+            showPopup(results);
+        }
+
+        function calculateDateDifference() {
+            const date1 = document.getElementById("date1").value.trim();
+            const date2 = document.getElementById("date2").value.trim();
+            const errorDiv = document.getElementById("dateError");
+            const successDiv = document.getElementById("dateSuccess");
+            
+            hideError(errorDiv);
+            hideError(successDiv);
+
+            if (!isValidDate(date1) || !isValidDate(date2)) {
+                showError(errorDiv, language === "ar" ? "❌ تاريخ غير صحيح! استخدم التنسيق DD-MM-YYYY" : "❌ Invalid date! Use DD-MM-YYYY format");
+                return;
+            }
+
+            const [d1, m1, y1] = date1.split("-").map(Number);
+            const [d2, m2, y2] = date2.split("-").map(Number);
+            const firstDate = new Date(y1, m1 - 1, d1);
+            const secondDate = new Date(y2, m2 - 1, d2);
+
+            let startDate = firstDate;
+            let endDate = secondDate;
+            let label1 = language === "ar" ? "التاريخ الأول" : "First Date";
+            let label2 = language === "ar" ? "التاريخ الثاني" : "Second Date";
+            
+            if (firstDate > secondDate) {
+                startDate = secondDate;
+                endDate = firstDate;
+                label1 = language === "ar" ? "التاريخ الثاني" : "Second Date";
+                label2 = language === "ar" ? "التاريخ الأول" : "First Date";
+            }
+
+            const difference = calculateDetailedAge(startDate, endDate);
+            const totalDays = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24));
+            const totalWeeks = Math.floor(totalDays / 7);
+            const totalMonths = difference.years * 12 + difference.months;
+            const totalHours = totalDays * 24;
+
+            stats.dates++;
+            updateStatsDisplay();
+
+            const results = [
+                { key: `📅 ${label1}`, value: `${d1}/${m1}/${y1}` },
+                { key: `📅 ${label2}`, value: `${d2}/${m2}/${y2}` },
+                { key: language === "ar" ? "⏳ الفرق الزمني" : "⏳ Time Difference", value: `${difference.years} ${language === "ar" ? "سنة" : "years"}, ${difference.months} ${language === "ar" ? "شهر" : "months"}, ${difference.days} ${language === "ar" ? "يوم" : "days"}`, highlight: true },
+                { key: language === "ar" ? "📊 الفرق بالأيام" : "📊 Difference in Days", value: `${totalDays.toLocaleString()} ${language === "ar" ? "يوم" : "days"}` },
+                { key: language === "ar" ? "📈 الفرق بالأسابيع" : "📈 Difference in Weeks", value: `${totalWeeks.toLocaleString()} ${language === "ar" ? "أسبوع" : "weeks"}` },
+                { key: language === "ar" ? "📉 الفرق بالشهور" : "📉 Difference in Months", value: `${totalMonths} ${language === "ar" ? "شهر" : "months"}` },
+                { key: language === "ar" ? "⏰ الفرق بالساعات" : "⏰ Difference in Hours", value: `${totalHours.toLocaleString()} ${language === "ar" ? "ساعة" : "hours"}` }
+            ];
+
+            showSuccess(successDiv, language === "ar" ? "✅ تم الحساب بنجاح!" : "✅ Calculation completed!");
+            showPopup(results);
+        }
+
+        function calculateDetailedAge(startDate, endDate) {
+            let years = endDate.getFullYear() - startDate.getFullYear();
+            let months = endDate.getMonth() - startDate.getMonth();
+            let days = endDate.getDate() - startDate.getDate();
+
+            if (days < 0) {
+                months--;
+                const prevMonth = new Date(endDate.getFullYear(), endDate.getMonth(), 0);
+                days += prevMonth.getDate();
+            }
+
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+
+            return { years, months, days };
+        }
+
+        function calculateDaysUntilBirthday(birthDate) {
+            const today = new Date();
+            const thisYearBirthday = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+            
+            if (thisYearBirthday < today) {
+                thisYearBirthday.setFullYear(today.getFullYear() + 1);
+            }
+            
+            return Math.ceil((thisYearBirthday - today) / (1000 * 60 * 60 * 24));
+        }
+
+        function isValidDate(dateStr) {
+            const regex = /^(\d{2})-(\d{2})-(\d{4})$/;
+            if (!regex.test(dateStr)) return false;
+            
+            const [day, month, year] = dateStr.split("-").map(Number);
+            const date = new Date(year, month - 1, day);
+            
+            return date.getDate() === day && date.getMonth() + 1 === month && date.getFullYear() === year;
+        }
+
+        function showPopup(results) {
+            const popup = document.getElementById("resultsPopup");
+            const overlay = document.getElementById("overlay");
+            const body = document.getElementById("popupResultsBody");
+
+            currentResults = results;
+            body.innerHTML = "";
+
+            results.forEach(result => {
+                const div = document.createElement("div");
+                div.className = result.highlight ? "result-item result-highlight" : "result-item";
+                div.innerHTML = `
+                    <span class="result-key">${result.key}</span>
+                    <span class="result-value">${result.value}</span>
+                `;
+                body.appendChild(div);
+            });
+
+            popup.classList.add("show");
+            overlay.classList.add("show");
+        }
+
+        function closePopup() {
+            const popup = document.getElementById("resultsPopup");
+            const overlay = document.getElementById("overlay");
+            
+            popup.classList.remove("show");
+            overlay.classList.remove("show");
+        }
+
+        function copyResults() {
+            let text = "📊 النتائج التفصيلية\n\n";
+            currentResults.forEach(result => {
+                text += `${result.key}: ${result.value}\n`;
+            });
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                const originalText = btn.textContent;
+                btn.textContent = "✅ تم النسخ!";
+                btn.style.background = "#2ecc71";
+                btn.style.color = "white";
+                
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = "rgba(46, 204, 113, 0.1)";
+                    btn.style.color = "#2ecc71";
+                }, 2000);
+            });
+        }
+
+        function showError(element, message) {
+            element.textContent = message;
+            element.classList.add("show");
+        }
+
+        function hideError(element) {
+            element.textContent = "";
+            element.classList.remove("show");
+        }
+
+        function showSuccess(element, message) {
+            element.textContent = message;
+            element.classList.add("show");
+        }
+
+        function updateDobInput(value) {
+            if (!value) return;
+            const [year, month, day] = value.split("-");
+            document.getElementById("dob").value = `${day}-${month}-${year}`;
+            validateDateField(document.getElementById("dob"), 'ageProgress');
+        }
+
+        function updateDate1Input(value) {
+            if (!value) return;
+            const [year, month, day] = value.split("-");
+            document.getElementById("date1").value = `${day}-${month}-${year}`;
+            validateDateField(document.getElementById("date1"), 'dateProgress');
+        }
+
+        function updateDate2Input(value) {
+            if (!value) return;
+            const [year, month, day] = value.split("-");
+            document.getElementById("date2").value = `${day}-${month}-${year}`;
+            validateDateField(document.getElementById("date2"), 'dateProgress');
+        }
+
+        // Quick fill functions
+        function fillSampleID(century) {
+            const year = century === '2' ? '90' : '05';
+            const month = '05';
+            const day = '15';
+            const gov = '01';
+            const serial = '1234';
+            const gender = '1';
+            const check = '7';
+            
+            document.getElementById("nationalID").value = `${century}${year}${month}${day}${gov}${serial}${gender}${check}`;
+            validateIDInput(document.getElementById("nationalID"));
+        }
+
+        function fillToday() {
+            const today = new Date();
+            const day = String(today.getDate()).padStart(2, '0');
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const year = today.getFullYear();
+            
+            document.getElementById("dob").value = `${day}-${month}-${year}`;
+            document.getElementById("dobPicker").value = `${year}-${month}-${day}`;
+            validateDateField(document.getElementById("dob"), 'ageProgress');
+        }
+
+        function fill20YearsAgo() {
+            const date = new Date();
+            date.setFullYear(date.getFullYear() - 20);
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            
+            document.getElementById("dob").value = `${day}-${month}-${year}`;
+            document.getElementById("dobPicker").value = `${year}-${month}-${day}`;
+            validateDateField(document.getElementById("dob"), 'ageProgress');
+        }
+
+        function fillYearRange() {
+            const today = new Date();
+            const lastYear = new Date(today);
+            lastYear.setFullYear(lastYear.getFullYear() - 1);
+            
+            const day1 = String(lastYear.getDate()).padStart(2, '0');
+            const month1 = String(lastYear.getMonth() + 1).padStart(2, '0');
+            const year1 = lastYear.getFullYear();
+            
+            const day2 = String(today.getDate()).padStart(2, '0');
+            const month2 = String(today.getMonth() + 1).padStart(2, '0');
+            const year2 = today.getFullYear();
+            
+            document.getElementById("date1").value = `${day1}-${month1}-${year1}`;
+            document.getElementById("date1Picker").value = `${year1}-${month1}-${day1}`;
+            document.getElementById("date2").value = `${day2}-${month2}-${year2}`;
+            document.getElementById("date2Picker").value = `${year2}-${month2}-${day2}`;
+            
+            validateDateField(document.getElementById("date1"), 'dateProgress');
+            validateDateField(document.getElementById("date2"), 'dateProgress');
+        }
+
+        function fillMonthRange() {
+            const today = new Date();
+            const lastMonth = new Date(today);
+            lastMonth.setMonth(lastMonth.getMonth() - 1);
+            
+            const day1 = String(lastMonth.getDate()).padStart(2, '0');
+            const month1 = String(lastMonth.getMonth() + 1).padStart(2, '0');
+            const year1 = lastMonth.getFullYear();
+            
+            const day2 = String(today.getDate()).padStart(2, '0');
+            const month2 = String(today.getMonth() + 1).padStart(2, '0');
+            const year2 = today.getFullYear();
+            
+            document.getElementById("date1").value = `${day1}-${month1}-${year1}`;
+            document.getElementById("date1Picker").value = `${year1}-${month1}-${day1}`;
+            document.getElementById("date2").value = `${day2}-${month2}-${year2}`;
+            document.getElementById("date2Picker").value = `${year2}-${month2}-${day2}`;
+            
+            validateDateField(document.getElementById("date1"), 'dateProgress');
+            validateDateField(document.getElementById("date2"), 'dateProgress');
+        }
+
+        updateLabels();
+    </script>
+</body>
+</html>
