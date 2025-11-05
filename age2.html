@@ -1,1 +1,656 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محلل الرقم القومي المصري | Egyptian National ID Analyzer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            direction: rtl;
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 48px rgba(0,0,0,0.15);
+        }
+
+        .card-title {
+            font-size: 1.5em;
+            color: #667eea;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title::before {
+            content: "📋";
+            font-size: 1.2em;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .error {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 8px;
+            display: none;
+            animation: shake 0.5s ease;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+            z-index: 1000;
+            max-width: 500px;
+            width: 90%;
+            animation: popupIn 0.4s ease;
+        }
+
+        .popup.show {
+            display: block;
+        }
+
+        .popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .popup-title {
+            font-size: 1.5em;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            padding: 0;
+            margin: 0;
+        }
+
+        .close-btn:hover {
+            background: #c0392b;
+            transform: rotate(90deg);
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .result-item:hover {
+            background: #e9ecef;
+            transform: translateX(-5px);
+        }
+
+        .result-key {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .result-value {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 999;
+            backdrop-filter: blur(5px);
+        }
+
+        .overlay.show {
+            display: block;
+        }
+
+        .language-selector {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes popupIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .cards-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="language-selector">
+        <select id="language" onchange="changeLanguage()">
+            <option value="ar">العربية</option>
+            <option value="en">English</option>
+        </select>
+    </div>
+
+    <div class="main-container">
+        <div class="header">
+            <h1>🎯 محلل الرقم القومي المصري</h1>
+            <p>أداة شاملة لتحليل الرقم القومي وحساب الأعمار والتواريخ</p>
+        </div>
+
+        <div class="cards-container">
+            <!-- National ID Analyzer Card -->
+            <div class="card">
+                <h2 class="card-title">تحليل الرقم القومي</h2>
+                <div class="input-group">
+                    <label for="nationalID">الرقم القومي (14 رقم)</label>
+                    <input type="text" id="nationalID" placeholder="أدخل الرقم القومي..." maxlength="14" inputmode="numeric">
+                    <div id="idError" class="error"></div>
+                </div>
+                <button onclick="analyzeNationalID()">🔍 تحليل الرقم القومي</button>
+            </div>
+
+            <!-- Age Calculator Card -->
+            <div class="card">
+                <h2 class="card-title">حساب العمر</h2>
+                <div class="input-group">
+                    <label for="dobPicker">تاريخ الميلاد</label>
+                    <input type="date" id="dobPicker" onchange="updateDobInput(this.value)">
+                    <input type="text" id="dob" placeholder="DD-MM-YYYY" style="margin-top: 10px;">
+                    <div id="dobError" class="error"></div>
+                </div>
+                <button onclick="calculateAge()">🎂 احسب العمر</button>
+            </div>
+
+            <!-- Date Difference Calculator Card -->
+            <div class="card">
+                <h2 class="card-title">حساب الفرق بين تاريخين</h2>
+                <div class="input-group">
+                    <label for="date1Picker">التاريخ الأول</label>
+                    <input type="date" id="date1Picker" onchange="updateDate1Input(this.value)">
+                    <input type="text" id="date1" placeholder="DD-MM-YYYY" style="margin-top: 10px;">
+                </div>
+                <div class="input-group">
+                    <label for="date2Picker">التاريخ الثاني</label>
+                    <input type="date" id="date2Picker" onchange="updateDate2Input(this.value)">
+                    <input type="text" id="date2" placeholder="DD-MM-YYYY" style="margin-top: 10px;">
+                    <div id="dateError" class="error"></div>
+                </div>
+                <button onclick="calculateDateDifference()">📅 احسب الفرق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popup for Results -->
+    <div class="popup" id="resultsPopup">
+        <div class="popup-header">
+            <h3 class="popup-title">النتائج</h3>
+            <button class="close-btn" onclick="closePopup()">×</button>
+        </div>
+        <div id="popupResultsBody"></div>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay" onclick="closePopup()"></div>
+
+    <script>
+        let language = "ar";
+
+        function changeLanguage() {
+            language = document.getElementById("language").value;
+            updateLabels();
+        }
+
+        function updateLabels() {
+            const labels = {
+                ar: {
+                    title: "محلل الرقم القومي المصري",
+                    subtitle: "أداة شاملة لتحليل الرقم القومي وحساب الأعمار والتواريخ",
+                    analyzeCard: "تحليل الرقم القومي",
+                    ageCard: "حساب العمر",
+                    dateCard: "حساب الفرق بين تاريخين",
+                    analyzeBtn: "🔍 تحليل الرقم القومي",
+                    ageBtn: "🎂 احسب العمر",
+                    dateDiffBtn: "📅 احسب الفرق"
+                },
+                en: {
+                    title: "Egyptian National ID Analyzer",
+                    subtitle: "Comprehensive tool for analyzing national IDs and calculating ages",
+                    analyzeCard: "National ID Analysis",
+                    ageCard: "Age Calculator",
+                    dateCard: "Date Difference Calculator",
+                    analyzeBtn: "🔍 Analyze ID",
+                    ageBtn: "🎂 Calculate Age",
+                    dateDiffBtn: "📅 Calculate Difference"
+                }
+            };
+
+            document.querySelector('.header h1').textContent = labels[language].title;
+            document.querySelector('.header p').textContent = labels[language].subtitle;
+        }
+
+        function analyzeNationalID() {
+            const id = document.getElementById("nationalID").value.trim();
+            const errorDiv = document.getElementById("idError");
+            
+            if (id.length !== 14 || isNaN(id)) {
+                showError(errorDiv, language === "ar" ? "الرقم القومي يجب أن يكون 14 رقماً!" : "National ID must be 14 digits!");
+                return;
+            }
+            
+            hideError(errorDiv);
+
+            const centuryDigit = id.charAt(0);
+            let century, fullYear;
+            
+            // تحديد القرن بناءً على الرقم الأول
+            if (centuryDigit === "2") {
+                century = "19";
+            } else if (centuryDigit === "3") {
+                century = "20";
+            } else {
+                showError(errorDiv, language === "ar" ? "الرقم القومي غير صحيح! يجب أن يبدأ بـ 2 أو 3" : "Invalid ID! Must start with 2 or 3");
+                return;
+            }
+
+            const year = id.substring(1, 3);
+            const month = parseInt(id.substring(3, 5));
+            const day = parseInt(id.substring(5, 7));
+            fullYear = parseInt(century + year);
+
+            // التحقق من صحة التاريخ
+            if (month < 1 || month > 12 || day < 1 || day > 31) {
+                showError(errorDiv, language === "ar" ? "تاريخ الميلاد غير صحيح!" : "Invalid birth date!");
+                return;
+            }
+
+            const genderCode = parseInt(id.charAt(12));
+            const governorateCode = id.substring(7, 9);
+
+            const governorates = {
+                "01": "القاهرة / Cairo",
+                "02": "الإسكندرية / Alexandria",
+                "03": "بورسعيد / Port Said",
+                "04": "السويس / Suez",
+                "11": "دمياط / Damietta",
+                "12": "الدقهلية / Dakahlia",
+                "13": "الشرقية / Sharqia",
+                "14": "القليوبية / Qalyubia",
+                "15": "كفر الشيخ / Kafr El Sheikh",
+                "16": "الغربية / Gharbia",
+                "17": "المنوفية / Monufia",
+                "18": "البحيرة / Beheira",
+                "19": "الإسماعيلية / Ismailia",
+                "21": "الجيزة / Giza",
+                "22": "بني سويف / Beni Suef",
+                "23": "الفيوم / Fayoum",
+                "24": "الأقصر / Luxor",
+                "25": "سوهاج / Sohag",
+                "26": "قنا / Qena",
+                "27": "أسوان / Aswan",
+                "28": "أسيوط / Asyut",
+                "29": "مطروح / Matrouh",
+                "31": "شمال سيناء / North Sinai",
+                "32": "جنوب سيناء / South Sinai",
+                "33": "البحر الأحمر / Red Sea",
+                "88": "خارج الجمهورية / Outside Egypt"
+            };
+
+            const birthDate = new Date(fullYear, month - 1, day);
+            const gender = genderCode % 2 === 1 ? (language === "ar" ? "ذكر" : "Male") : (language === "ar" ? "أنثى" : "Female");
+            const governorate = governorates[governorateCode] || (language === "ar" ? "غير معروف" : "Unknown");
+
+            const today = new Date();
+            const age = calculateDetailedAge(birthDate, today);
+            const daysUntilBirthday = calculateDaysUntilBirthday(birthDate);
+            const totalDays = Math.floor((today - birthDate) / (1000 * 60 * 60 * 24));
+
+            const results = [
+                { key: language === "ar" ? "تاريخ الميلاد" : "Birth Date", value: `${day}/${month}/${fullYear}` },
+                { key: language === "ar" ? "العمر الكامل" : "Full Age", value: `${age.years} ${language === "ar" ? "سنة" : "years"}, ${age.months} ${language === "ar" ? "شهر" : "months"}, ${age.days} ${language === "ar" ? "يوم" : "days"}` },
+                { key: language === "ar" ? "العمر بالأيام" : "Age in Days", value: `${totalDays} ${language === "ar" ? "يوم" : "days"}` },
+                { key: language === "ar" ? "الجنس" : "Gender", value: gender },
+                { key: language === "ar" ? "المحافظة" : "Governorate", value: governorate },
+                { key: language === "ar" ? "الأيام حتى عيد الميلاد القادم" : "Days Until Birthday", value: `${daysUntilBirthday} ${language === "ar" ? "يوم" : "days"}` }
+            ];
+
+            showPopup(results);
+        }
+
+        function calculateAge() {
+            const dob = document.getElementById("dob").value.trim();
+            const errorDiv = document.getElementById("dobError");
+            
+            if (!isValidDate(dob)) {
+                showError(errorDiv, language === "ar" ? "تاريخ غير صحيح! استخدم التنسيق DD-MM-YYYY" : "Invalid date! Use DD-MM-YYYY format");
+                return;
+            }
+            
+            hideError(errorDiv);
+
+            const [day, month, year] = dob.split("-").map(Number);
+            const birthDate = new Date(year, month - 1, day);
+            const today = new Date();
+            
+            const age = calculateDetailedAge(birthDate, today);
+            const daysUntilBirthday = calculateDaysUntilBirthday(birthDate);
+            const totalDays = Math.floor((today - birthDate) / (1000 * 60 * 60 * 24));
+            const totalMonths = age.years * 12 + age.months;
+
+            const results = [
+                { key: language === "ar" ? "العمر الكامل" : "Full Age", value: `${age.years} ${language === "ar" ? "سنة" : "years"}, ${age.months} ${language === "ar" ? "شهر" : "months"}, ${age.days} ${language === "ar" ? "يوم" : "days"}` },
+                { key: language === "ar" ? "العمر بالأيام" : "Age in Days", value: `${totalDays} ${language === "ar" ? "يوم" : "days"}` },
+                { key: language === "ar" ? "العمر بالشهور" : "Age in Months", value: `${totalMonths} ${language === "ar" ? "شهر" : "months"}` },
+                { key: language === "ar" ? "الأيام حتى عيد الميلاد" : "Days Until Birthday", value: `${daysUntilBirthday} ${language === "ar" ? "يوم" : "days"}` }
+            ];
+
+            showPopup(results);
+        }
+
+        function calculateDateDifference() {
+            const date1 = document.getElementById("date1").value.trim();
+            const date2 = document.getElementById("date2").value.trim();
+            const errorDiv = document.getElementById("dateError");
+            
+            if (!isValidDate(date1) || !isValidDate(date2)) {
+                showError(errorDiv, language === "ar" ? "تاريخ غير صحيح! استخدم التنسيق DD-MM-YYYY" : "Invalid date! Use DD-MM-YYYY format");
+                return;
+            }
+            
+            hideError(errorDiv);
+
+            const [d1, m1, y1] = date1.split("-").map(Number);
+            const [d2, m2, y2] = date2.split("-").map(Number);
+            const firstDate = new Date(y1, m1 - 1, d1);
+            const secondDate = new Date(y2, m2 - 1, d2);
+
+            let startDate = firstDate;
+            let endDate = secondDate;
+            if (firstDate > secondDate) {
+                startDate = secondDate;
+                endDate = firstDate;
+            }
+
+            const difference = calculateDetailedAge(startDate, endDate);
+            const totalDays = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24));
+
+            const results = [
+                { key: language === "ar" ? "الفرق الزمني" : "Time Difference", value: `${difference.years} ${language === "ar" ? "سنة" : "years"}, ${difference.months} ${language === "ar" ? "شهر" : "months"}, ${difference.days} ${language === "ar" ? "يوم" : "days"}` },
+                { key: language === "ar" ? "الفرق بالأيام" : "Difference in Days", value: `${totalDays} ${language === "ar" ? "يوم" : "days"}` }
+            ];
+
+            showPopup(results);
+        }
+
+        function calculateDetailedAge(startDate, endDate) {
+            let years = endDate.getFullYear() - startDate.getFullYear();
+            let months = endDate.getMonth() - startDate.getMonth();
+            let days = endDate.getDate() - startDate.getDate();
+
+            if (days < 0) {
+                months--;
+                const prevMonth = new Date(endDate.getFullYear(), endDate.getMonth(), 0);
+                days += prevMonth.getDate();
+            }
+
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+
+            return { years, months, days };
+        }
+
+        function calculateDaysUntilBirthday(birthDate) {
+            const today = new Date();
+            const thisYearBirthday = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+            
+            if (thisYearBirthday < today) {
+                thisYearBirthday.setFullYear(today.getFullYear() + 1);
+            }
+            
+            return Math.ceil((thisYearBirthday - today) / (1000 * 60 * 60 * 24));
+        }
+
+        function isValidDate(dateStr) {
+            const regex = /^(\d{2})-(\d{2})-(\d{4})$/;
+            if (!regex.test(dateStr)) return false;
+            
+            const [day, month, year] = dateStr.split("-").map(Number);
+            const date = new Date(year, month - 1, day);
+            
+            return date.getDate() === day && date.getMonth() + 1 === month && date.getFullYear() === year;
+        }
+
+        function showPopup(results) {
+            const popup = document.getElementById("resultsPopup");
+            const overlay = document.getElementById("overlay");
+            const body = document.getElementById("popupResultsBody");
+
+            body.innerHTML = "";
+
+            results.forEach(result => {
+                const div = document.createElement("div");
+                div.className = "result-item";
+                div.innerHTML = `
+                    <span class="result-key">${result.key}</span>
+                    <span class="result-value">${result.value}</span>
+                `;
+                body.appendChild(div);
+            });
+
+            popup.classList.add("show");
+            overlay.classList.add("show");
+        }
+
+        function closePopup() {
+            const popup = document.getElementById("resultsPopup");
+            const overlay = document.getElementById("overlay");
+            
+            popup.classList.remove("show");
+            overlay.classList.remove("show");
+        }
+
+        function showError(element, message) {
+            element.textContent = message;
+            element.classList.add("show");
+        }
+
+        function hideError(element) {
+            element.textContent = "";
+            element.classList.remove("show");
+        }
+
+        function updateDobInput(value) {
+            if (!value) return;
+            const [year, month, day] = value.split("-");
+            document.getElementById("dob").value = `${day}-${month}-${year}`;
+        }
+
+        function updateDate1Input(value) {
+            if (!value) return;
+            const [year, month, day] = value.split("-");
+            document.getElementById("date1").value = `${day}-${month}-${year}`;
+        }
+
+        function updateDate2Input(value) {
+            if (!value) return;
+            const [year, month, day] = value.split("-");
+            document.getElementById("date2").value = `${day}-${month}-${year}`;
+        }
+
+        updateLabels();
+    </script>
+</body>
+</html>
